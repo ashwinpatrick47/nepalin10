@@ -1,37 +1,25 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import Image from "next/image";
-import Lenis from "lenis";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 
 export default function HimalayanParallax() {
   const sceneRef = useRef<HTMLElement>(null);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reducedMotion) return;
-    const lenis = new Lenis({ lerp: 0.075, smoothWheel: true });
-    let frame = 0;
-    const animate = (time: number) => {
-      lenis.raf(time);
-      frame = requestAnimationFrame(animate);
-    };
-    frame = requestAnimationFrame(animate);
-    return () => { cancelAnimationFrame(frame); lenis.destroy(); };
-  }, [reducedMotion]);
 
   const { scrollYProgress } = useScroll({
     target: sceneRef,
     offset: ["start start", "end end"],
   });
 
-  // The section itself scrolls upward. These local offsets create the depth
-  // hierarchy while keeping both foreground layers below frame on load.
-  const skyY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
-  const mountainY = useTransform(scrollYProgress, [0, 0.08, 0.55, 1], ["85vh", "85vh", "0vh", "-5vh"]);
-  const titleY = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
-  const monasteryY = useTransform(scrollYProgress, [0, 0.18, 0.88, 1], ["118vh", "118vh", "-8vh", "-10vh"]);
+  const skyY = useTransform(scrollYProgress, [0, 1], ["14vh", "34vh"]);
+  const mountainY = useTransform(scrollYProgress, [0, 1], ["0vh", "-45vh"]);
+  const titleY = useTransform(scrollYProgress, [0, 1], ["0vh", "-60vh"]);
+  const monasteryY = useTransform(scrollYProgress, [0, 1], ["-8vh", "-108vh"]);
   const progress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
@@ -56,34 +44,83 @@ export default function HimalayanParallax() {
             </motion.div>
 
             <motion.div className="hero-copy" style={{ x: "-50%", y: titleY }}>
-              <p>THE HIMALAYAS / NEPAL</p>
-              <h1>BEYOND<br /><em>THE CLOUDS</em></h1>
-              <span>Scroll into the silence.</span>
+              <p> PROJECT / NEPAL</p>
+              <h1 aria-label="Attempting a world record">
+                <span className="title-mask"><span>ATTEMPTING</span></span>
+                <span className="title-mask title-serif"><em>A WORLD RECORD</em></span>
+              </h1>
+              
             </motion.div>
 
             <motion.div className="image-layer monastery-layer" style={{ y: monasteryY }}>
               <div className="monastery-entry">
-                <Image src="/images/monastery-foreground-v2.png" alt="A Himalayan monastery with prayer flags" fill priority sizes="100vw" />
+                <Image src="/images/monastery-foreground-native-smooth.png" alt="A Himalayan monastery with prayer flags" fill priority unoptimized sizes="118vw" />
               </div>
             </motion.div>
           </div>
 
-          <div className="fog-layer" aria-hidden="true">
+          <div
+            className="fog-layer"
+            aria-hidden="true"
+            onAnimationEnd={() => window.dispatchEvent(new Event("hima:intro-complete"))}
+          >
             <Image src="/images/himalaya-clouds.jpg" alt="" fill priority sizes="100vw" />
             <div className="fog-light" />
           </div>
-
-          <div className="parallax-fade" />
 
           <div className="progress-rail"><i><motion.b style={{ height: progress }} /></i><span>01</span></div>
           <div className="scroll-cue"><span>SCROLL</span><i /></div>
         </div>
       </section>
 
-      <section className="closing-panel">
-        <p>THE MOUNTAINS ARE CALLING</p>
-        <h2>KEEP<br /><em>CLIMBING.</em></h2>
-        <a href="mailto:hello@hima.travel">BEGIN THE JOURNEY ↗</a>
+      <section className="story-content" aria-labelledby="story-title">
+        <div className="story-intro">
+          <p className="story-kicker">ABOVE THE TREELINE / 5,364 M</p>
+          <h2 id="story-title">Where the trail<br /><em>becomes ritual.</em></h2>
+          <p className="story-lede">
+            A slow passage through thin air, ancient villages and the quiet
+            shoulders of the Himalayas. Every step leaves the familiar further behind.
+          </p>
+        </div>
+
+        <div className="story-stats" aria-label="Journey details">
+          <div><strong>12</strong><span>Days on foot</span></div>
+          <div><strong>86</strong><span>Kilometres climbed</span></div>
+          <div><strong>01</strong><span>Path through Nepal</span></div>
+        </div>
+
+        <figure className="story-image">
+          <Image
+            src="/images/himalaya-mountains.jpg"
+            alt="A wide view across the Himalayan range"
+            fill
+            sizes="(max-width: 700px) 100vw, 88vw"
+          />
+          <figcaption>THE KHUMBU VALLEY / NEPAL</figcaption>
+        </figure>
+
+        <div className="story-chapters">
+          <article>
+            <span>01 / ARRIVAL</span>
+            <h3>Enter the valley</h3>
+            <p>Follow the river beyond the last roads, where pine forests give way to stone paths.</p>
+          </article>
+          <article>
+            <span>02 / ASCENT</span>
+            <h3>Move with the mountain</h3>
+            <p>Climb slowly through changing weather, prayer flags and settlements held above the clouds.</p>
+          </article>
+          <article>
+            <span>03 / STILLNESS</span>
+            <h3>Reach the high place</h3>
+            <p>Arrive where the landscape opens and the noise of the world finally falls away.</p>
+          </article>
+        </div>
+
+        <footer className="story-footer">
+          <p>THE HIMALAYAS ARE CALLING</p>
+          <a href="#story-title">RETURN TO THE PASS ↑</a>
+        </footer>
       </section>
     </main>
   );
