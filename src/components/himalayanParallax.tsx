@@ -35,7 +35,7 @@ export default function HimalayanParallax() {
     ["6vh", "0vh", "-45vh"],
   );
   const titleY = useTransform(scrollYProgress, [0, 1], ["0vh", "-60vh"]);
-  const monasteryY = useTransform(scrollYProgress, [0, 1], ["-8vh", "-108vh"]);
+  const monasteryY = useTransform(scrollYProgress, [0, 1], ["-4vh", "-104vh"]);
   const progress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
   return (
