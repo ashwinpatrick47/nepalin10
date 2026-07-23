@@ -14,10 +14,10 @@ import CinematicImageScroll, {
 } from "@/components/CinematicImageScroll";
 
 const storyWindows: readonly CinematicImageSlide[] = [
-  { src: "/images/himalaya-clouds.jpg", alt: "Clouds drifting above Nepal", title: "Air." },
-  { src: "/images/himalaya-mountains.jpg", alt: "Snow-covered Himalayan peaks", title: "Summit." },
-  { src: "/images/himalayan-valley.png", alt: "A trail through the Himalayan valley", title: "Trail." },
-  { src: "/images/monastery-hero.png", alt: "A monastery beneath the Himalayas", title: "Ritual." },
+  { src: "/images/himalaya-clouds.jpg", alt: "Clouds drifting above Nepal", title: "" },
+  { src: "/images/himalaya-mountains.jpg", alt: "Snow-covered Himalayan peaks", title: "" },
+  { src: "/images/himalayan-valley.png", alt: "A trail through the Himalayan valley", title: "" },
+  { src: "/images/monastery-hero.png", alt: "A monastery beneath the Himalayas", title: "" },
 ];
 
 export default function HimalayanParallax() {
@@ -34,19 +34,37 @@ export default function HimalayanParallax() {
     [0, 0.18, 1],
     ["6vh", "0vh", "-45vh"],
   );
-  const titleY = useTransform(scrollYProgress, [0, 1], ["0vh", "-60vh"]);
-  const monasteryY = useTransform(scrollYProgress, [0, 1], ["-4vh", "-104vh"]);
-  const progress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const titleY = useTransform(
+    scrollYProgress,
+    [0, 0.16, 0.5, 0.72, 1],
+    ["0vh", "-1vh", "-18vh", "-42vh", "-58vh"],
+  );
+  const monasteryY = useTransform(scrollYProgress, [0, 1], ["-1vh", "-104vh"]);
 
   return (
     <main>
-      <header className="site-header">
-        <a href="#top">HIMA <i /> NEPAL</a>
-        <span>28.5983° N / 83.9311° E</span>
-        <span>SCROLL TO ASCEND</span>
-      </header>
-
       <section id="top" ref={sceneRef} className="parallax-header">
+        <header className="site-header">
+          <div className="site-header-center">
+            <span>27.7172° N / 85.3240° E</span>
+            <span>PROJECT / NEPAL</span>
+          </div>
+        </header>
+
+        <div className="hero-project-mark" aria-label="An ebb and flow project">
+          <span>AN</span>
+          <span className="hero-project-wordmark" aria-hidden="true">
+            <Image
+              src="/images/logo/title.PNG"
+              alt=""
+              fill
+              priority
+              sizes="72px"
+            />
+          </span>
+          <span>PROJECT</span>
+        </div>
+
         <div className="parallax-visuals">
           <div className="parallax-layers">
             <motion.div className="image-layer sky-layer" style={{ y: skyY }}>
@@ -59,13 +77,14 @@ export default function HimalayanParallax() {
               </div>
             </motion.div>
 
-            <motion.div className="hero-copy" style={{ x: "-50%", y: titleY }}>
-              <p> PROJECT / NEPAL</p>
+            <motion.div
+              className="hero-copy"
+              style={{ x: "-50%", y: titleY }}
+            >
               <h1 aria-label="Attempting a world record">
                 <span className="title-mask"><span>ATTEMPTING</span></span>
                 <span className="title-mask title-serif"><em>A WORLD RECORD</em></span>
               </h1>
-              
             </motion.div>
 
             <motion.div className="image-layer monastery-layer" style={{ y: monasteryY }}>
@@ -75,17 +94,14 @@ export default function HimalayanParallax() {
             </motion.div>
           </div>
 
-          <div
-            className="fog-layer"
-            aria-hidden="true"
-            onAnimationEnd={() => window.dispatchEvent(new Event("hima:intro-complete"))}
-          >
-            <Image src="/images/himalaya-clouds.jpg" alt="" fill priority sizes="100vw" />
-            <div className="fog-light" />
-          </div>
+        </div>
 
-          <div className="progress-rail"><i><motion.b style={{ height: progress }} /></i><span>01</span></div>
-          <div className="scroll-cue"><span>SCROLL</span><i /></div>
+        <div
+          className="fog-layer"
+          aria-hidden="true"
+          onAnimationEnd={() => window.dispatchEvent(new Event("hima:intro-complete"))}
+        >
+          <div className="fog-light" />
         </div>
       </section>
 
@@ -133,8 +149,7 @@ export default function HimalayanParallax() {
         </div>
 
         <footer className="story-footer">
-          <p>THE HIMALAYAS ARE CALLING</p>
-          <a href="#story-title">RETURN TO THE PASS ↑</a>
+          <p>RARA&apos;S RUNS</p>
         </footer>
       </section>
     </main>

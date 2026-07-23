@@ -31,8 +31,8 @@ const windowVariants: Variants = {
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.95,
-      delay: beat * 0.28,
+      duration: 0.85,
+      delay: beat * 0.18,
       ease: [0.22, 1, 0.36, 1],
     },
   }),
@@ -125,10 +125,20 @@ export function CinematicTextReveal({
   return (
     <motion.div
       className={className}
-      initial={reduceMotion ? false : { opacity: 0, y: 48, filter: "blur(10px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={reduceMotion ? false : {
+        opacity: 0,
+        y: 72,
+        filter: "blur(12px)",
+        clipPath: "inset(0 0 24% 0)",
+      }}
+      whileInView={{
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        clipPath: "inset(0 0 0% 0)",
+      }}
       viewport={{ once: true, amount: 0.35 }}
-      transition={{ duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
@@ -148,9 +158,10 @@ export function CinematicImageFrame({
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start 90%", "end 45%"],
+    offset: ["start end", "end start"],
   });
-  const imageY = useTransform(scrollYProgress, [0, 1], ["-9%", "9%"]);
+  const imageY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1.055, 1.015]);
 
   return (
     <motion.figure
@@ -161,9 +172,20 @@ export function CinematicImageFrame({
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
     >
-      <motion.div className="story-image-media" style={reduceMotion ? undefined : { y: imageY }}>
+      <motion.div
+        className="story-image-media"
+        style={reduceMotion ? undefined : { y: imageY, scale: imageScale }}
+      >
         <Image src={src} alt={alt} fill sizes="(max-width: 700px) 100vw, 88vw" />
       </motion.div>
+      <div className="story-image-logo" aria-hidden="true">
+        <Image
+          src="/images/logo/logo.png"
+          alt=""
+          fill
+          sizes="clamp(96px, 11vw, 170px)"
+        />
+      </div>
       <figcaption>{caption}</figcaption>
     </motion.figure>
   );

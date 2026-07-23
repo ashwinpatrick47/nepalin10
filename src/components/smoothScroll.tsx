@@ -16,6 +16,10 @@ export default function SmoothScroll() {
       return;
     }
 
+    if (root.classList.contains("hima-intro")) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+
     const sync = () => {
       const loading = root.classList.contains("hima-intro");
       if (loading) lenisRef.current?.lenis?.stop();
