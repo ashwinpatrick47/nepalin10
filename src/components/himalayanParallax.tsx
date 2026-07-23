@@ -70,7 +70,7 @@ export default function HimalayanParallax() {
 
             <motion.div className="image-layer monastery-layer" style={{ y: monasteryY }}>
               <div className="monastery-entry">
-                <Image src="/images/monastery-foreground-native-cleaned.png" alt="A Himalayan monastery with prayer flags" fill priority unoptimized sizes="118vw" />
+                <Image src="/images/monastery-foreground-ai-approved.png" alt="A Himalayan monastery with prayer flags" fill priority unoptimized sizes="118vw" />
               </div>
             </motion.div>
           </div>
