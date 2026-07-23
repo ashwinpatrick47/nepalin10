@@ -7,6 +7,18 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
+import CinematicImageScroll, {
+  CinematicImageFrame,
+  CinematicTextReveal,
+  type CinematicImageSlide,
+} from "@/components/CinematicImageScroll";
+
+const storyWindows: readonly CinematicImageSlide[] = [
+  { src: "/images/himalaya-clouds.jpg", alt: "Clouds drifting above Nepal", title: "Air." },
+  { src: "/images/himalaya-mountains.jpg", alt: "Snow-covered Himalayan peaks", title: "Summit." },
+  { src: "/images/himalayan-valley.png", alt: "A trail through the Himalayan valley", title: "Trail." },
+  { src: "/images/monastery-hero.png", alt: "A monastery beneath the Himalayas", title: "Ritual." },
+];
 
 export default function HimalayanParallax() {
   const sceneRef = useRef<HTMLElement>(null);
@@ -17,7 +29,11 @@ export default function HimalayanParallax() {
   });
 
   const skyY = useTransform(scrollYProgress, [0, 1], ["14vh", "34vh"]);
-  const mountainY = useTransform(scrollYProgress, [0, 1], ["0vh", "-45vh"]);
+  const mountainY = useTransform(
+    scrollYProgress,
+    [0, 0.18, 1],
+    ["6vh", "0vh", "-45vh"],
+  );
   const titleY = useTransform(scrollYProgress, [0, 1], ["0vh", "-60vh"]);
   const monasteryY = useTransform(scrollYProgress, [0, 1], ["-8vh", "-108vh"]);
   const progress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
@@ -54,7 +70,7 @@ export default function HimalayanParallax() {
 
             <motion.div className="image-layer monastery-layer" style={{ y: monasteryY }}>
               <div className="monastery-entry">
-                <Image src="/images/monastery-foreground-native-smooth.png" alt="A Himalayan monastery with prayer flags" fill priority unoptimized sizes="118vw" />
+                <Image src="/images/monastery-foreground-native-cleaned.png" alt="A Himalayan monastery with prayer flags" fill priority unoptimized sizes="118vw" />
               </div>
             </motion.div>
           </div>
@@ -74,14 +90,17 @@ export default function HimalayanParallax() {
       </section>
 
       <section className="story-content" aria-labelledby="story-title">
-        <div className="story-intro">
+        <CinematicTextReveal className="story-intro">
           <p className="story-kicker">ABOVE THE TREELINE / 5,364 M</p>
           <h2 id="story-title">Where the trail<br /><em>becomes ritual.</em></h2>
-          <p className="story-lede">
+        </CinematicTextReveal>
+
+        <CinematicImageScroll images={storyWindows}>
+          <p>
             A slow passage through thin air, ancient villages and the quiet
             shoulders of the Himalayas. Every step leaves the familiar further behind.
           </p>
-        </div>
+        </CinematicImageScroll>
 
         <div className="story-stats" aria-label="Journey details">
           <div><strong>12</strong><span>Days on foot</span></div>
@@ -89,15 +108,11 @@ export default function HimalayanParallax() {
           <div><strong>01</strong><span>Path through Nepal</span></div>
         </div>
 
-        <figure className="story-image">
-          <Image
-            src="/images/himalaya-mountains.jpg"
-            alt="A wide view across the Himalayan range"
-            fill
-            sizes="(max-width: 700px) 100vw, 88vw"
-          />
-          <figcaption>THE KHUMBU VALLEY / NEPAL</figcaption>
-        </figure>
+        <CinematicImageFrame
+          src="/images/himalaya-mountains.jpg"
+          alt="A wide view across the Himalayan range"
+          caption="THE KHUMBU VALLEY / NEPAL"
+        />
 
         <div className="story-chapters">
           <article>
