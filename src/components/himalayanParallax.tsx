@@ -145,6 +145,14 @@ export default function HimalayanParallax() {
 
         <AnimatedStats stats={journeyStats} />
 
+        <CinematicTextReveal className="story-manifesto">
+          <p>
+            <em>Redefining</em> limits, fighting for <em>wins</em>, bringing it
+            all in all ways. Defining a <em>legacy</em> in Formula 1 on and off
+            the track.
+          </p>
+        </CinematicTextReveal>
+
         <CinematicImageFrame
           src="/images/himalaya-mountains.jpg"
           alt="A wide view across the Himalayan range"
