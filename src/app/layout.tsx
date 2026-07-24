@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hima — Above the Ordinary",
-  description: "A cinematic journey through the Nepal Himalayas.",
+  title: "Ebb&flo — NEPAL IN 10",
+  description: "A cinematic journey through Mahendra Highway.",
 };
 
 export default function RootLayout({
