@@ -4,6 +4,8 @@ import { useRef } from "react";
 import Image from "next/image";
 import {
   motion,
+  type MotionValue,
+  useReducedMotion,
   useScroll,
   useTransform,
 } from "framer-motion";
@@ -27,6 +29,156 @@ const journeyStats = [
   { number: "01", label: "Path through highway" },
 ] as const;
 
+const manifestoEnglish = [
+  "Redefining",
+  "limits,",
+  "fighting",
+  "for",
+  "wins,",
+  "bringing",
+  "it",
+  "all",
+  "in",
+  "all",
+  "ways.",
+  "Defining",
+  "a",
+  "legacy",
+  "in",
+  "running",
+  "on",
+  "and",
+  "off",
+  "the",
+  "track.",
+] as const;
+
+const manifestoNepali = [
+  "सीमाहरू",
+  "पुनर्परिभाषित",
+  "गर्दै,",
+  "जितका",
+  "लागि",
+  "लड्दै,",
+  "हरेक",
+  "तरिकाले",
+  "सबै",
+  "कुरा",
+  "समेट्दै।",
+  "दौडमा",
+  "र",
+  "ट्र्याकबाहिर",
+  "एउटा",
+  "विरासत",
+  "निर्माण",
+  "गर्दै।",
+] as const;
+
+function ManifestoWord({
+  word,
+  index,
+  language,
+  progress,
+  reduceMotion,
+  accent,
+}: {
+  word: string;
+  index: number;
+  language: "nepali" | "english";
+  progress: MotionValue<number>;
+  reduceMotion: boolean;
+  accent: boolean;
+}) {
+  const isNepali = language === "nepali";
+  const revealStart = 0.47 + index * 0.008;
+  const revealEnd = revealStart + 0.1;
+  const nepaliExitStart = 0.36 + index * 0.004;
+  const nepaliExitEnd = 0.47 + index * 0.006;
+  const y = useTransform(
+    progress,
+    isNepali ? [nepaliExitStart, nepaliExitEnd] : [revealStart, revealEnd],
+    isNepali ? ["0%", "-32%"] : ["105%", "0%"],
+  );
+  const opacity = useTransform(
+    progress,
+    isNepali ? [nepaliExitStart, nepaliExitEnd] : [revealStart, revealEnd],
+    isNepali ? [1, 0] : [0, 1],
+  );
+  const filter = useTransform(
+    progress,
+    isNepali ? [nepaliExitStart, nepaliExitEnd] : [revealStart, revealEnd],
+    isNepali
+      ? ["blur(0px)", "blur(8px)"]
+      : ["blur(10px)", "blur(0px)"],
+  );
+
+  return (
+    <motion.span
+      className={`story-manifesto-word${accent ? " is-accent" : ""}`}
+      style={reduceMotion ? undefined : { y, opacity, filter }}
+    >
+      {word}
+    </motion.span>
+  );
+}
+
+function LanguageManifesto() {
+  const manifestoRef = useRef<HTMLElement>(null);
+  const reduceMotion = Boolean(useReducedMotion());
+  const { scrollYProgress: manifestoProgress } = useScroll({
+    target: manifestoRef,
+    offset: ["start start", "end end"],
+  });
+
+  return (
+    <section
+      ref={manifestoRef}
+      className={`story-manifesto${reduceMotion ? " is-reduced" : ""}`}
+      aria-label="Redefining limits, fighting for wins, bringing it all in all ways. Defining a legacy in running on and off the track."
+    >
+      <div className="story-manifesto-stage">
+        <div className="story-manifesto-logo" aria-hidden="true">
+          <span className="story-manifesto-logo-mark" />
+        </div>
+
+        <div className="story-manifesto-copy">
+          <p className="story-manifesto-nepali" aria-hidden="true">
+            {manifestoNepali.map((word, index) => (
+              <ManifestoWord
+                key={`${word}-${index}`}
+                word={word}
+                index={index}
+                language="nepali"
+                progress={manifestoProgress}
+                reduceMotion={reduceMotion}
+                accent={index === 1 || index === 3 || index === 15}
+              />
+            ))}
+          </p>
+
+          <p className="story-manifesto-english" aria-hidden="true">
+            {manifestoEnglish.map((word, index) => (
+              <span key={`${word}-${index}`}>
+                <ManifestoWord
+                  word={word}
+                  index={index}
+                  language="english"
+                  progress={manifestoProgress}
+                  reduceMotion={reduceMotion}
+                  accent={index === 0 || index === 4 || index === 13}
+                />
+                {(index === 1 || index === 4 || index === 9 || index === 12) && <br />}
+                {index === 16 && <br className="manifesto-break-desktop" />}
+                {(index === 15 || index === 19) && <br className="manifesto-break-mobile" />}
+              </span>
+            ))}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HimalayanParallax() {
   const sceneRef = useRef<HTMLElement>(null);
 
@@ -49,7 +201,7 @@ export default function HimalayanParallax() {
         <header className="site-header">
           <div className="site-header-center">
             <span>27.7172° N / 85.3240° E</span>
-            <span>PROJECT / NEPAL</span>
+            <span>PROJECT / नेपाल</span>
           </div>
         </header>
 
@@ -132,8 +284,8 @@ export default function HimalayanParallax() {
 
       <section className="story-content" aria-labelledby="story-title">
         <CinematicTextReveal className="story-intro">
-          <p className="story-kicker">The Endless Stretch / Ebb&flo</p>
-          <h2 id="story-title">Where the trail<br /><em>becomes ritual.</em></h2>
+          <p className="story-kicker">The Endless Stretch / Nepal in 10</p>
+          <h2 id="story-title">Where the trail<br /><em>becomes  ritual.</em></h2>
         </CinematicTextReveal>
 
         <CinematicImageScroll images={storyWindows}>
@@ -145,13 +297,7 @@ export default function HimalayanParallax() {
 
         <AnimatedStats stats={journeyStats} />
 
-        <CinematicTextReveal className="story-manifesto">
-          <p>
-            <em>Redefining</em> limits, fighting for <em>wins</em>, bringing it
-            all in all ways. Defining a <em>legacy</em> in Formula 1 on and off
-            the track.
-          </p>
-        </CinematicTextReveal>
+        <LanguageManifesto />
 
         <CinematicImageFrame
           src="/images/himalaya-mountains.jpg"

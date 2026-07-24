@@ -200,46 +200,64 @@ export function CinematicImageFrame({
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"],
+    offset: ["start start", "end end"],
   });
-  const imageY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1.055, 1.015]);
+  const width = useTransform(
+    scrollYProgress,
+    [0, 0.625, 1],
+    reduceMotion ? ["100vw", "100vw", "100vw"] : ["60vw", "100vw", "100vw"],
+  );
+  const height = useTransform(
+    scrollYProgress,
+    [0, 0.625, 1],
+    reduceMotion ? ["100svh", "100svh", "100svh"] : ["60svh", "100svh", "100svh"],
+  );
+  const borderRadius = useTransform(
+    scrollYProgress,
+    [0, 0.625, 1],
+    reduceMotion ? [0, 0, 0] : [28, 0, 0],
+  );
+  const imageScale = useTransform(
+    scrollYProgress,
+    [0, 0.625, 1],
+    reduceMotion ? [1, 1, 1] : [1.08, 1, 1],
+  );
 
   return (
-    <motion.figure
-      ref={ref}
-      className="story-image"
-      initial={reduceMotion ? false : { opacity: 0, filter: "blur(8px)" }}
-      whileInView={{ opacity: 1, filter: "blur(0px)" }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <motion.div
-        className="story-image-media"
-        style={reduceMotion ? undefined : { y: imageY, scale: imageScale }}
-      >
-        <Image src={src} alt={alt} fill sizes="(max-width: 700px) 100vw, 88vw" />
-      </motion.div>
-      <div className="story-image-logo" aria-hidden="true">
-        <span className="story-image-logo-mark">
-          <Image
-            src="/images/logo/logo.png"
-            alt=""
-            fill
-            sizes="clamp(88px, 9vw, 142px)"
-          />
-        </span>
-        <span className="story-image-logo-separator">/</span>
-        <span className="story-image-flag">
-          <Image
-            src="/images/logo/flag.svg"
-            alt=""
-            fill
-            sizes="clamp(54px, 5.5vw, 88px)"
-          />
-        </span>
+    <section ref={ref} className="story-image-expansion">
+      <div className="story-image-sticky">
+        <motion.figure
+          className="story-image"
+          style={{ width, height, borderRadius }}
+        >
+          <motion.div
+            className="story-image-media"
+            style={reduceMotion ? undefined : { scale: imageScale }}
+          >
+            <Image src={src} alt={alt} fill sizes="100vw" />
+          </motion.div>
+          <div className="story-image-logo" aria-hidden="true">
+            <span className="story-image-logo-mark">
+              <Image
+                src="/images/logo/logo.png"
+                alt=""
+                fill
+                sizes="clamp(88px, 9vw, 142px)"
+              />
+            </span>
+            <span className="story-image-logo-separator">/</span>
+            <span className="story-image-flag">
+              <Image
+                src="/images/logo/flag.svg"
+                alt=""
+                fill
+                sizes="clamp(54px, 5.5vw, 88px)"
+              />
+            </span>
+          </div>
+          <figcaption>{caption}</figcaption>
+        </motion.figure>
       </div>
-      <figcaption>{caption}</figcaption>
-    </motion.figure>
+    </section>
   );
 }
