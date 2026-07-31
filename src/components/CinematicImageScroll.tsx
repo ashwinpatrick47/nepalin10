@@ -5,7 +5,6 @@ import {
   motion,
   type Variants,
   useInView,
-  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useTransform,
@@ -59,10 +58,6 @@ const INTRO_NEPALI_GLYPHS = [
 ];
 
 type IntroductionLanguage = "nepali" | "english";
-
-function clampProgress(value: number) {
-  return Math.min(Math.max(value, 0), 1);
-}
 
 function introductionGraphemes(
   text: string,
@@ -305,156 +300,158 @@ export function CinematicImageFrame({
 }) {
   const ref = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
-  const [introductionProgress, setIntroductionProgress] = useState(0);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end end"],
   });
-  useMotionValueEvent(scrollYProgress, "change", setIntroductionProgress);
-  const width = useTransform(
-    scrollYProgress,
-    [0, 0.625, 1],
-    reduceMotion ? ["100vw", "100vw", "100vw"] : ["60vw", "100vw", "100vw"],
-  );
-  const height = useTransform(
-    scrollYProgress,
-    [0, 0.625, 1],
-    reduceMotion ? ["100svh", "100svh", "100svh"] : ["60svh", "100svh", "100svh"],
-  );
-  const borderRadius = useTransform(
-    scrollYProgress,
-    [0, 0.625, 1],
-    reduceMotion ? [0, 0, 0] : [28, 0, 0],
-  );
-  const imageScale = useTransform(
-    scrollYProgress,
-    [0, 0.625, 1],
-    reduceMotion ? [1, 1, 1] : [1.08, 1, 1],
-  );
   const introductionOverlayOpacity = useTransform(
     scrollYProgress,
-    [0.58, 0.64, 1],
-    reduceMotion ? [0.5, 0.5, 0.5] : [0, 0.5, 0.5],
+    [0.04, 0.16, 1],
+    reduceMotion ? [0.52, 0.52, 0.52] : [0, 0.52, 0.52],
   );
   const nepaliIntroductionY = useTransform(
     scrollYProgress,
-    [0.64, 0.7, 0.8],
-    reduceMotion ? ["0%", "0%", "0%"] : ["0%", "0%", "-12%"],
+    [0.12, 0.24, 0.4],
+    reduceMotion ? ["0%", "0%", "0%"] : ["9%", "0%", "-8%"],
   );
   const nepaliIntroductionOpacity = useTransform(
     scrollYProgress,
-    [0, 0.639, 0.64, 0.7, 1],
-    reduceMotion ? [0, 0, 0, 0, 0] : [0, 0, 0, 1, 1],
+    [0, 0.119, 0.12, 0.24, 0.34, 0.4, 1],
+    reduceMotion
+      ? [0, 0, 0, 0, 0, 0, 0]
+      : [0, 0, 0, 1, 1, 0, 0],
   );
   const nepaliIntroductionBlur = useTransform(
     scrollYProgress,
-    [0.64, 0.7, 0.8],
+    [0.12, 0.24, 0.4],
     reduceMotion
       ? ["blur(0px)", "blur(0px)", "blur(0px)"]
-      : ["blur(0px)", "blur(0px)", "blur(7px)"],
+      : ["blur(12px)", "blur(0px)", "blur(9px)"],
+  );
+  const nepaliIntroductionScale = useTransform(
+    scrollYProgress,
+    [0.12, 0.24, 0.4],
+    reduceMotion ? [1, 1, 1] : [0.975, 1, 1.02],
   );
   const englishIntroductionY = useTransform(
     scrollYProgress,
-    [0, 0.8, 0.94, 1],
+    [0, 0.34, 0.5, 1],
     reduceMotion
       ? ["0%", "0%", "0%", "0%"]
-      : ["12%", "12%", "0%", "0%"],
+      : ["9%", "9%", "0%", "0%"],
+  );
+  const englishIntroductionOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.34, 0.4, 0.5, 1],
+    reduceMotion ? [1, 1, 1, 1, 1] : [0, 0, 0, 1, 1],
   );
   const englishIntroductionBlur = useTransform(
     scrollYProgress,
-    [0, 0.8, 0.94, 1],
+    [0, 0.34, 0.5, 1],
     reduceMotion
       ? ["blur(0px)", "blur(0px)", "blur(0px)", "blur(0px)"]
-      : ["blur(7px)", "blur(7px)", "blur(0px)", "blur(0px)"],
+      : ["blur(12px)", "blur(12px)", "blur(0px)", "blur(0px)"],
+  );
+  const englishIntroductionScale = useTransform(
+    scrollYProgress,
+    [0, 0.34, 0.5, 1],
+    reduceMotion ? [1, 1, 1, 1] : [0.975, 0.975, 1, 1],
   );
   const nepaliIntroductionVisibility = useTransform(
     scrollYProgress,
-    [0, 0.639, 0.64, 0.799, 0.8, 1],
+    [0, 0.119, 0.12, 0.399, 0.4, 1],
     ["hidden", "hidden", "visible", "visible", "hidden", "hidden"],
   );
   const englishIntroductionVisibility = useTransform(
     scrollYProgress,
-    [0, 0.799, 0.8, 1],
+    [0, 0.399, 0.4, 1],
     ["hidden", "hidden", "visible", "visible"],
   );
-  const nepaliIntroductionResolve = reduceMotion
-    ? 0
-    : 1 - clampProgress((introductionProgress - 0.7) / 0.1);
-  const englishIntroductionResolve = reduceMotion
-    ? 1
-    : clampProgress((introductionProgress - 0.8) / 0.14);
+  const exitCoverY = useTransform(
+    scrollYProgress,
+    [0, 0.76, 0.98, 1],
+    reduceMotion
+      ? ["105%", "105%", "105%", "105%"]
+      : ["105%", "105%", "0%", "0%"],
+  );
+  const nepaliIntroductionResolve = 1;
+  const englishIntroductionResolve = 1;
 
   return (
     <section ref={ref} className="story-image-expansion">
       <div className="story-image-sticky">
-        <motion.figure
-          className="story-image"
-          style={{ width, height, borderRadius }}
-        >
-          <motion.div
-            className="story-image-media"
-            style={reduceMotion ? undefined : { scale: imageScale }}
-          >
+        <motion.figure className="story-image">
+          <motion.div className="story-image-media">
             <Image src={src} alt={alt} fill sizes="100vw" />
           </motion.div>
-          <motion.div
-            className="story-image-introduction-overlay"
-            aria-hidden="true"
-            style={{ opacity: introductionOverlayOpacity }}
-          />
-          <div className="story-image-introduction">
-            <motion.p
-              className="story-image-introduction-nepali"
-              lang="ne"
+          <motion.div className="story-image-introduction-layer">
+            <motion.div
+              className="story-image-introduction-overlay"
               aria-hidden="true"
-              style={
-                reduceMotion
-                  ? { display: "none" }
-                  : {
-                      opacity: nepaliIntroductionOpacity,
-                      y: nepaliIntroductionY,
-                      filter: nepaliIntroductionBlur,
-                      visibility: nepaliIntroductionVisibility,
-                    }
-              }
-            >
-              <IntroductionCipherLine
-                text="मेरो नाम राहुल शर्मा हो"
-                language="nepali"
-                resolve={nepaliIntroductionResolve}
-              />
-              <IntroductionCipherLine
-                className="story-image-introduction-subline"
-                text="र म एक अल्ट्रा म्याराथन धावक हुँ।"
-                language="nepali"
-                resolve={nepaliIntroductionResolve}
-              />
-            </motion.p>
-            <motion.p
-              className="story-image-introduction-english"
-              style={
-                reduceMotion
-                  ? undefined
-                  : {
-                      y: englishIntroductionY,
-                      filter: englishIntroductionBlur,
-                      visibility: englishIntroductionVisibility,
-                    }
-              }
-            >
-              <IntroductionCipherLine
-                text="My name is Rahul Sharma"
-                language="english"
-                resolve={englishIntroductionResolve}
-              />
-              <IntroductionCipherLine
-                className="story-image-introduction-subline"
-                text="and I'm an ultra marathon runner."
-                language="english"
-                resolve={englishIntroductionResolve}
-              />
-            </motion.p>
-          </div>
+              style={{ opacity: introductionOverlayOpacity }}
+            />
+            <div className="story-image-introduction">
+              <motion.p
+                className="story-image-introduction-nepali"
+                lang="ne"
+                aria-hidden="true"
+                style={
+                  reduceMotion
+                    ? { display: "none" }
+                    : {
+                        opacity: nepaliIntroductionOpacity,
+                        y: nepaliIntroductionY,
+                        scale: nepaliIntroductionScale,
+                        filter: nepaliIntroductionBlur,
+                        visibility: nepaliIntroductionVisibility,
+                      }
+                }
+              >
+                <IntroductionCipherLine
+                  text="मेरो नाम राहुल शर्मा हो"
+                  language="nepali"
+                  resolve={nepaliIntroductionResolve}
+                />
+                <IntroductionCipherLine
+                  className="story-image-introduction-subline"
+                  text="र म एक अल्ट्रा म्याराथन धावक हुँ।"
+                  language="nepali"
+                  resolve={nepaliIntroductionResolve}
+                />
+              </motion.p>
+              <motion.p
+                className="story-image-introduction-english"
+                style={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        opacity: englishIntroductionOpacity,
+                        y: englishIntroductionY,
+                        scale: englishIntroductionScale,
+                        filter: englishIntroductionBlur,
+                        visibility: englishIntroductionVisibility,
+                      }
+                }
+              >
+                <IntroductionCipherLine
+                  text="My name is Rahul Sharma"
+                  language="english"
+                  resolve={englishIntroductionResolve}
+                />
+                <IntroductionCipherLine
+                  className="story-image-introduction-subline"
+                  text="and I'm an ultra marathon runner."
+                  language="english"
+                  resolve={englishIntroductionResolve}
+                />
+              </motion.p>
+            </div>
+          </motion.div>
+          <motion.div
+            className="story-image-exit-cover"
+            aria-hidden="true"
+            style={{ y: exitCoverY }}
+          />
         </motion.figure>
       </div>
     </section>

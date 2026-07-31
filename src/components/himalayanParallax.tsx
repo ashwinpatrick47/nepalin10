@@ -197,10 +197,6 @@ type CipherWordProps = {
   wordIndex: number;
 };
 
-function clamp(value: number, minimum = 0, maximum = 1) {
-  return Math.min(Math.max(value, minimum), maximum);
-}
-
 function splitGraphemes(
   text: string,
   language: CipherLanguage,
@@ -322,45 +318,48 @@ function LanguageManifesto() {
     },
   );
 
-  const nepaliResolve = reduceMotion
-    ? progress < 0.5
-      ? 1
-      : 0
-    : 1 - clamp((progress - 0.32) / 0.14);
-
-  const englishResolve = reduceMotion
-    ? progress >= 0.5
-      ? 1
-      : 0
-    : clamp((progress - 0.48) / 0.18);
+  const nepaliResolve = 1;
+  const englishResolve = 1;
 
   const nepaliY = useTransform(
     manifestoProgress,
-    [0, 0.34, 0.47],
-    ["0%", "0%", "-12%"],
+    [0, 0.06, 0.228, 0.312],
+    ["7%", "0%", "0%", "-8%"],
   );
 
   const nepaliBlur = useTransform(
     manifestoProgress,
-    [0, 0.34, 0.47],
-    ["blur(0px)", "blur(0px)", "blur(7px)"],
+    [0, 0.06, 0.228, 0.312],
+    ["blur(12px)", "blur(0px)", "blur(0px)", "blur(9px)"],
+  );
+
+  const nepaliOpacity = useTransform(
+    manifestoProgress,
+    [0, 0.06, 0.252, 0.312, 1],
+    [0, 1, 1, 0, 0],
+  );
+
+  const nepaliScale = useTransform(
+    manifestoProgress,
+    [0, 0.06, 0.228, 0.312],
+    [0.985, 1, 1, 1.02],
   );
 
   const nepaliVisibility = useTransform(
     manifestoProgress,
-    [0, 0.479, 0.48, 1],
+    [0, 0.3114, 0.312, 1],
     ["visible", "visible", "hidden", "hidden"],
   );
 
   const englishY = useTransform(
     manifestoProgress,
-    [0, 0.48, 0.66, 1],
-    ["12%", "12%", "0%", "0%"],
+    [0, 0.288, 0.396, 1],
+    ["8%", "8%", "0%", "0%"],
   );
 
   const englishBlur = useTransform(
     manifestoProgress,
-    [0, 0.48, 0.66, 1],
+    [0, 0.288, 0.396, 1],
     [
       "blur(7px)",
       "blur(7px)",
@@ -369,9 +368,21 @@ function LanguageManifesto() {
     ],
   );
 
+  const englishOpacity = useTransform(
+    manifestoProgress,
+    [0, 0.288, 0.336, 0.396, 1],
+    [0, 0, 0, 1, 1],
+  );
+
+  const englishScale = useTransform(
+    manifestoProgress,
+    [0, 0.288, 0.396, 1],
+    [0.985, 0.985, 1, 1],
+  );
+
   const englishVisibility = useTransform(
     manifestoProgress,
-    [0, 0.479, 0.48, 1],
+    [0, 0.2874, 0.288, 1],
     ["hidden", "hidden", "visible", "visible"],
   );
 
@@ -403,7 +414,9 @@ function LanguageManifesto() {
                       progress < 0.5 ? "block" : "none",
                   }
                 : {
+                    opacity: nepaliOpacity,
                     y: nepaliY,
+                    scale: nepaliScale,
                     filter: nepaliBlur,
                     visibility: nepaliVisibility,
                   }
@@ -436,7 +449,9 @@ function LanguageManifesto() {
                       progress >= 0.5 ? "block" : "none",
                   }
                 : {
+                    opacity: englishOpacity,
                     y: englishY,
+                    scale: englishScale,
                     filter: englishBlur,
                     visibility: englishVisibility,
                   }
@@ -456,17 +471,22 @@ function LanguageManifesto() {
                   }
                 />
 
-                {(index === 1 ||
-                  index === 4 ||
-                  index === 9 ||
-                  index === 12) && <br />}
+                {(index === 1 || index === 4) && <br />}
 
-                {index === 16 && (
+                {index === 8 && (
+                  <br className="manifesto-break-mobile" />
+                )}
+
+                {index === 9 && (
                   <br className="manifesto-break-desktop" />
                 )}
 
-                {(index === 15 || index === 19) && (
+                {index === 15 && (
                   <br className="manifesto-break-mobile" />
+                )}
+
+                {index === 16 && (
+                  <br className="manifesto-break-desktop" />
                 )}
               </span>
             ))}
