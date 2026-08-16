@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -499,6 +499,44 @@ function LanguageManifesto() {
 
 export default function HimalayanParallax() {
   const sceneRef = useRef<HTMLElement>(null);
+  const introRevealTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const root = document.documentElement;
+    const heroImages = Array.from(
+      sceneRef.current?.querySelectorAll("img") ?? [],
+    );
+
+    const waitForImage = (image: HTMLImageElement) =>
+      new Promise<void>((resolve) => {
+        const finish = () => {
+          image.removeEventListener("load", finish);
+          image.removeEventListener("error", finish);
+          resolve();
+        };
+
+        if (image.complete) {
+          image.decode?.().catch(() => undefined).finally(finish);
+          return;
+        }
+
+        image.addEventListener("load", finish, { once: true });
+        image.addEventListener("error", finish, { once: true });
+      });
+
+    Promise.all(heroImages.map(waitForImage)).then(() => {
+      if (!cancelled) root.classList.add("hima-assets-ready");
+    });
+
+    return () => {
+      cancelled = true;
+      if (introRevealTimer.current !== null) {
+        window.clearTimeout(introRevealTimer.current);
+      }
+      root.classList.remove("hima-assets-ready", "hima-reveal");
+    };
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: sceneRef,
@@ -622,11 +660,20 @@ export default function HimalayanParallax() {
         <div
           className="fog-layer"
           aria-hidden="true"
-          onAnimationEnd={() =>
+          onAnimationStart={() => {
+            introRevealTimer.current = window.setTimeout(() => {
+              document.documentElement.classList.add("hima-reveal");
+            }, 2850);
+          }}
+          onAnimationEnd={() => {
+            if (introRevealTimer.current !== null) {
+              window.clearTimeout(introRevealTimer.current);
+              introRevealTimer.current = null;
+            }
             window.dispatchEvent(
               new Event("hima:intro-complete"),
-            )
-          }
+            );
+          }}
         >
           <div className="fog-light" />
         </div>

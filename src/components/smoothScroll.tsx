@@ -13,6 +13,7 @@ export default function SmoothScroll() {
 
     if (reduceMotion) {
       root.classList.remove("hima-intro");
+      root.classList.remove("hima-assets-ready", "hima-reveal");
       return;
     }
 
@@ -28,6 +29,7 @@ export default function SmoothScroll() {
 
     const finishIntro = () => {
       root.classList.remove("hima-intro");
+      root.classList.remove("hima-assets-ready", "hima-reveal");
       sync();
     };
 
@@ -40,6 +42,7 @@ export default function SmoothScroll() {
       window.clearTimeout(fallback);
       window.removeEventListener("hima:intro-complete", finishIntro);
       root.classList.remove("hima-intro");
+      root.classList.remove("hima-assets-ready", "hima-reveal");
     };
   }, [reduceMotion]);
 
