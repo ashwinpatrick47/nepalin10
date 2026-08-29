@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
 import { NEPAL_COORDINATES } from "@/components/terrain/terrainRoute";
@@ -76,25 +76,6 @@ const SOCIAL_LINKS: readonly { label: string; href: string }[] = [
 //   );
 // }
 
-function MutedIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
-      <path d="M4 9v6h4l5 5V4L8 9H4Z" />
-      <path d="M16.4 8.3 15 9.7l1.8 1.8L15 13.3l1.4 1.4L18.2 13l1.8 1.8 1.4-1.4L19.6 11.6l1.8-1.8-1.4-1.4L18.2 10.2 16.4 8.3Z" />
-    </svg>
-  );
-}
-
-function UnmutedIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
-      <path d="M4 9v6h4l5 5V4L8 9H4Z" />
-      <path d="M16.3 8.3a5.6 5.6 0 0 1 0 7.4l1.4 1.4a7.6 7.6 0 0 0 0-10.2l-1.4 1.4Z" />
-      <path d="M18.6 6a8.6 8.6 0 0 1 0 12l1.4 1.4a10.6 10.6 0 0 0 0-14.8L18.6 6Z" />
-    </svg>
-  );
-}
-
 interface SocialsProps {
   // True while the documentary video (VideoReveal) has taken over —
   // pauses this video and blocks it from being resumed by a tap until
@@ -108,19 +89,10 @@ interface SocialsProps {
 
 export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClick }: SocialsProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     if (paused) videoRef.current?.pause();
   }, [paused]);
-
-  const toggleMute = () => {
-    setMuted((wasMuted) => {
-      const nextMuted = !wasMuted;
-      if (videoRef.current) videoRef.current.muted = nextMuted;
-      return nextMuted;
-    });
-  };
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -185,21 +157,9 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
               src="/images/socials.mp4"
               autoPlay
               loop
-              muted={muted}
+              muted
               playsInline
             />
-            <button
-              type="button"
-              className="socials-mute-toggle"
-              onClick={(event) => {
-                event.stopPropagation();
-                toggleMute();
-              }}
-              aria-pressed={!muted}
-              aria-label={muted ? "Unmute video" : "Mute video"}
-            >
-              {muted ? <MutedIcon /> : <UnmutedIcon />}
-            </button>
           </div>
           <div className="socials-phone-home" aria-hidden="true" />
           </div>
