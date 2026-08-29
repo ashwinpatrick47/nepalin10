@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SmoothScroll from "@/components/smoothScroll";
+import Preloader from "@/components/Preloader";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ebb&flo — NEPAL IN 10",
+  title: "NEPAL IN 10",
   description: "A cinematic journey through Mahendra Highway.",
 };
 
@@ -31,6 +32,7 @@ export default function RootLayout({
     >
       <body>
         <SmoothScroll />
+        <Preloader />
         {children}
       </body>
     </html>

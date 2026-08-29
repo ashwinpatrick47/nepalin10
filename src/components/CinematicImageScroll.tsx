@@ -261,15 +261,18 @@ export function CinematicTextReveal({
   children,
   className,
   delay = 0,
+  id,
 }: {
   children: ReactNode;
   className: string;
   delay?: number;
+  id?: string;
 }) {
   const reduceMotion = useReducedMotion();
 
   return (
     <motion.div
+      id={id}
       className={className}
       initial={reduceMotion ? false : {
         opacity: 0,
@@ -458,66 +461,3 @@ export function CinematicImageFrame({
   );
 }
 
-export function CinematicStillImageFrame({
-  src,
-  alt,
-  caption,
-}: {
-  src: ImageProps["src"];
-  alt: string;
-  caption: string;
-}) {
-  const ref = useRef<HTMLElement>(null);
-  const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  const imageY = useTransform(
-    scrollYProgress,
-    [0, 1],
-    reduceMotion ? ["0%", "0%"] : ["-7%", "7%"],
-  );
-  const logoY = useTransform(
-    scrollYProgress,
-    [0, 1],
-    reduceMotion ? [0, 0] : [24, -24],
-  );
-
-  return (
-    <motion.figure
-      ref={ref}
-      className="story-image-static"
-      initial={reduceMotion ? false : { opacity: 0, y: 36, filter: "blur(8px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <motion.div className="story-image-media" style={{ y: imageY }}>
-        <Image src={src} alt={alt} fill sizes="(max-width: 700px) 100vw, 88vw" />
-      </motion.div>
-      <motion.div className="story-image-logo-motion" aria-hidden="true" style={{ y: logoY }}>
-        <div className="story-image-logo">
-          <span className="story-image-logo-mark">
-            <Image
-              src="/images/logo/logo.png"
-              alt=""
-              fill
-              sizes="clamp(88px, 9vw, 142px)"
-            />
-          </span>
-          <span className="story-image-logo-separator">/</span>
-          <span className="story-image-flag">
-            <Image
-              src="/images/logo/flag.svg"
-              alt=""
-              fill
-              sizes="clamp(54px, 5.5vw, 88px)"
-            />
-          </span>
-        </div>
-      </motion.div>
-      <figcaption>{caption}</figcaption>
-    </motion.figure>
-  );
-}

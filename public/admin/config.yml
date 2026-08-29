@@ -1,0 +1,42 @@
+backend:
+  name: github
+  repo: ashwinpatrick47/project-himalayas
+  branch: main
+  # TODO: set this to your actual deployed Vercel URL (e.g.
+  # https://project-himalayas.vercel.app, or your custom domain once one is
+  # attached). This must exactly match the domain the /api/auth and
+  # /api/callback routes are served from, and the GitHub OAuth app's
+  # "Authorization callback URL" must be set to `${base_url}/api/callback`.
+  base_url: https://REPLACE-WITH-YOUR-VERCEL-DOMAIN.vercel.app
+  auth_endpoint: api/auth
+
+# Cloudinary is where every image an editor picks/uploads from this admin UI
+# is stored and served from. cloud_name isn't secret and can live here in
+# plain text; api_key is only used client-side for the upload widget (not
+# the same as the private api_secret, which never belongs in this file or
+# anywhere in the repo).
+media_library:
+  name: cloudinary
+  config:
+    cloud_name: REPLACE-WITH-CLOUDINARY-CLOUD-NAME
+    api_key: REPLACE-WITH-CLOUDINARY-API-KEY
+
+publish_mode: simple
+
+collections:
+  - name: settings
+    label: Site Settings
+    files:
+      - label: Live Tracking
+        name: live_tracking
+        file: content/settings/live-tracking.json
+        fields:
+          - label: Garmin LiveTrack URL
+            name: garmin_url
+            widget: string
+            required: false
+            hint: Paste the shareable Garmin LiveTrack link here once the run starts.
+          - label: Show live tracking link on the site
+            name: enabled
+            widget: boolean
+            default: false

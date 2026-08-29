@@ -1,13 +1,53 @@
 @import "tailwindcss";
 
+/* BDO Grotesk — font files aren't in the repo yet; drop them in
+   public/fonts/ with these exact names and they'll load automatically
+   (no code change needed). Until then every @font-face request 404s
+   silently and the stack below just falls through to Arial/Helvetica,
+   so nothing breaks in the meantime. */
+@font-face {
+  font-family: "BDO Grotesk";
+  src: url("/fonts/BDOGrotesk-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "BDO Grotesk";
+  src: url("/fonts/BDOGrotesk-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "BDO Grotesk";
+  src: url("/fonts/BDOGrotesk-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root { --font-primary: "BDO Grotesk", Arial, Helvetica, sans-serif; }
+
 * { box-sizing:border-box; }
 html { background:#060908; scrollbar-gutter:stable; }
-body { margin:0; overflow-x:clip; overflow-anchor:none; background:#060908; color:#f5f6f1; font-family:Arial,Helvetica,sans-serif; }
+body { margin:0; overflow-x:clip; overflow-anchor:none; background:#060908; color:#f5f6f1; font-family:var(--font-primary); font-size:16px; font-weight:500; line-height:20.2px; letter-spacing:-0.01em; }
 main::after { content:""; position:fixed; z-index:90; inset:0; pointer-events:none; opacity:.055; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E"); }
 html.hima-intro main::after { display:none; }
 html.hima-intro,html.hima-intro body { height:100%; overflow:hidden!important; overscroll-behavior:none; }
 html.lenis,html.lenis body { height:auto; }.lenis.lenis-smooth { scroll-behavior:auto!important; }.lenis.lenis-stopped { overflow:hidden; }
 a { color:inherit; text-decoration:none; }
+
+/* Preloader — see Preloader.tsx. Fixed, not absolute: has to sit above the
+   fixed-position noise overlay (main::after, z-index:90) too. Background is
+   the same light fog gradient .fog-layer used to use (kept below, now
+   unused) — a solid #cbdbe2 fallback sits under it in case blur+inset
+   bleed ever leaves a gap at the edges. */
+.preloader-root { position:fixed; inset:0; z-index:100; pointer-events:none; }
+.preloader-overlay { position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#cbdbe2; pointer-events:auto; }
+.preloader-bg { position:absolute; inset:-10%; background:radial-gradient(ellipse at 14% 36%,rgba(250,253,254,.98) 0 15%,rgba(207,222,229,.94) 34%,transparent 62%),radial-gradient(ellipse at 80% 24%,rgba(244,249,251,.98) 0 17%,rgba(187,207,216,.92) 39%,transparent 68%),radial-gradient(ellipse at 54% 86%,rgba(235,243,246,.98) 0 22%,rgba(177,199,209,.9) 47%,transparent 75%),linear-gradient(135deg,#b8cdd6,#e7eff2 48%,#aec4cf); filter:blur(14px) saturate(.82); }
+.preloader-logo { position:relative; z-index:1; width:min(180px,32vw); aspect-ratio:1; }
+.preloader-logo img { object-fit:contain; }
 ::selection { background:white; color:#111; }
 .site-header {
   position:absolute;
@@ -40,10 +80,14 @@ a { color:inherit; text-decoration:none; }
 .hero-copy { position:absolute; z-index:3; left:50%; top:15svh; width:92%; transform:translate3d(-50%,0,0); text-align:center; text-shadow:0 2px 32px rgba(0,0,0,.28); background:transparent!important; backdrop-filter:none!important; }
 .hero-copy h1,.hero-copy .title-mask { background:transparent!important; backdrop-filter:none!important; }
 .hero-copy p { margin:0 0 20px; font-size:8px; font-weight:600; letter-spacing:.4em; }.hero-copy h1 { margin:0; font-size:clamp(72px,10.7vw,174px); line-height:.72; font-weight:700; letter-spacing:-.075em; }.title-mask { display:block; overflow:visible; padding-bottom:.08em; margin-bottom:-.08em; }.title-mask > span,.title-mask > em { display:block; opacity:1; transform:none; animation:none; }.title-mask.title-serif > em { font-family:Georgia,serif; font-size:.56em; font-weight:400; }.hero-copy > span { display:block; margin-top:35px; font:italic 14px Georgia,serif; }
+/* Staggered so the hero text plays out as a sequence once loading finishes
+   (header, then each title line, then the project mark) rather than every
+   gated element fading in on the same beat. */
 .hero-copy .title-mask > span,.hero-copy .title-mask > em {
   transition:opacity .72s cubic-bezier(.25,1,.5,1);
+  transition-delay:.15s;
 }
-.hero-copy .title-mask:nth-child(2) > em { transition-delay:0s; }
+.hero-copy .title-mask:nth-child(2) > em { transition-delay:.3s; }
 @keyframes title-line-arrive { to{opacity:1;transform:translate3d(0,0,0) rotate(0)} }
 @keyframes copy-arrive { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
@@ -65,6 +109,15 @@ html.hima-intro.hima-assets-ready .fog-loader-content { animation:fog-loader-dis
 @keyframes fog-loader-ripple { 0%{transform:translateZ(0) scale(.12);opacity:0} 12%{opacity:.42} 100%{transform:translateZ(0) scale(1);opacity:0} }
 @keyframes fog-loading-loop { 0%{opacity:0;transform:translateY(125%)} 28%,62%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-125%)} }
 
+.hero-rara-mark {
+  position:absolute;
+  z-index:10; top:20px; left:4vw; width:44px; aspect-ratio:1;
+  filter:drop-shadow(0 1px 5px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(0,0,0,.55));
+  pointer-events:none;
+  opacity:1;
+  transition:opacity .72s cubic-bezier(.25,1,.5,1);
+}
+.hero-rara-mark img { object-fit:contain; }
 .hero-project-mark {
   position:absolute;
   z-index:10; top:calc(100svh - 54px); left:4vw; display:flex; align-items:center; gap:10px;
@@ -72,6 +125,7 @@ html.hima-intro.hima-assets-ready .fog-loader-content { animation:fog-loader-dis
   font-size:8px; font-weight:700; letter-spacing:.3em; white-space:nowrap; pointer-events:none;
   opacity:1;
   transition:opacity .72s cubic-bezier(.25,1,.5,1);
+  transition-delay:.45s;
 }
 .hero-project-wordmark { position:relative; display:block; width:72px; aspect-ratio:2580/540; flex:none; filter:brightness(0) invert(1) drop-shadow(0 3px 10px rgba(0,0,0,.25)); }
 .hero-project-wordmark img { object-fit:contain; }
@@ -88,12 +142,32 @@ html.hima-intro:not(.hima-reveal) .hero-copy .title-mask > em {
 html.hima-intro:not(.hima-reveal) .hero-project-mark {
   opacity:0;
 }
+html.hima-intro:not(.hima-reveal) .hero-rara-mark {
+  opacity:0;
+}
 
-.story-content { position:relative; z-index:5; margin-top:-100svh; padding:8vh 6vw 5vh; overflow:clip; background:#060908; color:#f2f3ef; }
+/* --scene-t (0-1) is driven from JS in himalayanParallax.tsx: 0 from the
+   top of the page through the terrain map, ramping up once the "NEPAL IN
+   10" ticker comes into view and reaching 1 by the footer. Background and
+   ambient text both ride the same value so the page reads as one continuous
+   fade from the dark map straight through to a light close, rather than a
+   hard cut. Falls back to 0 (today's dark theme) before JS runs. */
+/* Background/text run through --scene-t first (dark hero -> light Why
+   Nepal/Foundation/Our Partners run), then a second time through --dusk-t
+   (light -> dark again, from Testimonials onward) — nesting the two mixes
+   rather than repurposing one variable for both transitions keeps the
+   already-settled light sections above untouched by the second ramp. */
+.story-content { position:relative; z-index:5; margin-top:-100svh; padding:8vh 6vw 5vh; overflow:clip; background:color-mix(in srgb,color-mix(in srgb,#060908 calc(100% - var(--scene-t,0) * 100%),#f5f6f1 calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),#060908 calc(var(--dusk-t,0) * 100%)); color:color-mix(in srgb,color-mix(in srgb,#f2f3ef calc(100% - var(--scene-t,0) * 100%),#0d0f0e calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),#f2f3ef calc(var(--dusk-t,0) * 100%)); }
 .story-intro { width:min(1120px,88vw); margin:0 auto; display:grid; grid-template-columns:0.8fr 2.7fr; column-gap:6vw; align-items:start; }
-.story-kicker { margin:12px 0 0; font-size:8px; font-weight:600; letter-spacing:.38em; color:#9eaaa6; }
-.story-intro h2 { margin:0; font-size:clamp(58px,8vw,130px); line-height:.78; letter-spacing:-.065em; font-weight:700; }
-.story-intro h2 em { display:block; color:#97a5a1; font:400 .62em/.9 Georgia,serif; }
+.story-kicker { margin:12px 0 0; font-size:8px; font-weight:600; letter-spacing:.38em; color:#ff0052; }
+/* line-height was .78 — tighter than this weight/size's actual glyph
+   ascent (56px of ink at the 70px max size), so each line's reveal-mask
+   box (sized off line-height) was a hair shorter than the text itself,
+   permanently shaving the tips off tall ascenders (W, h, T, l, d) via its
+   own overflow:hidden, not just during the reveal animation. .82 gives
+   just enough headroom to clear that at every size in the clamp() range. */
+.story-intro h2 { margin:0; font-size:clamp(64px,6.2vw,84px); line-height:.82; letter-spacing:-.065em; font-weight:700; }
+.story-intro h2 em { display:block; color:#ff0052; font:400 .62em/.9 Georgia,serif; }
 .cinematic-story-sequence { position:relative; }
 .story-card-grid { width:min(1120px,88vw); margin:14vh auto 0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .story-card { position:relative; height:clamp(130px,12vw,190px); margin:0; overflow:hidden; background:#121816; will-change:opacity; backface-visibility:hidden; }.story-card::after { content:""; position:absolute; z-index:1; inset:0; background:rgba(4,7,6,.12); transition:background .45s ease; }.story-card-media { position:absolute; inset:-12px 0; will-change:transform; }.story-card img { object-fit:cover; filter:saturate(.82) contrast(1.02) brightness(.94); transition:filter .5s ease; }.story-card figcaption { position:absolute; z-index:2; inset:50% auto auto 50%; margin:0; transform:translate(-50%,-50%); color:#f2f3ef; font-size:clamp(17px,1.5vw,24px); font-weight:600; letter-spacing:-.025em; will-change:transform,opacity; }.story-card:hover::after { background:rgba(4,7,6,.04); }.story-card:hover img { filter:saturate(.9) contrast(1.02) brightness(1); }
@@ -106,43 +180,17 @@ html.hima-intro:not(.hima-reveal) .hero-project-mark {
 .story-stat-digit { position:relative; display:block; width:.61em; height:1em; overflow:hidden; flex:0 0 .61em; }
 .story-stat-digit-track { display:flex; flex-direction:column; width:100%; will-change:transform; transition:transform 2.25s cubic-bezier(.16,1,.3,1); }
 .story-stat-digit-track > span { display:block; box-sizing:border-box; width:100%; height:1.16em; padding-top:.08em; flex:0 0 1.16em; color:inherit; font:inherit; line-height:1; letter-spacing:inherit; text-align:center; }
-.story-stat-label { color:#899590; font-size:8px; letter-spacing:.28em; text-transform:uppercase; }
-.story-manifesto { position:relative; z-index:2; width:calc(100% + 12vw); height:300svh; margin:6vh 0 0 -6vw; background:#060908; }
-.story-manifesto-stage { position:sticky; top:0; height:100svh; padding:4svh 2vw 0; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; background:#060908; }
-.story-manifesto-logo { width:max-content; margin:0 auto -2px; will-change:transform,opacity; }
-.story-manifesto-logo-mark { display:block; width:clamp(72px,6.7vw,106px); aspect-ratio:1; background:#9baca6; -webkit-mask:url("/images/logo/logo.png") center/contain no-repeat; mask:url("/images/logo/logo.png") center/contain no-repeat; }
-.story-manifesto-copy { position:relative; display:grid; place-items:center; width:100%; padding-top:clamp(4rem,7vw,8rem); }
-.story-manifesto p { grid-area:1/1; width:100%; margin:0; color:#e8ebe3; font-size:clamp(62px,7.4vw,136px); line-height:.84; text-align:center; }
-.story-manifesto-word { display:inline-block; margin-right:.17em; }
-.story-manifesto-nepali { max-width:13em; font-family:Georgia,"Noto Serif Devanagari",serif; font-size:clamp(56px,6.6vw,122px)!important; font-weight:400; letter-spacing:-.045em; }
-.story-manifesto-english { color:#e8ebe3; font-size:clamp(48px,5.8vw,96px)!important; font-weight:700; letter-spacing:-.06em; text-transform:uppercase; }
-.story-manifesto .is-accent { color:#9baca6; }
-.story-manifesto-english .is-accent { font-family:Georgia,serif; font-weight:400; letter-spacing:-.055em; }
-.manifesto-break-mobile { display:none; }
-.story-manifesto.is-reduced .story-manifesto-nepali { display:none; }
+.story-stat-label { color:#ff0052; font-size:8px; letter-spacing:.28em; text-transform:uppercase; }
 .story-image-expansion { position:relative; width:calc(100% + 12vw); height:220svh; margin-left:-6vw; background:#060908; }
 .story-image-sticky { position:sticky; top:0; width:100%; height:100svh; overflow:hidden; display:grid; place-items:center; background:#060908; }
-.story-image { position:relative; width:100%; height:100svh; margin:0; overflow:hidden; background:#121816; transform:translateZ(0); backface-visibility:hidden; }.story-image-static { position:relative; width:min(1320px,88vw); height:min(72vw,82vh); margin:16vh auto 8vh; overflow:hidden; border-radius:28px; background:#121816; transform:translateZ(0); }.story-image-media { position:absolute; inset:-7% 0; will-change:transform; transform:translateZ(0); }.story-image-static .story-image-media { inset:-8% 0; }.story-image-media img { object-fit:cover; filter:saturate(.82) contrast(1.02) brightness(.92); }.story-image::after,.story-image-static::after { content:""; position:absolute; z-index:1; inset:0; background:linear-gradient(to top,rgba(6,9,8,.38),transparent 36%); }.story-image-logo-motion { position:absolute; z-index:2; inset:0; pointer-events:none; will-change:transform; }.story-image-logo { position:absolute; z-index:2; top:50%; left:50%; display:flex; align-items:center; gap:clamp(12px,1.25vw,20px); transform:translate(-50%,-50%); filter:brightness(0) invert(1) drop-shadow(0 8px 28px rgba(0,0,0,.28)); }.story-image-logo-mark { position:relative; display:block; width:clamp(88px,9vw,142px); aspect-ratio:1; flex:none; }.story-image-logo-separator { display:block; width:.55em; color:#fff; font:300 clamp(24px,2.4vw,38px)/1 Georgia,serif; text-align:center; opacity:.78; transform:translateX(-.3em); }.story-image-flag { position:relative; display:block; width:clamp(54px,5.5vw,88px); aspect-ratio:1280/1561; flex:none; }.story-image-logo img { object-fit:contain; }.story-image figcaption,.story-image-static figcaption { position:absolute; z-index:2; left:28px; bottom:24px; margin:0; font-size:8px; letter-spacing:.32em; }.story-image-introduction-overlay { position:absolute; z-index:3; inset:0; background:rgba(4,7,6,.82); pointer-events:none; }.story-image-introduction { position:absolute; z-index:4; inset:0; display:grid; place-items:center; padding:6vw; color:#f5f5f0; text-align:center; pointer-events:none; }.story-image-introduction p { grid-area:1/1; max-width:12em; margin:0; font-size:clamp(48px,6.8vw,118px); font-weight:700; line-height:.84; letter-spacing:-.065em; text-wrap:balance; will-change:transform,opacity,filter,clip-path; }.story-image-introduction span { display:block; color:#e6e9e5; font:400 .58em/.92 Georgia,serif; letter-spacing:-.045em; }.story-image-introduction-nepali { max-width:11em!important; font-family:Georgia,"Noto Serif Devanagari",serif; font-weight:400!important; letter-spacing:-.045em!important; }.story-image-introduction-english { text-transform:none; }
-.story-chapters { width:min(1120px,88vw); margin:16vh auto; display:grid; grid-template-columns:repeat(3,1fr); gap:5vw; }.story-chapters article { padding-top:28px; border-top:1px solid #33403c; }.story-chapters span { font-size:8px; letter-spacing:.3em; color:#87938f; }.story-chapters h3 { margin:48px 0 18px; font:400 clamp(28px,3vw,44px)/1.05 Georgia,serif; }.story-chapters p { margin:0; color:#8e9995; font-size:13px; line-height:1.8; }
+.story-image { position:relative; width:100%; height:100svh; margin:0; overflow:hidden; background:#121816; transform:translateZ(0); backface-visibility:hidden; }.story-image-media { position:absolute; inset:-7% 0; will-change:transform; transform:translateZ(0); }.story-image-media img { object-fit:cover; filter:saturate(.82) contrast(1.02) brightness(.92); }.story-image::after { content:""; position:absolute; z-index:1; inset:0; background:linear-gradient(to top,rgba(6,9,8,.38),transparent 36%); }.story-image-introduction-overlay { position:absolute; z-index:3; inset:0; background:rgba(4,7,6,.82); pointer-events:none; }.story-image-introduction { position:absolute; z-index:4; inset:0; display:grid; place-items:center; padding:6vw; color:#f5f5f0; text-align:center; pointer-events:none; }.story-image-introduction p { grid-area:1/1; max-width:12em; margin:0; font-size:clamp(48px,6.8vw,118px); font-weight:700; line-height:.84; letter-spacing:-.065em; text-wrap:balance; will-change:transform,opacity,filter,clip-path; }.story-image-introduction span { display:block; color:#e6e9e5; font:400 .58em/.92 Georgia,serif; letter-spacing:-.045em; }.story-image-introduction-nepali { max-width:11em!important; font-family:Georgia,"Noto Serif Devanagari",serif; font-weight:400!important; letter-spacing:-.045em!important; }.story-image-introduction-english { text-transform:none; }
+.story-chapters { width:min(1120px,88vw); margin:16vh auto; display:grid; grid-template-columns:repeat(3,1fr); gap:5vw; }.story-chapters article { padding-top:28px; border-top:1px solid #33403c; }.story-chapters span { font-size:8px; letter-spacing:.3em; color:#ff0052; }.story-chapters h3 { margin:48px 0 18px; font:400 clamp(28px,3vw,44px)/1.05 Georgia,serif; }.story-chapters p { margin:0; color:#ff0052; font-size:13px; line-height:1.8; }
 .story-image-introduction .story-image-introduction-line { display:block; color:inherit; font:inherit; letter-spacing:inherit; white-space:nowrap; }
 .story-image-introduction .story-image-introduction-subline { color:#e6e9e5; font:400 .58em/.92 Georgia,serif; letter-spacing:-.045em; }
 .story-image-introduction .story-image-introduction-word { display:inline-block; margin-right:.18em; color:inherit; font:inherit; letter-spacing:inherit; }
 .story-image-introduction .story-image-introduction-glyph { display:inline; color:inherit; font:inherit; letter-spacing:inherit; }
 .story-image-introduction-nepali,.story-image-introduction-english { width:100%; max-width:11em!important; font-size:clamp(42px,5.8vw,102px)!important; }
 .story-image-introduction-english { max-width:16em!important; }
-.story-footer { width:min(1120px,88vw); margin:8vh auto 0; padding-top:28px; display:flex; justify-content:space-between; border-top:1px solid #25302d; font-size:8px; letter-spacing:.3em; color:#a9b2af; }.story-footer p { margin:0; }.story-footer a { padding-bottom:8px; border-bottom:1px solid currentColor; }
-
-/* Keep Devanagari ascenders/descenders clear while the two languages cross over. */
-.story-manifesto p {
-  box-sizing:border-box;
-  line-height:1.02;
-  padding-block:.12em;
-}
-.story-manifesto-nepali {
-  line-height:1.12!important;
-  letter-spacing:-.025em;
-  padding-inline:.12em;
-}
 
 /* The introduction stays pinned; only a restrained camera push is applied. */
 .story-image-expansion {
@@ -190,18 +238,611 @@ html.hima-intro:not(.hima-reveal) .hero-project-mark {
   line-height:1.04;
 }
 
+/* z-index:5, one above the site's usual z-index:4 pinned sections: its very
+   next sibling ties at z-index:4, and equal z-index resolves by DOM order —
+   without this the later section paints over this one's still-pinned
+   content while it's active. */
+/* Height = sticky-window (for the reveal to play out) + ~100svh, since a
+   sticky element always needs its own height worth of scroll just to
+   release — padding beyond that leaves dead empty space before the next
+   section, which is what caused the visible "break". */
+.manifesto-reveal { position:relative; z-index:5; width:calc(100% + 12vw); height:420svh; margin-left:-6vw; background:#060908; }
+.manifesto-sticky { position:sticky; top:0; width:100%; height:100svh; overflow:hidden; display:grid; place-items:center; background:#060908; }
+
+.terrain-text-reveal { position:absolute; inset:0; z-index:3; display:grid; place-items:center; padding-inline:6vw; will-change:transform,opacity; }
+.terrain-text-reveal-line { margin:0; max-width:14em; color:#e8ebe3; font-size:clamp(38px,6vw,92px); font-weight:700; line-height:.94; letter-spacing:-.055em; text-align:center; text-transform:uppercase; }
+.terrain-text-reveal-line em { font-family:Georgia,serif; font-weight:400; font-style:normal; letter-spacing:-.045em; color:#ff0052; }
+
+.terrain-scrim { position:absolute; inset:0; z-index:2; background:#060908; pointer-events:none; }
+
+.terrain-map-layer { position:absolute; inset:-4%; z-index:1; will-change:transform; }
+.terrain-map,.terrain-map-svg,.terrain-map-canvas,.terrain-vignette { position:absolute; inset:0; width:100%; height:100%; }
+/* Flat, matching the page's own background exactly — a tinted gradient here
+   read as a separate colored panel breaking the page in two instead of the
+   map just sitting on the same continuous black canvas as everything else. */
+.terrain-map-fallback { background:#060908; }
+.terrain-map-fallback .terrain-map-svg { filter:saturate(.85) brightness(1.02); }
+/* Strava-style hierarchy: the terrain is a quiet backdrop, the route is the
+   hero — bold, glowing, and the brightest thing on the map. */
+.terrain-map-outline { fill:rgba(155,172,166,.06); stroke:#7c8b85; stroke-width:1.3; opacity:.6; }
+/* The same contour texture as inside the country, just dim — otherwise
+   everything past the border is flat black while the interior is textured,
+   which reads as a shape pasted onto a void rather than one continuous
+   piece of terrain. */
+.terrain-contour-backdrop { opacity:.22; }
+/* Stylised elevation contours filling the country's interior — no real
+   elevation data behind this, but the visual grammar (fine wavy lines,
+   denser/bolder along the actual Himalayan range in the north) is what
+   makes a flat outline read as terrain instead of a shape on black. */
+.terrain-contour-line { fill:none; stroke:#7c8b85; stroke-width:.7; opacity:.3; vector-effect:non-scaling-stroke; }
+.terrain-contour-line-soft { opacity:.16; }
+/* A soft light that travels with the runner — the only thing on the map
+   that visibly *moves* apart from the marker itself, giving the terrain a
+   sense of being lit rather than just printed. */
+.terrain-runner-glow { transition:opacity .4s ease; mix-blend-mode:screen; }
+/* Single drop-shadow, not stacked — this path's geometry (dasharray/offset)
+   changes every scroll frame while drawing, and a second blurred filter
+   layer on top of that repaint was heavy enough to read as stutter. */
+/* Blur pulled way in from the old orange's 6px — the new pink is far more
+   saturated at the same blur radius, so it read as a hazy halo drifting off
+   the line's actual path rather than a crisp line tracing the route. */
+.terrain-map-route { fill:none; stroke:#ff0052; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; opacity:1; filter:drop-shadow(0 0 2.5px rgba(255,0,82,.55)); }
+.terrain-map-runner { fill:#ff0052; filter:drop-shadow(0 0 4px rgba(255,0,82,.6)); transform-origin:center; transform-box:fill-box; animation:terrain-runner-pulse 2.4s ease-in-out infinite; }
+@keyframes terrain-runner-pulse { 0%,100% { transform:scale(1); opacity:.85; } 50% { transform:scale(1.35); opacity:1; } }
+.terrain-map-runner-marker { position:relative; width:13px; height:13px; border-radius:50%; background:#ff0052; box-shadow:0 0 4px 1px rgba(255,0,82,.6); animation:terrain-runner-pulse 2.4s ease-in-out infinite; }
+/* The "so far" distance readout — travels with the runner rather than
+   sitting fixed on screen, so it reads as live telemetry, not a caption.
+   No position/left/top/transform here: browsers honour CSS positioning on
+   SVG <text> too, which would hijack it away from its x/y attributes — that
+   part lives only in the rule below, scoped to the Mapbox HTML badge. */
+.terrain-map-runner-km { fill:#e8ebe3; color:#e8ebe3; font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; letter-spacing:.08em; white-space:nowrap; opacity:0; transition:opacity .4s ease; pointer-events:none; }
+.terrain-map-runner-marker .terrain-map-runner-km { position:absolute; top:-32px; left:50%; transform:translateX(-50%); }
+.terrain-map-label { fill:#c7d0cb; color:#c7d0cb; font:600 11px/1 Arial,Helvetica,sans-serif; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; pointer-events:none; transition:opacity .5s ease; }
+/* A quiet checkpoint marker at each town along the highway, independent of
+   the runner marker that travels the line — stays once revealed, like the
+   labels, so the route reads as a chain of real stops as it draws in. */
+.terrain-map-waypoint-dot { width:7px; height:7px; border-radius:50%; background:#c7d0cb; fill:#c7d0cb; opacity:0; transition:opacity .5s ease; pointer-events:none; }
+.terrain-vignette { z-index:2; pointer-events:none; opacity:.25; background:radial-gradient(120% 100% at 50% 46%,transparent 40%,rgba(4,6,5,.75) 100%); }
+/* Mapbox canvas: strip its native colouring toward the site's muted sage/charcoal grade. */
+.terrain-map-canvas { filter:grayscale(.55) sepia(.12) hue-rotate(45deg) saturate(1.3) brightness(.42) contrast(1.2); }
+.terrain-map .mapboxgl-ctrl-bottom-right { opacity:.35; }
+
+/* A horizontal ticker, not a fixed caption — and a normal in-flow section,
+   not an overlay pinned over the map. Verified directly against
+   topography.webflow.io's own marquee band (.marquee-band): position
+   relative, clip-path none, transform none, plain document flow — it just
+   scrolls into view like any other section, fading up the same way every
+   other section on this page does (see MapLabels.tsx, CinematicTextReveal).
+   Structure/spacing/type-scale still matches its marquee-track: flat
+   alternating item/coord chain on a shared flex gap (no dash separators), a
+   big cream display phrase, coordinates small and in the route's own accent
+   colour. Horizontal motion is a plain continuous CSS marquee, autoplaying
+   independent of scroll. */
+.terrain-ticker { position:relative; width:100%; padding:6vh 0; overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); }
+.terrain-ticker-track { display:flex; align-items:center; gap:64px; width:max-content; will-change:transform; animation:terrain-ticker-scroll 32s linear infinite; }
+@keyframes terrain-ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .terrain-ticker-track { animation:none; } }
+.terrain-ticker-item { color:#e8ebe3; font-size:clamp(56px,9.5vw,132px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; white-space:nowrap; }
+/* Same treatment this project already uses elsewhere for Nepali display
+   text (see .story-image-introduction-nepali): Georgia first, Devanagari
+   serif as the fallback that actually carries the glyphs. */
+.terrain-ticker-item-nepali { font-family:Georgia,"Noto Serif Devanagari",serif; font-weight:400; text-transform:none; letter-spacing:0; }
+.terrain-ticker-coord { color:#ff0052; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; font-weight:600; font-size:14px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; }
+
+/* DiagonalReveal: the ticker's own coloured panel sweeps up behind it as it
+   scrolls into view from below the still-pinned map, so the map reads as
+   fully revealed and then visibly covered rather than just cutting to the
+   next section (see DiagonalReveal.tsx). */
+/* overflow:hidden (not the reference's overflow:visible) — the fill below is
+   deliberately oversized past this box's own edges, and this crop keeps
+   that overflow from bleeding into whatever comes before/after the ticker
+   rather than stopping exactly at its corners. */
+/* Full-bleed — .story-content's own 6vw side padding would otherwise inset
+   this from the viewport edges (same fix as .manifesto-reveal above it). */
+.diagonal-reveal { position:relative; isolation:isolate; overflow:hidden; width:calc(100% + 12vw); margin-left:-6vw; }
+/* Oversized past the section's own box on every side — skewY + a residual
+   slide only fully settle to flush edges by "start 65%" (see
+   DiagonalReveal.tsx); before that the sheared rectangle no longer lines up
+   with the section's true corners, so this margin gives it room to swing
+   without ever exposing black underneath, and the parent's overflow:hidden
+   crops it back down to the section's own rectangle. */
+.diagonal-reveal-overlap { position:absolute; z-index:0; inset:-20% -15%; pointer-events:none; }
+.diagonal-reveal-fill { width:100%; height:100%; transform-origin:center; will-change:transform; }
+.diagonal-reveal-content { position:relative; z-index:1; }
+@media (prefers-reduced-motion: reduce) { .diagonal-reveal-fill { transform:none!important; } }
+
+/* RunnerChapter: full-bleed image + big "01" / large title / eyebrow +
+   description overlay — ported from project-run-1's CinematicImageScroll
+   ParallaxSlide (see RunnerChapter.tsx for the scroll-linked reveal). */
+/* Same pinned-visuals pattern as the hero (.parallax-header is the tall
+   220svh box, .parallax-visuals the position:sticky 100svh layer inside
+   it) — gives WhyNepalNote's why-nepal-bio (margin-top:-100svh, higher
+   z-index) room to slide up and cover this section while it's still
+   stuck at top:0, the same "next section hovers up over the last one"
+   effect the hero already does, instead of the flat cut this used to be
+   when .runner-chapter was just a plain 100svh block. */
+.runner-chapter { position:relative; z-index:5; width:calc(100% + 12vw); margin:16vh 0; margin-left:-6vw; height:220svh; overflow:clip; background:#111; }
+/* display:grid (rather than leaving the window and ticker strip as two
+   independently-computed position:absolute boxes, one at top:50% and the
+   other flex-centered) so both are placed in the very same grid cell by
+   the same single layout pass — grid-area:1/1 on each, see below. That
+   guarantees they can never drift apart pixel-for-pixel, however the
+   browser schedules layout/paint around them; top:50%+transform:
+   translateY(-50%) computed against a 100svh ancestor is one extra layer
+   of math that top:50% relied on staying perfectly in step with the
+   flex-centered window on every frame, which isn't a given on every
+   browser/device. */
+.runner-chapter-visuals { position:sticky; top:0; left:0; width:100%; height:100svh; overflow:hidden; display:grid; grid-template-columns:100%; grid-template-rows:100%; }
+.runner-chapter-parallax { position:absolute; z-index:0; top:-10%; left:0; width:100%; height:120%; will-change:transform; }
+.runner-chapter-parallax img { object-fit:cover; }
+.runner-chapter-shade { position:absolute; z-index:1; inset:0; background:linear-gradient(90deg,rgba(3,8,12,.2),transparent 36%,rgba(0,0,0,.08)),linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.08) 42%,rgba(0,0,0,.74)); pointer-events:none; }
+.runner-chapter-window-stage { position:relative; z-index:3; grid-area:1/1; height:100%; display:flex; align-items:center; justify-content:center; padding:6vw; }
+.runner-chapter-window { position:relative; width:min(360px,52vw); aspect-ratio:3 / 4; border-radius:8px; overflow:hidden; border:1px solid rgba(242,243,239,.25); box-shadow:0 30px 80px -30px rgba(0,0,0,.55); }
+.runner-chapter-window-inner { position:absolute; inset:-10% 0; will-change:transform; }
+.runner-chapter-window-inner img { object-fit:cover; }
+/* The relocated "NEPAL IN 10" ticker — full width across the background
+   image (not confined to the window above it), same vertical position the
+   mis-placed in-window band sat at, window layered in front (z-index:3
+   above this) so it reads as the photo pinned over a running banner. Same
+   grid cell as .runner-chapter-window-stage (grid-area:1/1), centred via
+   align-self instead of its own top:50%/transform math. */
+.runner-chapter-ticker-strip { position:relative; z-index:2; grid-area:1/1; align-self:center; width:100%; }
+.runner-chapter-ticker-strip .diagonal-reveal { margin:0; width:100%; }
+.runner-chapter-window-logo { position:absolute; inset:0; z-index:3; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.runner-chapter-window-logo img { width:min(160px,42%); height:auto; }
+
+/* Why Nepal: full-bleed flag photo with the copy laid over it in white,
+   rather than the previous side-by-side kicker/image split — the flag
+   fills the whole stage, a dark scrim sits between it and the text for
+   legibility, and the copy is a plain absolutely-positioned layer on top.
+   Retains the page's white transition around the section itself; the
+   photo inside is shown at full colour, not the washed-out/low-opacity
+   treatment other supporting photos on this page get — it's a national
+   symbol, not a background texture. */
+.why-nepal { position:relative; z-index:5; width:calc(100% + 12vw); margin:16vh 0; margin-left:-6vw; overflow:hidden; }
+.why-nepal::before,.why-nepal::after { content:none; }
+/* Rahul's intro gets a full screen of its own — min-height:100svh, not just
+   padding — so it never shares a viewport with Why Nepal's own heading/flag
+   below it; that's the whole point of splitting it out. Layout is modelled
+   on a Fuel-style agency intro: one big flowing bold statement up top, then
+   a tall portrait photo with labelled facts running alongside it. No border
+   between this and Why Nepal below — the full-screen height already keeps
+   them apart, a visible seam just makes it read as two boxes stacked. */
+/* margin-top:-100svh + a higher z-index than .runner-chapter (5) is what
+   pulls this up to slide over and cover the still-pinned RunnerChapter
+   visuals — same mechanism as .story-content covering the hero. */
+.why-nepal-bio { position:relative; z-index:6; width:calc(100% + 12vw); margin-top:-100svh; margin-left:-6vw; min-height:100svh; display:flex; flex-direction:column; justify-content:center; gap:8vh; padding:8vh 5vw 12vh; overflow:hidden; background:color-mix(in srgb,color-mix(in srgb,#060908 calc(100% - var(--scene-t,0) * 100%),#f5f6f1 calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),#060908 calc(var(--dusk-t,0) * 100%)); }
+/* Desktop already carries this section on the headline alone — the kicker
+   row only earns its place on the narrower mobile layout below, where the
+   headline needs a bit more editorial framing above it. */
+.why-nepal-bio-kicker { display:none; }
+/* text-indent only ever applies to a block's first line — exactly the
+   "first line pushed right, the rest flush left" shape from the Fuel
+   reference, without needing a separate indented span. */
+.why-nepal-bio-headline { margin:0; max-width:26em; text-indent:32%; color:color-mix(in srgb,#e8ebe3 calc(100% - var(--scene-t,0) * 100%),#0d0f0e calc(var(--scene-t,0) * 100%)); font:700 clamp(28px,3.6vw,54px)/1.2 Arial,Helvetica,sans-serif; letter-spacing:-.02em; }
+.why-nepal-bio-foot { display:grid; grid-template-columns:min(340px,34vw) 1fr; gap:6vw; align-items:stretch; }
+.why-nepal-bio-photo { position:relative; width:100%; aspect-ratio:3 / 4; border-radius:6px; overflow:hidden; }
+.why-nepal-bio-photo-inner { position:absolute; inset:-10% 0; will-change:transform; }
+.why-nepal-bio-photo-inner img { object-fit:cover; }
+/* Rows of (label | content) — no dividers between the Why/How/Numbers
+   groups themselves (the reference just uses whitespace there); a fixed,
+   generous gap between groups rather than space-between distributed
+   across the photo's height, so spacing stays consistent regardless of
+   how many lines the real copy wraps to. Each group is its own
+   .why-nepal-bio-row so the label/content pairing (grid on desktop, stacked
+   on mobile) is independent of the gap between groups — a flat 6-item grid
+   couldn't do both at once. */
+.why-nepal-bio-rows { display:flex; flex-direction:column; justify-content:flex-start; gap:6vh; justify-self:end; width:100%; max-width:620px; }
+.why-nepal-bio-row { display:grid; grid-template-columns:120px 1fr; gap:0 6vw; align-items:start; }
+.why-nepal-bio-label { color:#ff0052; font-size:20px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+.why-nepal-bio-rows p { margin:0; max-width:26em; color:color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)); font-size:16px; font-weight:500; line-height:20.2px; letter-spacing:-0.01em; }
+.why-nepal-bio-stats { display:flex; flex-direction:column; }
+/* .why-nepal-bio-stats div below (targeting only .why-nepal-bio-stat) used
+   to be a bare descendant selector (.why-nepal-bio-stats div) — TextStagger
+   wraps each `lines` entry in its own LineMask + MotionLine div for the
+   reveal mask, so that selector was ALSO matching those two wrapper divs
+   per line, not just the actual stat row div. Each nested div compounded
+   the same 12px top+bottom padding, stacking to ~72px of dead space above
+   "Distance"/"Duration" instead of 24px — which is why NUMBERS sat visibly
+   higher than its own content instead of lining up with it the way WHY/HOW
+   line up with their paragraphs. Scoping to the dedicated class fixes it. */
+/* Reference has it the other way round from what we first built: the label
+   ("New clients"/"Success rate") is the dark, full-weight one; the value
+   is the lighter, secondary-toned one. */
+.why-nepal-bio-stat { display:flex; justify-content:space-between; max-width:280px; padding:12px 0; font-size:14px; }
+.why-nepal-bio-stats > div + div { border-top:1px solid color-mix(in srgb,rgba(242,243,239,.18) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.14) calc(var(--scene-t,0) * 100%)); }
+.why-nepal-bio-stats span:first-child { font-weight:700; font-size:17px; color:#ff0052; }
+.why-nepal-bio-stats span:last-child { font-weight:600; color:color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)); }
+/* Rara Runs Nepal — the actual event mark, replacing the placeholder
+   scrolling ticker that used to sit here. Static, not scrolling text: a
+   logo doesn't need to loop the way a marquee phrase does. */
+.why-nepal-brand-strip {
+  width: calc(100% + 12vw);
+  margin-left: -6vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 0;
+}
+
+/* RGB version */
+.why-nepal-brand-strip-rgb {
+  width: min(220px, 40vw);
+  aspect-ratio: 1;
+  background: linear-gradient(
+    135deg,
+    #ff1f4f 0%,
+    #19e58a 50%,
+    #2596ff 100%
+  );
+
+  mask-image: url(/icons/rara.png);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+
+  -webkit-mask-image: url(/icons/rara.png);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+
+  animation: why-nepal-brand-hue 3s linear infinite;
+}
+
+/* RED version — no animation */
+.why-nepal-brand-strip-red {
+  width: min(220px, 40vw);
+  aspect-ratio: 1;
+  background: #ff0052;
+
+  mask-image: url(/icons/rara.png);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+
+  -webkit-mask-image: url(/icons/rara.png);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+
+  transform: translateY(6vh);
+}
+
+/* Black version - no animation */
+.why-nepal-brand-strip-black {
+  width: min(220px, 40vw);
+  aspect-ratio: 1;
+  background: #000;
+
+  mask-image: url(/icons/rara.png);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+
+  -webkit-mask-image: url(/icons/rara.png);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+
+  transform: translateY(6vh);
+}
+
+@keyframes why-nepal-brand-hue {
+  from {
+    filter: hue-rotate(0deg);
+  }
+
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) { .why-nepal-brand-strip-rgb { animation:none; } }
+.why-nepal-stage { position:relative; min-height:85vh; overflow:hidden; }
+/* Media fills the whole stage now (was one half of a 2-col grid) — the
+   wrapper handles the one-time slide-in-from-the-right (x/scale, via
+   initial+whileInView in WhyNepalNote.tsx), the inner div the continuous
+   scroll-linked y parallax (via the imageY style motion value) — two
+   different animation sources on two different elements so neither
+   clobbers the other's transform. */
+.why-nepal-media { position:absolute; inset:0; z-index:0; }
+.why-nepal-media-inner { position:absolute; inset:-8% -8%; will-change:transform; }
+.why-nepal-media-inner img { object-fit:cover; }
+.why-nepal-scrim { position:absolute; inset:0; z-index:1; background:linear-gradient(100deg,rgba(6,9,8,.7) 0%,rgba(6,9,8,.42) 42%,rgba(6,9,8,.08) 72%); pointer-events:none; }
+.why-nepal-copy { position:relative; z-index:2; max-width:34em; padding:10vh 6vw; margin-left: 60vw; }
+/* Shutter/flap: one opaque panel covering the whole stage (flag photo +
+   scrim + copy, all already sitting static in their final position),
+   sliding fully off to the left on first scroll into view — a single
+   reveal for the whole composition, rather than the image and text
+   entering separately. */
+/* Matches .story-content's own themed background (the --scene-t mix, dusk-t
+   omitted since that stage doesn't ramp until much further down the page)
+   rather than a flat colour, so the panel reads as "more of the page" until
+   it slides away instead of a solid black block dropped on top of it. */
+.why-nepal-shutter { position:absolute; inset:0; z-index:3; background:color-mix(in srgb,#060908 calc(100% - var(--scene-t,0) * 100%),#f5f6f1 calc(var(--scene-t,0) * 100%)); will-change:transform; }
+.why-nepal-kicker { display:block; margin-bottom:26px; color:#fff; font-size:10px; font-weight:700; letter-spacing:.3em; text-transform:uppercase; }
+.why-nepal-heading { margin:0 0 30px; max-width:13em; color:#fff; font:700 56px/1.02 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
+.why-nepal-heading span,.why-nepal-heading em { display:block; font-style:normal; }
+.why-nepal-heading em { color:#ff0052; }
+.why-nepal-body { max-width:30em; margin:0; color:rgba(255,255,255,.82); font-size:16px; font-weight:500; line-height:20.2px; letter-spacing:-0.01em; }
+
+.narrative-kicker { display:block; margin-bottom:22px; color:#ff0052; font-size:9px; font-weight:700; letter-spacing:.32em; text-transform:uppercase; }
+/* Ported from framer.com/m/Button-Hover-Pro: a pink circle tucked in the
+   corner expands via clip-path to fill the whole pill on hover (rather
+   than the source's colour-invert, the fill and the resting circle are
+   the same pink so the wipe reads as one continuous colour spreading, in
+   line with this site's "pink is the interactive accent" convention) and
+   the arrow rotates 45°. No glow — every shadow variant tried (box-shadow,
+   filter:drop-shadow, box-shadow on an unclipped wrapper) rendered as a
+   hard-edged box in at least one browser instead of a soft halo. */
+.foundation-cta { position:relative; display:inline-flex; align-items:center; gap:14px; margin-top:32px; padding:8px 8px 8px 22px; border-radius:999px; overflow:hidden; background:#0d0f0e; }
+.foundation-cta-fill { position:absolute; z-index:0; inset:0; background:#ff0052; clip-path:circle(16px at calc(100% - 24px) 50%); transition:clip-path .5s cubic-bezier(.5,0,.2,1); }
+.foundation-cta:hover .foundation-cta-fill { clip-path:circle(150% at calc(100% - 24px) 50%); }
+.foundation-cta-label { position:relative; z-index:1; color:#f2f3ef; font-size:10px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; }
+.foundation-cta-circle { position:relative; z-index:1; flex:none; display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:#ff0052; color:#f2f3ef; }
+.foundation-cta-arrow { display:block; font-size:14px; line-height:1; transition:transform .5s cubic-bezier(.5,0,.2,1); }
+.foundation-cta:hover .foundation-cta-arrow { transform:rotate(-45deg); }
+
+/* Foundation & Charity — two columns, copy on the left and the fanned
+   photo stack on the right (was a single stacked column, title then stack
+   centred below it) — same left-copy/right-visual split project-run-1's
+   ProjectGrid reference runs, just without that layout's own aside/list
+   scaffolding either side of it. */
+.foundation-charity { position:relative; width:min(1200px,90vw); margin:20vh auto; display:grid; grid-template-columns:0.85fr 1fr; align-items:stretch; gap:6vw; }
+/* Stretched (not align-items:start) so this item's own box is as tall as
+   the pile beside it — sticky needs that height to have room to travel in.
+   The sticky child holds the heading/body/CTA in place near the top of
+   that tall box for as long as the pile is still building, then releases
+   once the box (and the pile) end. */
+.foundation-copy { position:relative; z-index:1; }
+/* .foundation-copy-sticky's containing block is THIS wrapper, not
+   .foundation-copy directly — deliberately shorter (100% of the stretched
+   column minus 28vh) than the full stack height, so the copy's own sticky
+   release fires ~28vh before the stack's real end (i.e. once the last
+   card has already scrolled into its resting position, not after its full
+   34vh trailing dwell). The stack itself (.foundation-stack-card-shell)
+   keeps its own full margin untouched — this only shortens the copy's
+   release window, not the pile's stacking mechanics. */
+.foundation-copy-range { height:calc(100% - 28vh); }
+.foundation-copy-sticky { position:sticky; top:16vh; max-width:32em; }
+/* The pile: each card is `position:sticky` at its own small top offset, in
+   plain document flow (not an artificial tall wrapper) — margin-bottom on
+   each shell is what buys the next card room to scroll up from below the
+   viewport before it reaches its own sticky point and buries the previous
+   one, same mechanic as project-run-1's ProjectGrid (sticky shell + top
+   offset per index), not a static fan. */
+.foundation-stack-list { position:relative; width:100%; }
+.foundation-stack-card-shell { position:sticky; width:100%; }
+/* Every shell gets this trailing room, including the last one — a sticky
+   element only holds its position for as long as its OWN containing block
+   (this shell) still has height left to scroll through. Excluding the last
+   card left its shell exactly as tall as the card itself, so it never had
+   room to actually stick — it just scrolled straight past like a normal
+   element instead of pinning and joining the pile like every other card. */
+.foundation-stack-card-shell { margin-bottom:34vh; }
+/* Giving only the last card a short trailing margin (an earlier attempt at
+   the fix below) broke the pile itself: with only 6vh of its own room to
+   scroll through, the last card ran out of "stuck" room and released
+   early, so it started scrolling normally again while still overlapping
+   the card behind it — visible as the last card dragging/pushing the one
+   before it instead of sitting still on top of it. Every shell keeps the
+   full 34vh above so the pile mechanics stay exactly as they were. */
+.foundation-stack-card { position:relative; width:100%; aspect-ratio:16/11; border-radius:20px; overflow:hidden; background:#0d0f0e; box-shadow:0 30px 60px -28px rgba(0,0,0,.5); }
+.foundation-stack-image-inner { position:absolute; inset:-8% 0; will-change:transform; }
+.foundation-stack-image { object-fit:cover; filter:saturate(.85) contrast(1.05) brightness(.9); }
+.foundation-heading { margin:0 0 24px; max-width:14em; color:color-mix(in srgb,#e8ebe3 calc(100% - var(--scene-t,0) * 100%),#0d0f0e calc(var(--scene-t,0) * 100%)); font:700 56px/1.05 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
+.foundation-body { margin:0; color:color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)); font-size:18px; line-height:1.8; }
+
+
+/* Grid of tiles under a large, centred heading, modelled on
+   norda.framer.website's "Our Partners" section — replaces the earlier
+   quiet single-row-with-a-glowing-divider treatment. Logo rendering itself
+   (mask-image silhouette, muted until hover) is unchanged. */
+.brands-section { position:relative; width:min(1120px,88vw); margin:16vh auto; }
+.brands-intro { max-width:32em; margin:0 auto; text-align:center; }
+/* Same two-stage --scene-t then --dusk-t mix .story-content's own
+   background/text use — Our Partners sits right before the point where
+   the page darkens back to black for Testimonials, and its trailing
+   content (the logo row especially) can still be half in view while that
+   ramp is running. Without this they stayed locked at their "light
+   background" colour and read as invisible once the shared canvas behind
+   them went dark mid-scroll. */
+.brands-heading { margin:14px 0 22px; color:color-mix(in srgb,color-mix(in srgb,#e8ebe3 calc(100% - var(--scene-t,0) * 100%),#0d0f0e calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),#e8ebe3 calc(var(--dusk-t,0) * 100%)); font:700 56px/1 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
+.brands-body { margin:0 auto; max-width:34em; color:color-mix(in srgb,color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.78) calc(var(--dusk-t,0) * 100%)); font-size:18px; line-height:1.8; }
+/* 8 sub-columns so each tile (span 2) still reads as a 4-up grid, but the
+   trailing 3-item row (sponsors 5-7) can be given an explicit centred
+   start instead of hugging the left edge under normal auto-placement. */
+.brands-row { display:grid; grid-template-columns:repeat(8,1fr); gap:0; margin-top:8vh; }
+.brand-tile { position:relative; grid-column:span 2; display:flex; align-items:center; justify-content:center; aspect-ratio:3/2; }
+.brand-tile:nth-child(5) { grid-column:2 / span 2; }
+.brand-tile:nth-child(6) { grid-column:4 / span 2; }
+.brand-tile:nth-child(7) { grid-column:6 / span 2; }
+.brand-logo { position:relative; width:112px; height:40px; color:color-mix(in srgb,color-mix(in srgb,rgba(242,243,239,.5) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.42) calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.5) calc(var(--dusk-t,0) * 100%)); transition:color .3s ease; }
+.brand-logo:hover { color:#ff0052; }
+.brand-logo-mask { position:absolute; inset:0; background:currentColor; mask-size:contain; mask-repeat:no-repeat; mask-position:center; -webkit-mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center; }
+
+/* Shared small "+" corner-bracket accent — used around the Foundation &
+   Charity photo (the partner tiles above no longer carry one). */
+.corner-mark { position:absolute; z-index:2; width:14px; height:14px; color:color-mix(in srgb,rgba(242,243,239,.28) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.22) calc(var(--scene-t,0) * 100%)); pointer-events:none; }
+.corner-mark::before,.corner-mark::after { content:""; position:absolute; background:currentColor; }
+.corner-mark::before { top:50%; left:0; width:100%; height:1px; transform:translateY(-50%); }
+.corner-mark::after { left:50%; top:0; height:100%; width:1px; transform:translateX(-50%); }
+.corner-mark-tl { top:14px; left:14px; }
+.corner-mark-tr { top:14px; right:14px; }
+.corner-mark-bl { bottom:14px; left:14px; }
+.corner-mark-br { bottom:14px; right:14px; }
+
+/* Testimonials — modelled on quotetestimonial.framer.website: kicker,
+   heading, large serif pull-quote + attribution on the left, a portrait
+   image with a counter/progress/prev-next control underneath on the
+   right. No background of its own — the shared .story-content canvas
+   itself ramps from light back to dark here (see --dusk-t), so there's no
+   seam of the still-light shared background showing around a separate
+   dark rectangle. */
+/* padding-top, not the kicker's own margin-top — a child's margin-top
+   collapses with a plain block parent's margin (no padding/border/
+   overflow to stop it), so it was just merging into the 20vh already on
+   this section and doing nothing visible. */
+.testimonials-section { position:relative; z-index:5; width:min(1120px,88vw); margin:20vh auto; padding-top:9vh; }
+/* This section sits right where --dusk-t ramps the shared background from
+   light back to dark, and its own top (kicker/heading) can still be
+   on-screen while that ramp is running. Fixed light-theme colours here
+   read as white-on-white right up until the background finished
+   darkening — same bug as the Our Partners logos, same fix: mix against
+   --dusk-t instead of hardcoding the "background is already dark" end
+   state. (--scene-t itself is a non-issue this far down the page — it's
+   been pinned at 1 since Why Nepal — so a single dusk-t mix is enough,
+   no need to nest scene-t in as well.) */
+.testimonials-kicker { position:relative; display:inline-flex; align-items:center; gap:14px; margin:0 0 20px; color:#ff0052; font-size:11px; font-weight:600; letter-spacing:.32em; text-transform:uppercase; }
+.testimonials-kicker::before { content:""; width:28px; height:1px; background:#ff0052; }
+.testimonials-heading { margin:0 0 8vh; color:color-mix(in srgb,#0d0f0e calc(100% - var(--dusk-t,0) * 100%),#f2f3ef calc(var(--dusk-t,0) * 100%)); font:700 56px/1 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
+.testimonials-layout { width:min(1160px,100%); margin:0 auto; display:grid; grid-template-columns:1.15fr 1fr; gap:6vw; align-items:center; }
+.testimonials-copy { min-width:0; overflow:hidden; }
+.testimonials-quote { margin:0; max-width:20em; font:400 clamp(28px,3.2vw,42px)/1.2 Georgia,serif; letter-spacing:-.01em; color:color-mix(in srgb,#0d0f0e calc(100% - var(--dusk-t,0) * 100%),#f2f3ef calc(var(--dusk-t,0) * 100%)); }
+.testimonials-attribution { margin-top:36px; display:flex; flex-direction:column; gap:4px; }
+.testimonials-name { font-size:14px; font-weight:700; letter-spacing:.02em; color:color-mix(in srgb,#0d0f0e calc(100% - var(--dusk-t,0) * 100%),#f2f3ef calc(var(--dusk-t,0) * 100%)); }
+.testimonials-role { font-size:13px; color:color-mix(in srgb,rgba(13,15,14,.62) calc(100% - var(--dusk-t,0) * 100%),#9eaaa6 calc(var(--dusk-t,0) * 100%)); }
+.testimonials-media { display:flex; flex-direction:column; }
+.testimonials-image { position:relative; width:100%; max-width:440px; aspect-ratio:3/4; overflow:hidden; border-radius:16px; background:#121816; }
+/* Base layer holds the last fully-revealed photo; the wipe layer re-plays
+   a left-to-right clip-path reveal of the incoming photo on top of it
+   every time the active slide changes — the "shutter" effect: mid-reveal,
+   the still-visible right portion of the base layer is a genuinely
+   different photo from the wipe layer's left portion, not a solid panel. */
+.testimonials-image-base,.testimonials-image-wipe { position:absolute; inset:0; }
+.testimonials-image-inner { position:absolute; inset:-9% 0; will-change:transform; }
+.testimonials-image-inner img { object-fit:cover; filter:saturate(.82) contrast(1.02) brightness(.9); }
+.testimonials-controls { width:100%; max-width:440px; margin-top:24px; display:flex; align-items:center; gap:16px; }
+.testimonials-count { flex:none; color:color-mix(in srgb,rgba(13,15,14,.62) calc(100% - var(--dusk-t,0) * 100%),#9eaaa6 calc(var(--dusk-t,0) * 100%)); font-size:11px; font-weight:600; letter-spacing:.1em; }
+.testimonials-progress { flex:1; height:1px; overflow:hidden; background:color-mix(in srgb,rgba(13,15,14,.18) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.18) calc(var(--dusk-t,0) * 100%)); }
+/* Width is driven frame-by-frame by framer-motion (a live countdown to the
+   next autoplay advance), not this stylesheet — no CSS transition here,
+   it would fight the JS-driven animation. */
+.testimonials-progress-fill { height:100%; background:#ff0052; }
+.testimonials-arrows { flex:none; display:flex; gap:6px; }
+.testimonials-arrows button { width:36px; height:36px; border:1px solid color-mix(in srgb,rgba(13,15,14,.3) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.24) calc(var(--dusk-t,0) * 100%)); border-radius:50%; background:transparent; color:color-mix(in srgb,#0d0f0e calc(100% - var(--dusk-t,0) * 100%),#f2f3ef calc(var(--dusk-t,0) * 100%)); font-size:14px; line-height:1; cursor:pointer; transition:background .25s ease,border-color .25s ease,color .25s ease; }
+.testimonials-arrows button:hover { background:#ff0052; border-color:#ff0052; color:#f2f3ef; }
+
+/* Socials — phone mockup styled after PhurpaSherpa16/Project-Nepal's
+   PhoneFrame component (rounded chrome, dynamic-island notch, status bar,
+   home indicator). Sits well past where --dusk-t finishes ramping to 1,
+   so unlike Testimonials right above it, fixed dark-theme colours here
+   are safe — there's no point during scroll where this section is on
+   screen while the background is still transitioning. */
+.socials-section { position:relative; z-index:5; width:min(1120px,88vw); margin:26vh auto; text-align:center; }
+.socials-heading { margin:14px 0 10vh; color:#f2f3ef; font:700 56px/1 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
+.socials-stage { position:relative; display:flex; flex-direction:column; align-items:center; gap:5vh; padding:6vh 0; }
+/* Wraps the phone so the looping ticker backdrop (same "NEPAL IN 10 /
+   coords" chain as the MapLabels ticker higher up the page) can sit
+   absolutely centered behind it — width matches the stage so the ticker
+   text has real room to scroll past on either side of the phone, height
+   matches the phone itself (the wrap's only in-flow child) rather than the
+   whole stage, so the backdrop doesn't also run behind the links row. */
+.socials-phone-wrap { position:relative; display:flex; align-items:center; justify-content:center; width:100%; }
+.socials-ticker-backdrop { position:absolute; inset:0; z-index:0; display:flex; align-items:center; overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent); mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent); pointer-events:none; }
+.socials-ticker-track { display:flex; align-items:center; gap:48px; width:max-content; will-change:transform; animation:terrain-ticker-scroll 32s linear infinite; }
+.socials-ticker-item { color:#e8ebe3; font-size:clamp(28px,4.2vw,52px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; white-space:nowrap; opacity:.5; }
+.socials-ticker-item-nepali { font-family:Georgia,"Noto Serif Devanagari",serif; font-weight:400; text-transform:none; letter-spacing:0; }
+.socials-ticker-coord { color:#ff0052; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; font-weight:600; font-size:11px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; opacity:.7; }
+.socials-phone { position:relative; z-index:1; flex:none; width:min(280px,52vw); aspect-ratio:9/19.5; border-radius:44px; border:3px solid rgba(242,243,239,.7); background:#000; box-shadow:0 30px 60px -20px rgba(0,0,0,.55); overflow:hidden; }
+.socials-phone-status { position:absolute; z-index:2; top:0; left:0; right:0; height:38px; display:flex; align-items:center; justify-content:flex-end; padding:0 22px; color:#f2f3ef; font-size:11px; font-weight:600; }
+.socials-phone-status-icons { display:flex; align-items:center; gap:5px; }
+.socials-phone-notch { position:absolute; z-index:3; top:8px; left:50%; width:88px; height:24px; transform:translateX(-50%); border-radius:999px; background:#000; }
+.socials-phone-screen { position:absolute; inset:4px; border-radius:40px; overflow:hidden; cursor:pointer; }
+.socials-phone-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.85) contrast(1.02) brightness(.85); }
+.socials-mute-toggle { position:absolute; z-index:4; right:12px; bottom:12px; display:flex; align-items:center; justify-content:center; width:28px; height:28px; border:none; border-radius:50%; background:rgba(13,15,14,.4); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); color:#f2f3ef; cursor:pointer; transition:background .3s ease, transform .3s ease; }
+.socials-mute-toggle:hover { background:rgba(13,15,14,.6); transform:scale(1.06); }
+.socials-phone-home { position:absolute; z-index:2; bottom:8px; left:50%; width:88px; height:4px; transform:translateX(-50%); border-radius:999px; background:rgba(242,243,239,.5); }
+/* One row below the phone, spread evenly across its full width. */
+.socials-links-row { display:flex; width:min(560px,88vw); justify-content:space-evenly; gap:24px; }
+/* Ported from framer.com/m/RacingUnderline-Link: no underline at rest, a
+   line grows in under the text on hover and retracts back out — same
+   linear timing as the source (.3s in / .4s out), just in the site's pink
+   instead of the source's white. */
+.socials-link { position:relative; color:#f2f3ef; font-size:12px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; }
+.socials-link::after { content:""; position:absolute; left:0; right:0; bottom:-6px; height:1.5px; background:#ff0052; transform:scaleX(0); transform-origin:left; transition:transform .4s linear; }
+.socials-link:hover::after { transform:scaleX(1); transition:transform .3s linear; }
+
+/* Video reveal — a plain rounded card (same size/radius as the other
+   still-image frames on the page) with a one-time scroll-in reveal, not
+   the earlier scroll-pinned "grows from a tiny pill" version. Video is a
+   click-to-play facade — YouTube's own thumbnail, swapped for the real
+   iframe on click — rather than an iframe mounted from the start. */
+.video-reveal-intro { position:relative; z-index:5; width:min(1120px,88vw); margin:20vh auto; text-align:center; }
+.video-reveal-heading { margin:14px 0 24px; color:#f2f3ef; font:700 56px/1 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
+.video-reveal-body { margin:0 auto; max-width:34em; color:color-mix(in srgb,rgba(13,15,14,.68) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.78) calc(var(--dusk-t,0) * 100%)); font-size:16px; line-height:1.8; }
+.video-reveal-card { position:relative; width:min(1320px,88vw); aspect-ratio:16/9; margin:6vh auto 0; overflow:hidden; border-radius:28px; background:#121816; }
+.video-reveal-poster { position:absolute; z-index:1; inset:0; width:100%; height:100%; padding:0; border:0; cursor:pointer; }
+.video-reveal-poster img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.85) contrast(1.02) brightness(.72); }
+.video-reveal-play { position:absolute; z-index:1; top:50%; left:50%; transform:translate(-50%,-50%); display:inline-flex; align-items:center; gap:14px; padding:12px 26px 12px 12px; border-radius:999px; background:rgba(6,9,8,.55); backdrop-filter:blur(6px); color:#f2f3ef; font-size:13px; font-weight:600; letter-spacing:.04em; white-space:nowrap; }
+.video-reveal-play-icon { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:34px; border-radius:50%; background:#ff0052; color:#f2f3ef; font-size:12px; }
+.video-reveal-embed { position:absolute; z-index:0; inset:0; }
+.video-reveal-embed iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+
+/* Same rounded-card image treatment used elsewhere on the page (Our
+   Partners' photo, etc.) — this section was flat black with no imagery at
+   all, reading as a plain form dropped into the middle of an otherwise
+   very visual page. */
+.newsletter-section { position:relative; width:min(1200px,90vw); margin:20vh auto; padding:15vh 6vw; overflow:hidden; border-radius:28px; text-align:center; background:#0d1210; }
+.newsletter-backdrop { position:absolute; inset:0; z-index:0; }
+.newsletter-backdrop-image { object-fit:cover; filter:saturate(.78) brightness(.4) contrast(1.05); }
+.newsletter-backdrop::after { content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 30%,rgba(6,9,8,.2),rgba(6,9,8,.9) 78%); }
+.newsletter-content { position:relative; z-index:1; }
+.newsletter-content .narrative-kicker { text-align:center; }
+.newsletter-content h2 { margin:0 0 16px; font:400 clamp(30px,3.6vw,50px)/1.12 Georgia,serif; color:#e8ebe3; }
+.newsletter-content p { margin:0 auto; max-width:32em; color:#ff0052; font-size:14px; line-height:1.8; }
+.newsletter-form { display:flex; align-items:flex-end; justify-content:center; gap:24px; width:min(520px,88vw); margin:40px auto 0; padding-bottom:14px; border-bottom:1px solid rgba(255,90,31,.32); transition:border-color .3s ease; }
+.newsletter-form:focus-within { border-color:#ff5a1f; }
+.newsletter-form input { flex:1; min-width:0; padding:4px 0; border:0; background:transparent; color:#e8ebe3; font:400 17px/1 Georgia,serif; text-align:left; }
+.newsletter-form input::placeholder { color:#ff0052; font-style:italic; }
+.newsletter-form input:focus { outline:none; }
+.newsletter-form button { flex:none; padding:0; border:0; background:none; color:#ff5a1f; font-size:10px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; cursor:pointer; transition:opacity .2s ease; }
+.newsletter-form button::after { content:"\2192"; margin-left:8px; }
+.newsletter-form button:hover { opacity:.7; }
+.newsletter-confirm { margin-top:36px; color:#e8ebe3; font-size:13px; letter-spacing:.04em; }
+
+/* Footer — ported from framer.com/m/Footer-Oversized-Wordmark: a slim row
+   of links, a copyright/credit line, then a giant wordmark filling the
+   width with its top edge faded into the background. Trimmed down from
+   the source's 4-column nav-link layout to just the one thing this site
+   needs — social links — plus a build credit; the source's own "FUTER"
+   filler text becomes this site's own tagline instead. */
+/* No bleed-past-the-padding trick here (unlike most other full-bleed
+   sections on the page) — this sits outside .story-content, as a direct
+   <main> child with no side padding of its own to compensate for, so a
+   plain 100% width already reaches the true viewport edges. */
+.site-footer { position:relative; width:100%; min-height:100svh; margin:8vh 0 0; padding:8vh 6vw 0; overflow:hidden; display:flex; flex-direction:column; background:#040605; color:#e8ebe3; }
+.site-footer-top { display:flex; flex-wrap:wrap; gap:6vh 6vw; justify-content:space-between; align-items:flex-start; margin-top:auto; padding-bottom:8vh; }
+.site-footer-brand { display:flex; flex-direction:column; gap:18px; max-width:24em; }
+.site-footer-brand-marks { display:flex; align-items:center; gap:16px; }
+.site-footer-brand-mark { display:block; width:clamp(64px,9vw,130px); aspect-ratio:1; background:currentColor; color:#e8ebe3; mask-size:contain; mask-repeat:no-repeat; mask-position:left center; -webkit-mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:left center; }
+.site-footer-brand-flag { display:block; width:clamp(40px,5.5vw,80px); height:auto; }
+.site-footer-brand-logo { display:block; width:clamp(64px,9vw,130px); height:auto; }
+.site-footer-brand p { margin:0; color:rgba(232,235,227,.55); font-size:14px; line-height:1.6; }
+.site-footer-columns { display:flex; flex-wrap:wrap; gap:6vh 7vw; }
+.site-footer-column { display:flex; flex-direction:column; gap:14px; }
+.site-footer-column-title { color:#e8ebe3; font-size:14px; font-weight:700; }
+.site-footer-column a { color:rgba(232,235,227,.55); font-size:14px; text-decoration:none; transition:color .25s ease; }
+.site-footer-column a:hover { color:#ff0052; }
+.site-footer-bottom { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; justify-content:space-between; padding-bottom:2vh; font-size:12px; letter-spacing:.02em; color:rgba(232,235,227,.5); }
+.site-footer-credit { color:rgba(232,235,227,.82); text-decoration:none; transition:color .25s ease; }
+.site-footer-credit:hover { color:#ff0052; }
+/* Bleeds past .site-footer's own 6vw side padding to the true viewport
+   edges (width:calc(100% + 12vw), negative margins to match) — this is
+   the widest the string can ever get to work with, so the font-size
+   below is tuned against this bled width, not the padded one. */
+.site-footer-wordmark { position:relative; width:calc(100% + 12vw); margin:4vh -6vw -1.5vh; overflow:hidden; text-align:center; -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 30%); mask-image:linear-gradient(180deg,transparent 0%,#000 30%); }
+.site-footer-wordmark span { display:block; margin:0; color:#ff0052; font:700 clamp(52px,17vw,300px)/.82 Arial,Helvetica,sans-serif; letter-spacing:-.03em; text-transform:uppercase; white-space:nowrap; }
+
 @media(max-width:700px){
-  .site-header { top:20px; }.site-header-center { gap:7px; }
+  .site-header { top:20px; }.site-header-center { gap:7px; }.hero-rara-mark { top:20px; left:20px; width:36px; }
   .image-layer,.fog-layer { left:-28%; width:156%; }.hero-copy { top:24svh; width:calc(100% - 32px); }.hero-copy h1 { font-size:16vw; letter-spacing:-.07em; }
   .hero-project-mark { top:calc(100svh - 46px); left:20px; }
-  .story-content { margin-top:-100svh; padding:8vh 20px 35px; }.story-intro { width:100%; display:block; }.story-intro h2 { margin-top:35px; font-size:17vw; }.story-card-grid { width:100%; margin-top:10vh; grid-template-columns:1fr; gap:12px; }.story-card { height:145px; will-change:transform,filter,opacity; }.story-grid-copy { width:92%; margin-top:6vh; }.story-stats { width:100%; margin:12vh auto; padding:0; grid-template-columns:1fr; }.story-stat-item,.story-stat-item:first-child { padding:30px 0; border-left:0; border-top:1px solid #25302d; }.story-stat-item:first-child { border-top:0; }.story-stat-number { font-size:72px; }.story-manifesto { width:calc(100% + 40px); height:284svh; margin:8vh 0 0 -20px; }.story-manifesto-stage { justify-content:center; padding:5svh 8px 0; }.story-manifesto-logo { position:absolute; top:5.25svh; left:50%; transform:translateX(-50%); width:max-content; margin:0; }.story-manifesto-logo-mark { width:64px; }.story-manifesto-copy { width:100%; padding-top:clamp(3rem,9vw,6rem); }.story-manifesto p { font-size:clamp(20px,6vw,36px)!important; letter-spacing:-.015em; line-height:1.18; }.story-manifesto-nepali { max-width:11em; font-size:clamp(22px,6.2vw,38px)!important; }.manifesto-break-desktop { display:none; }.manifesto-break-mobile { display:block; }.story-image-expansion { width:calc(100% + 40px); margin-left:-20px; }.story-image-static { width:calc(100% + 40px); height:70vh; margin-left:-20px; border-radius:20px; }.story-chapters { width:100%; margin:12vh auto; grid-template-columns:1fr; gap:70px; }.story-footer { width:100%; gap:30px; align-items:flex-end; }.story-footer p { max-width:130px; line-height:1.8; }
+  .story-content { margin-top:-100svh; padding:8vh 20px 35px; }.story-intro { width:100%; display:block; }.story-intro h2 { margin-top:35px; font-size:52px; }.story-card-grid { width:100%; margin-top:10vh; grid-template-columns:1fr; gap:12px; }.story-card { height:145px; will-change:transform,filter,opacity; }.story-grid-copy { width:92%; margin-top:6vh; }.story-stats { width:100%; margin:12vh auto; padding:0; grid-template-columns:1fr; }.story-stat-item,.story-stat-item:first-child { padding:30px 0; border-left:0; border-top:1px solid #25302d; }.story-stat-item:first-child { border-top:0; }.story-stat-number { font-size:72px; }.story-image-expansion { width:calc(100% + 40px); margin-left:-20px; }.manifesto-reveal { width:calc(100% + 40px); height:336svh; margin-left:-20px; }.terrain-text-reveal-line { font-size:clamp(30px,10vw,44px); }.terrain-ticker { padding:3.5svh 0 2.5svh; }.terrain-ticker-track { gap:36px; animation:none; }.terrain-ticker-item { font-size:46px; }.terrain-ticker-coord { font-size:11px; }.story-chapters { width:100%; margin:12vh auto; grid-template-columns:1fr; gap:70px; }.foundation-charity { width:100%; margin:12vh auto; grid-template-columns:1fr; gap:6vh; }.foundation-copy-range { height:auto; }.foundation-copy-sticky { position:static; top:auto; max-width:none; }.foundation-heading { font-size:40px; }.foundation-stack-card-shell { position:static; top:auto; margin-bottom:4vh; }.foundation-stack-card { aspect-ratio:4/3.4; }.brands-section { width:100%; margin:12vh auto; }.brands-heading { font-size:40px; }.brands-row { grid-template-columns:repeat(4,1fr); gap:0; margin-top:6vh; }.brand-tile { grid-column:span 2; aspect-ratio:2/1; }.brand-tile:nth-child(5),.brand-tile:nth-child(6) { grid-column:span 2; }.brand-tile:nth-child(7) { grid-column:2 / span 2; }.brand-logo { width:78px; height:30px; }.testimonials-section { width:100%; margin:12vh auto; }.testimonials-kicker { display:flex; justify-content:center; }.testimonials-heading { text-align:center; font-size:40px; }.testimonials-layout { grid-template-columns:1fr; gap:6vh; text-align:center; }.testimonials-media { order:-1; }.testimonials-quote { max-width:none; font-size:26px; }.testimonials-attribution { align-items:center; }.testimonials-copy { min-height:280px; display:flex; flex-direction:column; justify-content:center; }.testimonials-image,.testimonials-controls { max-width:min(320px,78vw); margin-left:auto; margin-right:auto; }.socials-section { margin:12vh auto; }.socials-heading { font-size:40px; }.socials-stage { gap:4vh; padding:2vh 0; }.socials-phone { width:min(220px,58vw); }.socials-links-row { width:100%; flex-wrap:wrap; row-gap:14px; }.video-reveal-intro { margin:12vh auto; }.video-reveal-heading { font-size:40px; }.video-reveal-card { width:calc(100% + 40px); aspect-ratio:16/9; margin-left:-20px; border-radius:20px; }.video-reveal-play { padding:8px 18px 8px 8px; font-size:11px; }.video-reveal-play-icon { width:26px; height:26px; }.newsletter-section { width:calc(100% + 40px); margin:14vh auto; margin-left:-20px; padding:10vh 8vw; border-radius:20px; }.newsletter-form input { font-size:15px; }.site-footer { margin:6vh 0 0; padding:6vh 20px 0; }.site-footer-top { flex-direction:column; gap:6vh; padding-bottom:6vh; }.site-footer-columns { width:100%; justify-content:space-between; }.site-footer-bottom { justify-content:flex-start; text-align:left; }.site-footer-wordmark { width:calc(100% + 40px); margin-left:-20px; margin-right:-20px; }.terrain-contour-backdrop { display:none; }.diagonal-reveal { width:calc(100% + 40px); margin-left:-20px; }.runner-chapter { width:calc(100% + 40px); margin-left:-20px; }.runner-chapter-window-stage { padding:24px; }.runner-chapter-window { width:min(220px,58vw); }.why-nepal { width:calc(100% + 40px); margin-left:-20px; }.why-nepal-stage { min-height:75vh; }.why-nepal-bio { width:calc(100% + 40px); margin-left:-20px; padding:56px 24px 40px; gap:6vh; }.why-nepal-bio-kicker { display:flex; justify-content:space-between; margin-bottom:-4vh; font-size:12px; font-weight:600; letter-spacing:.08em; color:color-mix(in srgb,rgba(232,235,227,.6) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.55) calc(var(--scene-t,0) * 100%)); }.why-nepal-bio-headline { text-indent:0; }.why-nepal-bio-foot { grid-template-columns:1fr; gap:32px; }.why-nepal-bio-photo { width:100%; }.why-nepal-bio-rows { justify-self:stretch; max-width:none; height:auto; justify-content:flex-start; gap:36px; transform:none; }.why-nepal-bio-row { grid-template-columns:1fr; gap:8px; }.why-nepal-bio-label { font-size:18px; }.why-nepal-brand-strip { width:calc(100% + 40px); margin-left:-20px; }.why-nepal-stage { display:flex; align-items:center; }.why-nepal-copy { margin-left:0; padding:6vh 6vw; max-width:none; text-align:center; }.why-nepal-heading,.why-nepal-body { margin-left:auto; margin-right:auto; }.why-nepal-heading { max-width:none; font-size:40px; }.why-nepal-media-inner img { object-position:0% 50%; }
 }
 @media(max-width:700px){
-  .story-manifesto .story-manifesto-nepali,.story-manifesto .story-manifesto-english { font-size:clamp(28px,7.8vw,44px)!important; }
   .story-image-introduction-nepali,.story-image-introduction-english { font-size:clamp(22px,6vw,40px)!important; }
   .story-image-expansion { height:250svh; margin-top:-100svh; }
-  .story-manifesto p { line-height:1.12; padding-block:.18em; }
-  .story-manifesto-nepali { line-height:1.2!important; }
   .story-image-introduction p { line-height:1.1; padding:.2em .25em; }
   .story-image-introduction-nepali { line-height:1.2!important; }
 }

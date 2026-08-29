@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Content Manager</title>
+    <!-- Explicit absolute path, not left to Decap's default relative fetch
+         of "config.yml" — this page is reachable at both /admin and
+         /admin/ (see the rewrite in next.config.ts), and a relative fetch
+         from the no-trailing-slash URL resolves against "/", not "/admin/",
+         which would 404. -->
+    <link href="/admin/config.yml" type="text/yaml" rel="cms-config-url" />
+  </head>
+  <body>
+    <!-- Decap CMS auto-loads ./config.yml from this same folder. -->
+    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  </body>
+</html>

@@ -2,20 +2,25 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import {
-  motion,
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import CinematicImageScroll, {
-  CinematicImageFrame,
-  CinematicStillImageFrame,
-  CinematicTextReveal,
   type CinematicImageSlide,
 } from "@/components/CinematicImageScroll";
 import AnimatedStats from "@/components/AnimatedStats";
+import ManifestoReveal from "@/components/terrain/ManifestoReveal";
+import FoundationCharity from "@/components/FoundationCharity";
+import RunnerChapter from "@/components/RunnerChapter";
+import WhyNepalNote from "@/components/WhyNepalNote";
+import BrandsGrid from "@/components/BrandsGrid";
+import Testimonials from "@/components/Testimonials";
+import Socials from "@/components/Socials";
+import VideoReveal from "@/components/VideoReveal";
+// Newsletter is temporarily out of the page (commented out below where
+// it's rendered) — kept ready to switch back on, not deleted.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import Newsletter from "@/components/Newsletter";
+import Footer from "@/components/Footer";
+import TextStagger from "@/components/TextStagger";
 
 const storyWindows: readonly CinematicImageSlide[] = [
   {
@@ -42,464 +47,19 @@ const storyWindows: readonly CinematicImageSlide[] = [
 
 const journeyStats = [
   { number: "10", label: "Days on foot" },
-  { number: "1026", label: "Kilometres distance" },
+  { number: "1027", label: "Kilometres distance" },
   { number: "01", label: "Path through highway" },
 ] as const;
-
-const manifestoEnglish = [
-  "Redefining",
-  "limits,",
-  "fighting",
-  "for",
-  "wins,",
-  "bringing",
-  "it",
-  "all",
-  "in",
-  "all",
-  "ways.",
-  "Defining",
-  "a",
-  "legacy",
-  "in",
-  "running",
-  "on",
-  "and",
-  "off",
-  "the",
-  "track.",
-] as const;
-
-const manifestoNepali = [
-  "सीमाहरू",
-  "पुनर्परिभाषित",
-  "गर्दै,",
-  "जितका",
-  "लागि",
-  "लड्दै,",
-  "हरेक",
-  "तरिकाले",
-  "सबै",
-  "कुरा",
-  "समेट्दै।",
-  "दौडमा",
-  "र",
-  "ट्र्याकबाहिर",
-  "एउटा",
-  "विरासत",
-  "निर्माण",
-  "गर्दै।",
-] as const;
-
-const ENGLISH_CIPHER_GLYPHS = [
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
-  "F",
-  "G",
-  "H",
-  "I",
-  "J",
-  "K",
-  "L",
-  "M",
-  "N",
-  "O",
-  "P",
-  "Q",
-  "R",
-  "S",
-  "T",
-  "U",
-  "V",
-  "W",
-  "X",
-  "Y",
-  "Z",
-] as const;
-
-const NEPALI_CIPHER_GLYPHS = [
-  "अ",
-  "आ",
-  "इ",
-  "ई",
-  "उ",
-  "ऊ",
-  "ए",
-  "ऐ",
-  "ओ",
-  "औ",
-  "क",
-  "ख",
-  "ग",
-  "घ",
-  "च",
-  "छ",
-  "ज",
-  "झ",
-  "त",
-  "थ",
-  "द",
-  "ध",
-  "न",
-  "प",
-  "फ",
-  "ब",
-  "भ",
-  "म",
-  "य",
-  "र",
-  "ल",
-  "व",
-  "श",
-  "स",
-  "ह",
-  "का",
-  "कि",
-  "की",
-  "कु",
-  "के",
-  "को",
-  "गा",
-  "गी",
-  "ना",
-  "नि",
-  "नी",
-  "ता",
-  "ति",
-  "ती",
-  "दा",
-  "दि",
-  "धी",
-  "मा",
-  "मि",
-  "मी",
-  "भा",
-  "भि",
-  "हि",
-  "था",
-  "थि",
-  "रा",
-  "री",
-  "ला",
-  "ली",
-] as const;
-
-type CipherLanguage = "nepali" | "english";
-
-type CipherWordProps = {
-  word: string;
-  language: CipherLanguage;
-  resolve: number;
-  accent: boolean;
-  wordIndex: number;
-};
-
-function splitGraphemes(
-  text: string,
-  language: CipherLanguage,
-): string[] {
-  if (
-    typeof Intl !== "undefined" &&
-    "Segmenter" in Intl &&
-    typeof Intl.Segmenter === "function"
-  ) {
-    const locale = language === "nepali" ? "ne" : "en";
-
-    const segmenter = new Intl.Segmenter(locale, {
-      granularity: "grapheme",
-    });
-
-    return Array.from(
-      segmenter.segment(text),
-      item => item.segment,
-    );
-  }
-
-  return Array.from(text);
-}
-
-function seededNumber(seed: number) {
-  const value = Math.sin(seed * 12.9898) * 43758.5453;
-  return value - Math.floor(value);
-}
-
-function getCipherGlyph(
-  language: CipherLanguage,
-  wordIndex: number,
-  glyphIndex: number,
-  animationStep: number,
-) {
-  const pool =
-    language === "nepali"
-      ? NEPALI_CIPHER_GLYPHS
-      : ENGLISH_CIPHER_GLYPHS;
-
-  const seed =
-    wordIndex * 173 +
-    glyphIndex * 47 +
-    animationStep * 31;
-
-  const index = Math.floor(
-    seededNumber(seed) * pool.length,
-  );
-
-  return pool[index];
-}
-
-function CipherWord({
-  word,
-  language,
-  resolve,
-  accent,
-  wordIndex,
-}: CipherWordProps) {
-  const graphemes = splitGraphemes(word, language);
-  const animationStep = Math.floor((1 - resolve) * 20);
-
-  return (
-    <span
-      className={`story-manifesto-word${
-        accent ? " is-accent" : ""
-      }`}
-    >
-      {graphemes.map((grapheme, glyphIndex) => {
-        const lockPoint =
-          graphemes.length <= 1
-            ? 0.5
-            : (glyphIndex + 1) / graphemes.length;
-
-        const isResolved = resolve >= lockPoint;
-
-        const displayGlyph = isResolved
-          ? grapheme
-          : getCipherGlyph(
-              language,
-              wordIndex,
-              glyphIndex,
-              animationStep,
-            );
-
-        return (
-          <span
-            key={`${wordIndex}-${glyphIndex}`}
-            className={`story-manifesto-glyph${
-              isResolved
-                ? " is-resolved"
-                : " is-cipher"
-            }`}
-          >
-            {displayGlyph}
-          </span>
-        );
-      })}
-    </span>
-  );
-}
-
-function LanguageManifesto() {
-  const manifestoRef = useRef<HTMLElement>(null);
-  const reduceMotion = Boolean(useReducedMotion());
-  const [progress, setProgress] = useState(0);
-
-  const { scrollYProgress: manifestoProgress } =
-    useScroll({
-      target: manifestoRef,
-      offset: ["start start", "end end"],
-    });
-
-  useMotionValueEvent(
-    manifestoProgress,
-    "change",
-    latestProgress => {
-      setProgress(latestProgress);
-    },
-  );
-
-  const nepaliResolve = 1;
-  const englishResolve = 1;
-
-  const nepaliY = useTransform(
-    manifestoProgress,
-    [0, 0.06, 0.228, 0.312],
-    ["7%", "0%", "0%", "-8%"],
-  );
-
-  const nepaliBlur = useTransform(
-    manifestoProgress,
-    [0, 0.06, 0.228, 0.312],
-    ["blur(12px)", "blur(0px)", "blur(0px)", "blur(9px)"],
-  );
-
-  const nepaliOpacity = useTransform(
-    manifestoProgress,
-    [0, 0.06, 0.252, 0.312, 1],
-    [0, 1, 1, 0, 0],
-  );
-
-  const nepaliScale = useTransform(
-    manifestoProgress,
-    [0, 0.06, 0.228, 0.312],
-    [0.985, 1, 1, 1.02],
-  );
-
-  const nepaliVisibility = useTransform(
-    manifestoProgress,
-    [0, 0.3114, 0.312, 1],
-    ["visible", "visible", "hidden", "hidden"],
-  );
-
-  const englishY = useTransform(
-    manifestoProgress,
-    [0, 0.288, 0.396, 1],
-    ["8%", "8%", "0%", "0%"],
-  );
-
-  const englishBlur = useTransform(
-    manifestoProgress,
-    [0, 0.288, 0.396, 1],
-    [
-      "blur(7px)",
-      "blur(7px)",
-      "blur(0px)",
-      "blur(0px)",
-    ],
-  );
-
-  const englishOpacity = useTransform(
-    manifestoProgress,
-    [0, 0.288, 0.336, 0.396, 1],
-    [0, 0, 0, 1, 1],
-  );
-
-  const englishScale = useTransform(
-    manifestoProgress,
-    [0, 0.288, 0.396, 1],
-    [0.985, 0.985, 1, 1],
-  );
-
-  const englishVisibility = useTransform(
-    manifestoProgress,
-    [0, 0.2874, 0.288, 1],
-    ["hidden", "hidden", "visible", "visible"],
-  );
-
-  return (
-    <section
-      ref={manifestoRef}
-      className={`story-manifesto${
-        reduceMotion ? " is-reduced" : ""
-      }`}
-      aria-label="Redefining limits, fighting for wins, bringing it all in all ways. Defining a legacy in running on and off the track."
-    >
-      <div className="story-manifesto-stage">
-        <div
-          className="story-manifesto-logo"
-          aria-hidden="true"
-        >
-          <span className="story-manifesto-logo-mark" />
-        </div>
-
-        <div className="story-manifesto-copy">
-          <motion.p
-            className="story-manifesto-nepali"
-            lang="ne"
-            aria-hidden="true"
-            style={
-              reduceMotion
-                ? {
-                    display:
-                      progress < 0.5 ? "block" : "none",
-                  }
-                : {
-                    opacity: nepaliOpacity,
-                    y: nepaliY,
-                    scale: nepaliScale,
-                    filter: nepaliBlur,
-                    visibility: nepaliVisibility,
-                  }
-            }
-          >
-            {manifestoNepali.map((word, index) => (
-              <CipherWord
-                key={`${word}-${index}`}
-                word={word}
-                language="nepali"
-                resolve={nepaliResolve}
-                wordIndex={index}
-                accent={
-                  index === 1 ||
-                  index === 3 ||
-                  index === 15
-                }
-              />
-            ))}
-          </motion.p>
-
-          <motion.p
-            className="story-manifesto-english"
-            lang="en"
-            aria-hidden="true"
-            style={
-              reduceMotion
-                ? {
-                    display:
-                      progress >= 0.5 ? "block" : "none",
-                  }
-                : {
-                    opacity: englishOpacity,
-                    y: englishY,
-                    scale: englishScale,
-                    filter: englishBlur,
-                    visibility: englishVisibility,
-                  }
-            }
-          >
-            {manifestoEnglish.map((word, index) => (
-              <span key={`${word}-${index}`}>
-                <CipherWord
-                  word={word}
-                  language="english"
-                  resolve={englishResolve}
-                  wordIndex={index}
-                  accent={
-                    index === 0 ||
-                    index === 4 ||
-                    index === 13
-                  }
-                />
-
-                {(index === 1 || index === 4) && <br />}
-
-                {index === 8 && (
-                  <br className="manifesto-break-mobile" />
-                )}
-
-                {index === 9 && (
-                  <br className="manifesto-break-desktop" />
-                )}
-
-                {index === 15 && (
-                  <br className="manifesto-break-mobile" />
-                )}
-
-                {index === 16 && (
-                  <br className="manifesto-break-desktop" />
-                )}
-              </span>
-            ))}
-          </motion.p>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export default function HimalayanParallax() {
   const sceneRef = useRef<HTMLElement>(null);
   const introRevealTimer = useRef<number | null>(null);
+  // Only one of these two should ever be playing at a time — pressing the
+  // Socials phone's "YouTube" link (which scrolls down to the documentary)
+  // pauses the phone video so it doesn't keep playing off-screen, and
+  // resuming the phone video (tapping it again) stops the documentary back
+  // to its poster frame, and vice versa either direction.
+  const [activePlayer, setActivePlayer] = useState<"phone" | "youtube">("phone");
 
   useEffect(() => {
     let cancelled = false;
@@ -538,6 +98,97 @@ export default function HimalayanParallax() {
     };
   }, []);
 
+  // Drives --scene-t (0-1): the page background + light text fade from the
+  // dark map/ticker/RunnerChapter run to a light theme once RunnerChapter
+  // itself has scrolled fully past, then hold at 1 (white) the rest of the
+  // way down. Not the same timing as DiagonalReveal's own wipe on the
+  // ticker (that one's driven separately, by its own scrollYProgress, so
+  // the ticker's text always matches its own panel exactly — see
+  // DiagonalReveal.tsx). This used to trigger right after the ticker text
+  // disappeared, but RunnerChapter sits immediately after the ticker and is
+  // itself a dark full-bleed section with its own hardcoded dark
+  // background — the page bg was creeping white while still inside that
+  // chapter, showing up as a visible seam between RunnerChapter's fixed
+  // #111 and .story-content's lightening background around it. Anchoring
+  // to RunnerChapter's own bottom keeps the whole dark run — map, ticker,
+  // RunnerChapter — one consistent black until it's actually done. Read
+  // every frame rather than on the "scroll" event — Lenis interpolates
+  // scrollY smoothly, and a plain scroll listener misses most of that
+  // motion. Two things kept this from being free before: re-querying the
+  // DOM on every single frame, and calling setProperty on the root element
+  // every frame even while t was unchanged (pinned at 0 or 1 for nearly the
+  // entire page) — the latter forces a style recalc across every element
+  // reading the variable, for the whole scroll session, not just the brief
+  // window it's actually animating. Both fixed here: the element is looked
+  // up once, and setProperty only fires when the rounded value actually
+  // moves.
+  // --dusk-t (0-1) is the same idea run a second time, in reverse: once
+  // Our Partners has scrolled past, the shared background (and the text
+  // colour mixed against it) ramps back from light to dark for the
+  // Testimonials chapter onward, rather than Testimonials painting its own
+  // separate dark rectangle that leaves a strip of the still-white shared
+  // background showing around it. Anchored to .brands-section's bottom
+  // edge the same way --scene-t is anchored to RunnerChapter's.
+  useEffect(() => {
+    const root = document.documentElement;
+    const chapter = document.querySelector(".runner-chapter");
+    const brands = document.querySelector(".brands-section");
+    let rafId = 0;
+    let lastSceneT = "";
+    let lastDuskT = "";
+
+    const update = () => {
+      if (chapter) {
+        const chapterBottom =
+          chapter.getBoundingClientRect().bottom + window.scrollY;
+        // Starts as soon as the chapter's bottom edge reaches the bottom of
+        // the viewport (the chapter is fully on screen, not yet scrolled
+        // past) rather than waiting for it to scroll fully out of view —
+        // RunnerChapter has its own opaque background, so this ramp running
+        // underneath it while it's still visible doesn't show. What it does
+        // fix: "Why Nepal" can already be entering the viewport from below
+        // while RunnerChapter's own text is still visible near the top of
+        // the same frame (they briefly share the viewport), so the old
+        // "wait until fully past" trigger left the background still black
+        // by the time Why Nepal was on screen.
+        const entryStart = chapterBottom - window.innerHeight * 0.5;
+        const span = Math.max(1, window.innerHeight * 0.28);
+        const t = Math.min(
+          1,
+          Math.max(0, (window.scrollY - entryStart) / span),
+        );
+        const next = t.toFixed(4);
+        if (next !== lastSceneT) {
+          lastSceneT = next;
+          root.style.setProperty("--scene-t", next);
+        }
+      }
+      if (brands) {
+        const brandsBottom =
+          brands.getBoundingClientRect().bottom + window.scrollY;
+        const entryStart = brandsBottom - window.innerHeight * 0.5;
+        const span = Math.max(1, window.innerHeight * 0.28);
+        const t = Math.min(
+          1,
+          Math.max(0, (window.scrollY - entryStart) / span),
+        );
+        const next = t.toFixed(4);
+        if (next !== lastDuskT) {
+          lastDuskT = next;
+          root.style.setProperty("--dusk-t", next);
+        }
+      }
+      rafId = requestAnimationFrame(update);
+    };
+
+    rafId = requestAnimationFrame(update);
+    return () => {
+      cancelAnimationFrame(rafId);
+      root.style.removeProperty("--scene-t");
+      root.style.removeProperty("--dusk-t");
+    };
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: sceneRef,
     offset: ["start start", "end end"],
@@ -571,9 +222,13 @@ export default function HimalayanParallax() {
         <header className="site-header">
           <div className="site-header-center">
             <span>27.7172° N / 85.3240° E</span>
-            <span>PROJECT / नेपाल</span>
+            <span>नेपाल</span>
           </div>
         </header>
+
+        <div className="hero-rara-mark" aria-hidden="true">
+          <Image src="/icons/rara.png" alt="" fill priority sizes="44px" />
+        </div>
 
         <div
           className="hero-project-mark"
@@ -600,11 +255,11 @@ export default function HimalayanParallax() {
         <div className="hero-copy">
           <h1 aria-label="Attempting a world record">
             <span className="title-mask">
-              <span>ATTEMPTING</span>
+              <span>RARA RUNS</span>
             </span>
 
             <span className="title-mask title-serif">
-              <em>A WORLD RECORD</em>
+              <em>NEPAL</em>
             </span>
           </h1>
         </div>
@@ -657,6 +312,11 @@ export default function HimalayanParallax() {
           </div>
         </div>
 
+        {/* Old fog/ripple loading screen — replaced by <Preloader /> (mounted
+        in layout.tsx, mirrors the Framer "Preloader-1" component: solid
+        overlay, centered logo fades in/holds/fades out, then dispatches
+        hima:intro-complete same as this used to). Left here commented out
+        rather than deleted in case it's wanted back.
         <div
           className="fog-layer"
           aria-hidden="true"
@@ -694,7 +354,7 @@ export default function HimalayanParallax() {
 
           <div className="fog-logo" aria-hidden="true">
             <Image
-              src="/images/logo/logo.png"
+              src="/icons/rara.png"
               alt=""
               fill
               priority
@@ -720,97 +380,64 @@ export default function HimalayanParallax() {
             )}
           </div>
         </div>
+        */}
       </section>
 
       <section
         className="story-content"
         aria-labelledby="story-title"
       >
-        <CinematicTextReveal className="story-intro">
-          <p className="story-kicker">
-            The Endless Stretch / Nepal in 10
-          </p>
-
-          <h2 id="story-title">
-            Where the trail
-            <br />
-            <em>becomes ritual.</em>
-          </h2>
-        </CinematicTextReveal>
+        <div className="story-intro">
+          <TextStagger as="p" className="story-kicker" variant="fade" text="The Endless Stretch" />
+          <TextStagger
+            as="h2"
+            id="story-title"
+            startDelay={0.15}
+            lines={["Where the trail", <em key="em">becomes ritual.</em>]}
+          />
+        </div>
 
         <CinematicImageScroll images={storyWindows}>
           <p>
-            A slow passage through thin air, ancient villages
-            and the quiet shoulders of the Himalayas. Every
-            step leaves the familiar further behind.
+            The Mahendra Highway threads through nearly every terrain a runner can face in one country — heat, altitude, monsoon roads, mountain passes — compressed into a single unbroken line.
           </p>
         </CinematicImageScroll>
 
         <AnimatedStats stats={journeyStats} />
 
-        <LanguageManifesto />
+        <ManifestoReveal />
 
-        <CinematicImageFrame
-          src="/images/himalaya-mountains.jpg"
-          alt="A wide view across the Himalayan range"
+        <RunnerChapter />
+
+        <WhyNepalNote />
+
+        <FoundationCharity />
+
+        <BrandsGrid />
+
+        <Testimonials />
+
+        <Socials
+          paused={activePlayer === "youtube"}
+          onPhonePlay={() => setActivePlayer("phone")}
+          onYoutubeLinkClick={() => setActivePlayer("youtube")}
         />
 
-        <CinematicStillImageFrame
-          src="/images/himalaya-mountains.jpg"
-          alt="A wide view across the Himalayan range"
-          caption="THE KHUMBU VALLEY / NEPAL"
+        <VideoReveal
+          stopped={activePlayer === "phone"}
+          onPlay={() => setActivePlayer("youtube")}
         />
 
-        <div className="story-chapters">
-          <CinematicTextReveal className="story-chapter-reveal">
-            <article>
-              <span>01 / DEPARTURE</span>
-              <h3>The first stride</h3>
-              <p>
-                Step onto the Mahendra Highway and begin a
-                journey that stretches across Nepal, one
-                kilometre at a time.
-              </p>
-            </article>
-          </CinematicTextReveal>
+        <div className="why-nepal-brand-strip">
+          <div className="why-nepal-brand-strip-red" aria-hidden="true" />
+      </div>
 
-          <CinematicTextReveal
-            className="story-chapter-reveal"
-            delay={0.12}
-          >
-            <article>
-              <span>02 / ENDURANCE</span>
-              <h3>Find your rhythm</h3>
-              <p>
-                Through changing weather, busy towns and
-                endless roads, every step becomes a test of
-                consistency and resolve.
-              </p>
-            </article>
-          </CinematicTextReveal>
-
-          <CinematicTextReveal
-            className="story-chapter-reveal"
-            delay={0.24}
-          >
-            <article>
-              <span>03 / LEGACY</span>
-              <h3>Keep moving forward</h3>
-              <p>
-                Beyond the finish lies something greater than
-                distance—a story written through perseverance,
-                resilience and every mile earned.
-              </p>
-            </article>
-          </CinematicTextReveal>
-        </div>
-
-        <CinematicTextReveal className="story-footer-reveal">
-          <footer className="story-footer">
-            <p>RARA&apos;S RUNS</p>
-          </footer>
-        </CinematicTextReveal>
+        {/* Newsletter — commented out for now, not deleted; switch back on
+            by uncommenting when it's wanted again. */}
+        {/* <Newsletter /> */}
       </section>
+
+      <Footer />
     </main>
   );
 }
