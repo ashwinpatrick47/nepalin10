@@ -155,9 +155,7 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
               ref={videoRef}
               className="socials-phone-video"
               src="/images/socials.mp4"
-              autoPlay
               loop
-              muted
               playsInline
             />
           </div>
