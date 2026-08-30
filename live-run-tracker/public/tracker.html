@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Run Tracker — Broadcast</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0f1115;
+    color: #f2f2f2;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .sub { color: #9aa0a6; font-size: 0.85rem; margin-bottom: 24px; text-align: center; }
+
+  .warning {
+    background: #3a2a00;
+    border: 1px solid #8a6d00;
+    color: #ffd866;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    max-width: 420px;
+    margin-bottom: 24px;
+  }
+
+  button#toggle {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    background: #1f9d55;
+    box-shadow: 0 8px 24px rgba(31, 157, 85, 0.4);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  button#toggle:active { transform: scale(0.97); }
+  button#toggle.running {
+    background: #d64545;
+    box-shadow: 0 8px 24px rgba(214, 69, 69, 0.4);
+  }
+
+  .status {
+    margin-top: 28px;
+    width: 100%;
+    max-width: 420px;
+    background: #1a1d24;
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 0.9rem;
+  }
+  .status dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    margin: 0;
+  }
+  .status dt { color: #9aa0a6; }
+  .status dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .secret-row {
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 20px;
+  }
+  .secret-row label {
+    display: block;
+    font-size: 0.8rem;
+    color: #9aa0a6;
+    margin-bottom: 6px;
+  }
+  .secret-row input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1d24;
+    color: #f2f2f2;
+    font-size: 0.9rem;
+  }
+
+  .error {
+    margin-top: 12px;
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    text-align: center;
+    max-width: 420px;
+  }
+</style>
+</head>
+<body>
+  <h1>Live Run Tracker</h1>
+  <div class="sub">Broadcast your position while you run</div>
+
+  <div class="warning">
+    <strong>iOS/Safari warning:</strong> location updates pause or stop entirely
+    if the screen locks or you switch to another app/tab. Keep this tab open
+    and the screen on (or use a "keep screen awake" setting) for continuous
+    tracking.
+  </div>
+
+  <div class="secret-row">
+    <label for="secret">Tracker secret (only if the server requires one)</label>
+    <input id="secret" type="password" autocomplete="off" placeholder="leave blank if not required" />
+  </div>
+
+  <button id="toggle">Start</button>
+
+  <div class="status">
+    <dl>
+      <dt>State</dt><dd id="state">idle</dd>
+      <dt>Latitude</dt><dd id="lat">—</dd>
+      <dt>Longitude</dt><dd id="lng">—</dd>
+      <dt>Accuracy</dt><dd id="acc">—</dd>
+      <dt>Speed</dt><dd id="speed">—</dd>
+      <dt>Last sent</dt><dd id="sent">—</dd>
+      <dt>Points sent</dt><dd id="count">0</dd>
+    </dl>
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <script>
+    const toggleBtn = document.getElementById('toggle');
+    const secretInput = document.getElementById('secret');
+    const el = {
+      state: document.getElementById('state'),
+      lat: document.getElementById('lat'),
+      lng: document.getElementById('lng'),
+      acc: document.getElementById('acc'),
+      speed: document.getElementById('speed'),
+      sent: document.getElementById('sent'),
+      count: document.getElementById('count'),
+      error: document.getElementById('error'),
+    };
+
+    let watchId = null;
+    let sentCount = 0;
+
+    function fmt(n, digits = 6) {
+      return typeof n === 'number' ? n.toFixed(digits) : '—';
+    }
+
+    async function sendPosition(pos) {
+      const { latitude, longitude, accuracy, speed } = pos.coords;
+
+      el.lat.textContent = fmt(latitude);
+      el.lng.textContent = fmt(longitude);
+      el.acc.textContent = typeof accuracy === 'number' ? `${accuracy.toFixed(1)} m` : '—';
+      el.speed.textContent = typeof speed === 'number' && speed !== null ? `${speed.toFixed(2)} m/s` : '—';
+
+      try {
+        const res = await fetch('/api/location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lat: latitude,
+            lng: longitude,
+            accuracy: typeof accuracy === 'number' ? accuracy : null,
+            speed: typeof speed === 'number' ? speed : null,
+            secret: secretInput.value || undefined,
+          }),
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          el.error.textContent = `Server rejected update: ${body.error || res.status}`;
+          return;
+        }
+
+        el.error.textContent = '';
+        sentCount += 1;
+        el.count.textContent = String(sentCount);
+        el.sent.textContent = new Date().toLocaleTimeString();
+      } catch (err) {
+        el.error.textContent = `Network error sending update: ${err.message}`;
+      }
+    }
+
+    function onError(err) {
+      el.error.textContent = `Geolocation error: ${err.message}`;
+    }
+
+    function start() {
+      if (!navigator.geolocation) {
+        el.error.textContent = 'Geolocation is not supported on this device/browser.';
+        return;
+      }
+
+      watchId = navigator.geolocation.watchPosition(sendPosition, onError, {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 15000,
+      });
+
+      el.state.textContent = 'tracking';
+      toggleBtn.textContent = 'Stop';
+      toggleBtn.classList.add('running');
+    }
+
+    function stop() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+      el.state.textContent = 'stopped';
+      toggleBtn.textContent = 'Start';
+      toggleBtn.classList.remove('running');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (watchId === null) {
+        start();
+      } else {
+        stop();
+      }
+    });
+  </script>
+</body>
+</html>

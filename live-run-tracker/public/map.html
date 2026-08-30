@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Live Run Tracker — Map</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #map { position: absolute; inset: 0; }
+
+  #banner {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    background: #1f9d55;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    transition: background 0.3s;
+    white-space: nowrap;
+  }
+  #banner.stale { background: #d64545; }
+  #banner.none { background: #555; }
+
+  #config-error {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #0f1115;
+    color: #ffd866;
+    padding: 24px;
+    text-align: center;
+    z-index: 20;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="banner" class="none">Waiting for location…</div>
+  <div id="config-error"></div>
+
+  <script>
+    const NEPAL_CENTER = [84.1240, 28.3949]; // [lng, lat]
+    const STALE_MS = 90 * 1000;
+
+    const bannerEl = document.getElementById('banner');
+    const configErrorEl = document.getElementById('config-error');
+
+    let lastUpdateAt = null;
+    let map = null;
+    let marker = null;
+    let currentTrail = [];
+
+    function updateBanner() {
+      if (lastUpdateAt === null) {
+        bannerEl.textContent = 'Waiting for location…';
+        bannerEl.className = 'none';
+        return;
+      }
+      const secondsAgo = Math.round((Date.now() - lastUpdateAt) / 1000);
+      const stale = Date.now() - lastUpdateAt > STALE_MS;
+      bannerEl.textContent = stale
+        ? `Stale — no update for ${secondsAgo}s`
+        : `Live — updated ${secondsAgo}s ago`;
+      bannerEl.className = stale ? 'stale' : '';
+    }
+
+    setInterval(updateBanner, 1000);
+
+    function trailToGeoJSON(trail) {
+      return {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: trail.map((p) => [p.lng, p.lat]),
+        },
+      };
+    }
+
+    function setMarkerPosition(lat, lng) {
+      if (!marker) return;
+      marker.setLngLat([lng, lat]);
+    }
+
+    function updateTrail(trail) {
+      const source = map.getSource('trail');
+      if (source) {
+        source.setData(trailToGeoJSON(trail));
+      }
+    }
+
+    function handleLocationUpdate(latest, trail) {
+      if (!latest) return;
+      lastUpdateAt = latest.timestamp;
+      updateBanner();
+
+      if (!marker) {
+        marker = new mapboxgl.Marker({ color: '#1f9d55' })
+          .setLngLat([latest.lng, latest.lat])
+          .addTo(map);
+      } else {
+        setMarkerPosition(latest.lat, latest.lng);
+      }
+
+      if (trail && trail.length) {
+        currentTrail = trail.slice();
+        updateTrail(currentTrail);
+      }
+
+      map.easeTo({ center: [latest.lng, latest.lat], duration: 500 });
+    }
+
+    async function init() {
+      let config;
+      try {
+        config = await fetch('/api/config').then((r) => r.json());
+      } catch (err) {
+        configErrorEl.style.display = 'flex';
+        configErrorEl.textContent = `Could not reach server: ${err.message}`;
+        return;
+      }
+
+      if (!config.mapboxToken) {
+        configErrorEl.style.display = 'flex';
+        configErrorEl.textContent =
+          'No Mapbox token configured. Set MAPBOX_TOKEN in the server .env file and restart the server.';
+        return;
+      }
+
+      mapboxgl.accessToken = config.mapboxToken;
+
+      map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: NEPAL_CENTER,
+        zoom: 7,
+      });
+
+      map.on('load', async () => {
+        map.addSource('trail', {
+          type: 'geojson',
+          data: trailToGeoJSON([]),
+        });
+        map.addLayer({
+          id: 'trail-line',
+          type: 'line',
+          source: 'trail',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#1f9d55', 'line-width': 4, 'line-opacity': 0.8 },
+        });
+
+        // Load whatever the server already has, in case we're a new viewer.
+        try {
+          const initial = await fetch('/api/location').then((r) => r.json());
+          if (initial.latest) {
+            handleLocationUpdate(initial.latest, initial.trail);
+          }
+        } catch (err) {
+          console.error('Failed to load initial location', err);
+        }
+
+        const socket = io();
+        socket.on('location', (data) => {
+          handleLocationUpdate(data.latest, null);
+          // Trail grows incrementally: append the new point rather than refetching all 2000.
+          if (data.point) {
+            currentTrail.push(data.point);
+            updateTrail(currentTrail);
+          }
+        });
+      });
+
+      updateBanner();
+    }
+
+    init();
+  </script>
+</body>
+</html>

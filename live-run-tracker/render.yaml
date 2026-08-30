@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: live-run-tracker
+    runtime: node
+    rootDir: live-run-tracker
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: MAPBOX_TOKEN
+        sync: false
+      - key: TRACKER_SECRET
+        sync: false
