@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
 import { NEPAL_COORDINATES } from "@/components/terrain/terrainRoute";
@@ -89,14 +89,67 @@ interface SocialsProps {
 
 export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClick }: SocialsProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const phoneWrapRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(paused);
+  const [showHint, setShowHint] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
+    pausedRef.current = paused;
     if (paused) videoRef.current?.pause();
   }, [paused]);
+
+  // Tracks whether the video actually ended up muted (autoplay-with-sound is
+  // often blocked by the browser unless a real click/tap just happened), so
+  // the on-screen hint can say the right thing: "tap for sound" while muted,
+  // "tap to pause" once it isn't.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const sync = () => setIsMuted(video.muted);
+    video.addEventListener("volumechange", sync);
+    return () => video.removeEventListener("volumechange", sync);
+  }, []);
+
+  // First time the phone scrolls into view, start it playing on its own,
+  // audio and all. Most browsers only allow unmuted autoplay once the page
+  // has already seen a user gesture (a click/tap earlier on the page), which
+  // by this point in the scroll it usually has — but if the browser still
+  // blocks it, fall back to a muted autoplay so motion starts either way;
+  // the first tap on the screen (see togglePlay) then unmutes it.
+  useEffect(() => {
+    const video = videoRef.current;
+    const target = phoneWrapRef.current;
+    if (!video || !target) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !pausedRef.current) {
+          onPhonePlay?.();
+          video.muted = false;
+          video.play().catch(() => {
+            video.muted = true;
+            video.play().catch(() => {});
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run once on mount, "onPhonePlay" identity isn't meant to re-trigger the observer.
+  }, []);
 
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
+    setShowHint(false);
+    if (video.muted) {
+      video.muted = false;
+      onPhonePlay?.();
+      if (video.paused) video.play();
+      return;
+    }
     if (video.paused) {
       onPhonePlay?.();
       video.play();
@@ -111,7 +164,7 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
       <TextStagger as="h2" className="socials-heading" text="I'm on socials" startDelay={0.15} />
 
       <CinematicTextReveal className="socials-stage" delay={0.3}>
-        <div className="socials-phone-wrap">
+        <div className="socials-phone-wrap" ref={phoneWrapRef}>
           <div className="socials-ticker-backdrop" aria-hidden="true">
             <div className="socials-ticker-track">
               {Array.from({ length: TICKER_REPEAT }).map((_, index) => {
@@ -158,6 +211,9 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
               loop
               playsInline
             />
+            {showHint && (
+              <span className="socials-phone-hint">{isMuted ? "Tap for sound" : "Tap screen to pause"}</span>
+            )}
           </div>
           <div className="socials-phone-home" aria-hidden="true" />
           </div>

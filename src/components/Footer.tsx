@@ -44,11 +44,6 @@ export default function Footer() {
               }}
             />
             <img
-              className="site-footer-brand-flag"
-              src="/images/logo/flag.svg"
-              alt="Flag of Nepal"
-            />
-            <img
               className="site-footer-brand-logo"
               src="/images/logo/logo.png"
               alt="Ebb&Flo"
@@ -57,23 +52,34 @@ export default function Footer() {
           {/* <p>A crossing of Nepal, told in ten days on foot.</p> */}
         </div>
 
-        <div className="site-footer-columns">
-          <div className="site-footer-column">
-            <span className="site-footer-column-title">Quick Links</span>
-            {QUICK_LINKS.map((link) => (
-              <a key={link.label} href={link.href}>
-                {link.label}
-              </a>
-            ))}
+        <div className="site-footer-nav">
+          <div className="site-footer-nav-badge">
+            <img
+              className="site-footer-nav-flag"
+              src="/images/logo/flag.svg"
+              alt="Flag of Nepal"
+            />
+            <span>In cooperation with the Government of Nepal</span>
           </div>
 
-          <div className="site-footer-column">
-            <span className="site-footer-column-title">Social</span>
-            {SOCIAL_LINKS.map((social) => (
-              <a key={social.label} href={social.href}>
-                {social.label}
-              </a>
-            ))}
+          <div className="site-footer-columns">
+            <div className="site-footer-column">
+              <span className="site-footer-column-title">Quick Links</span>
+              {QUICK_LINKS.map((link) => (
+                <a key={link.label} href={link.href}>
+                  {link.label}
+                </a>
+              ))}
+            </div>
+
+            <div className="site-footer-column">
+              <span className="site-footer-column-title">Social</span>
+              {SOCIAL_LINKS.map((social) => (
+                <a key={social.label} href={social.href}>
+                  {social.label}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </div>
