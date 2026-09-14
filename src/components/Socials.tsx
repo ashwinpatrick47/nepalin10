@@ -26,10 +26,10 @@ const TICKER_REPEAT = 6;
 // (space-evenly) rather than flanking its sides — simpler and reads more
 // clearly as a single group of options.
 const SOCIAL_LINKS: readonly { label: string; href: string }[] = [
-  { label: "Strava", href: "#" },
-  { label: "Instagram", href: "#" },
-  { label: "YouTube", href: "#documentary" },
-  { label: "Linktree", href: "#" },
+  { label: "Strava", href: "https://strava.app.link/s3XOnzJsq6b" },
+  { label: "Instagram", href: "https://www.instagram.com/rahuljsharma_/" },
+  { label: "YouTube", href: "https://www.youtube.com/@ebbnflofilm" },
+  { label: "Linktree", href: "https://linktr.ee/rahuljsharma" },
 ];
 
 // Status bar icons (signal/wifi/battery) — commented out per request, not
