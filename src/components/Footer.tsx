@@ -39,8 +39,8 @@ export default function Footer() {
               role="img"
               aria-label="Nepal in 10"
               style={{
-                maskImage: "url(/icons/rara.png)",
-                WebkitMaskImage: "url(/icons/rara.png)",
+                maskImage: "url(/images/logo/rara.png)",
+                WebkitMaskImage: "url(/images/logo/rara.png)",
               }}
             />
             <img
@@ -53,6 +53,12 @@ export default function Footer() {
         </div>
 
         <div className="site-footer-nav">
+          <img
+            className="site-footer-nav-title"
+            src="/images/logo/title.png"
+            alt="Ebb&Flo"
+          />
+
           <div className="site-footer-nav-badge">
             <img
               className="site-footer-nav-flag"

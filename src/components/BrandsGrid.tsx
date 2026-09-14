@@ -16,13 +16,13 @@ import TextStagger from "@/components/TextStagger";
 // mask, so no per-logo invert/mute special-casing is needed.
 // Seven sponsors — 4 on the top row, 3 on the bottom.
 const SPONSORS: readonly { name: string; src: string }[] = [
-  { name: "Asics", src: "/icons/asics.svg" },
-  { name: "Plasmaide", src: "/icons/plasmaide.svg" },
-  { name: "Chasing Chai", src: "/icons/chaisingchai.png" },
-  { name: "Amacx", src: "/icons/amacx.png" },
-  { name: "Grens", src: "/icons/grns.png" },
-  { name: "Zuum", src: "/icons/zuum.svg" },
-  { name: "Green Street", src: "/icons/greenstreet.webp" },
+  { name: "Asics", src: "/images/logo/brands/asics.svg" },
+  { name: "Plasmaide", src: "/images/logo/brands/plasmaide.svg" },
+  { name: "Chasing Chai", src: "/images/logo/brands/chaisingchai.png" },
+  { name: "Amacx", src: "/images/logo/brands/amacx.png" },
+  { name: "Grens", src: "/images/logo/brands/grns.png" },
+  { name: "Zuum", src: "/images/logo/brands/zuum.svg" },
+  { name: "Green Street", src: "/images/logo/brands/greenstreet.webp" },
 ];
 
 export default function BrandsGrid() {

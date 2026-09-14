@@ -212,7 +212,7 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
               playsInline
             />
             {showHint && (
-              <span className="socials-phone-hint">{isMuted ? "Tap for sound" : "Tap screen to pause"}</span>
+              <span className="socials-phone-hint">{isMuted ? "Tap screen to pause" : "Tap screen to pause"}</span>
             )}
           </div>
           <div className="socials-phone-home" aria-hidden="true" />

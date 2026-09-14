@@ -23,12 +23,32 @@ import TextStagger from "@/components/TextStagger";
 // clouds and the flag are reused from elsewhere on the site (WhyNepal) —
 // there wasn't enough distinct photography to fill 5 cards otherwise, and
 // the user opted to reuse rather than trim the pile back down to 3.
-const STACK_IMAGES: readonly { src: string; alt: string }[] = [
-  { src: "/images/himalaya-mountains.jpg", alt: "" },
-  { src: "/images/monastery-hero.png", alt: "" },
-  { src: "/images/himalayan-valley.png", alt: "" },
-  { src: "/images/himalaya-clouds.jpg", alt: "" },
-  { src: "/images/flag-nepal.jpg", alt: "" },
+const STACK_IMAGES: readonly { src: string; alt: string; caption: string }[] = [
+  {
+    src: "/images/found-1.jpg",
+    alt: "",
+    caption: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+  },
+  {
+    src: "/images/found-2.jpg",
+    alt: "",
+    caption: "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  },
+  {
+    src: "/images/found-3.jpg",
+    alt: "",
+    caption: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+  },
+  {
+    src: "/images/found-4.jpg",
+    alt: "",
+    caption: "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+  },
+  {
+    src: "/images/found-5.jpg",
+    alt: "",
+    caption: "Excepteur sint occaecat cupidatat non proident, sunt in culpa.",
+  },
 ];
 
 function FoundationStackCard({
@@ -77,15 +97,26 @@ function FoundationStackCard({
         transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
         style={{ scale: visualScale }}
       >
-        <motion.div className="foundation-stack-image-inner" style={{ y: imageY }}>
-          <Image
-            className="foundation-stack-image"
-            src={image.src}
-            alt={image.alt}
-            fill
-            sizes="(max-width: 700px) 90vw, 45vw"
-          />
-        </motion.div>
+        <div className="foundation-stack-image-frame">
+          <motion.div className="foundation-stack-image-inner" style={{ y: imageY }}>
+            <Image
+              className="foundation-stack-image"
+              src={image.src}
+              alt={image.alt}
+              fill
+              sizes="(max-width: 700px) 90vw, 45vw"
+            />
+          </motion.div>
+        </div>
+        {/* Caption feature — turned off for now per request, not deleted.
+            A solid-background panel below the photo, not text overlaid on
+            it, but still inside this same overflow:hidden card rather than
+            sitting below it in ordinary page flow: with cards piling via
+            position:sticky, anything outside a card's own clipped box can
+            peek out from behind the next card covering it. Keeping image +
+            caption as one clipped unit means the whole card gets covered as
+            a piece — never just the photo. Uncomment to bring it back. */}
+        {/* <p className="foundation-stack-caption">{image.caption}</p> */}
       </motion.div>
     </div>
   );
@@ -150,16 +181,15 @@ export default function FoundationCharity() {
             <TextStagger as="h2" className="foundation-heading" text="Running toward something bigger." startDelay={0.15} />
             <CinematicTextReveal className="foundation-body" delay={0.3}>
               <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-                ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                aliquip ex ea commodo consequat.
+                Every step carries a purpose. This journey supports Nepal Heart Foundation’s work to build healthier communities across Nepal through heart health awareness, early detection, prevention, and access to essential care. By running together, we hope to turn every kilometre into meaningful support for people and families affected by heart disease.
               </p>
             </CinematicTextReveal>
           </div>
           <motion.a
             className="foundation-cta"
-            href="#"
+            href="https://nepalheart.org.np/"
+            target="_blank"
+            rel="noopener noreferrer"
             initial={reduceMotion ? false : { opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, amount: 0.6 }}

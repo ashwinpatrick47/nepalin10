@@ -24,22 +24,22 @@ import TextStagger from "@/components/TextStagger";
 
 const storyWindows: readonly CinematicImageSlide[] = [
   {
-    src: "/images/himalaya-clouds.jpg",
+    src: "/images/nepal-1.jpg",
     alt: "Clouds drifting above Nepal",
     title: "",
   },
   {
-    src: "/images/himalaya-mountains.jpg",
+    src: "/images/2.jpg",
     alt: "Snow-covered Himalayan peaks",
     title: "",
   },
   {
-    src: "/images/himalayan-valley.png",
+    src: "/images/3.jpg",
     alt: "A trail through the Himalayan valley",
     title: "",
   },
   {
-    src: "/images/monastery-hero.png",
+    src: "/images/4.jpg",
     alt: "A monastery beneath the Himalayas",
     title: "",
   },
@@ -227,7 +227,7 @@ export default function HimalayanParallax() {
         </header>
 
         <div className="hero-rara-mark" aria-hidden="true">
-          <Image src="/icons/rara.png" alt="" fill priority sizes="44px" />
+          <Image src="/images/logo/rara.png" alt="" fill priority sizes="44px" />
         </div>
 
         <div
@@ -241,7 +241,7 @@ export default function HimalayanParallax() {
             aria-hidden="true"
           >
             <Image
-              src="/images/logo/title.PNG"
+              src="/images/logo/title.png"
               alt=""
               fill
               priority
@@ -300,7 +300,7 @@ export default function HimalayanParallax() {
             >
               <div className="monastery-entry">
                 <Image
-                  src="/images/monastery-foreground-ai-approved.png"
+                  src="/images/monastery-foreground.png"
                   alt="A Himalayan monastery with prayer flags"
                   fill
                   priority
@@ -354,7 +354,7 @@ export default function HimalayanParallax() {
 
           <div className="fog-logo" aria-hidden="true">
             <Image
-              src="/icons/rara.png"
+              src="/images/logo/rara.png"
               alt=""
               fill
               priority

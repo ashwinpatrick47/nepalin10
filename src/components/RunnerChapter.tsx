@@ -36,7 +36,7 @@ export default function RunnerChapter() {
       <div className="runner-chapter-visuals">
         <div className="runner-chapter-parallax">
           <Image
-            src="/images/himalaya-mountains.jpg"
+            src="/images/character.jpg"
             alt="A wide view across the Himalayan range"
             fill
             sizes="100vw"
@@ -79,7 +79,7 @@ export default function RunnerChapter() {
 //               no load-in animation. */}
 //           <div className="runner-chapter-window-logo" aria-hidden="true">
 //             <Image
-//               src="/icons/rara.png"
+//               src="/images/logo/rara.png"
 //               alt="Rara Runs Nepal"
 //               width={220}
 //               height={220}

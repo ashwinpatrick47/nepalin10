@@ -44,6 +44,12 @@
     font-size: 0.95rem;
     line-height: 1.5;
   }
+
+  .run-arrow-marker {
+    width: 30px;
+    height: 30px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  }
 </style>
 </head>
 <body>
@@ -62,6 +68,31 @@
     let map = null;
     let marker = null;
     let currentTrail = [];
+    // Previous marker position, used to compute the bearing the arrow points at —
+    // GPS `coords.heading` is frequently null (stationary, or unsupported), so the
+    // direction is derived from consecutive points instead.
+    let lastPoint = null;
+
+    function createArrowElement() {
+      const el = document.createElement('div');
+      el.className = 'run-arrow-marker';
+      el.innerHTML =
+        '<svg width="30" height="30" viewBox="0 0 24 24">' +
+        '<path d="M12 1.5 L20 21 L12 16.5 L4 21 Z" fill="#1f9d55" stroke="#04150a" stroke-width="1.5" stroke-linejoin="round"/>' +
+        '</svg>';
+      return el;
+    }
+
+    function computeBearing(lat1, lng1, lat2, lng2) {
+      const toRad = (d) => (d * Math.PI) / 180;
+      const toDeg = (r) => (r * 180) / Math.PI;
+      const phi1 = toRad(lat1);
+      const phi2 = toRad(lat2);
+      const deltaLambda = toRad(lng2 - lng1);
+      const y = Math.sin(deltaLambda) * Math.cos(phi2);
+      const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+      return (toDeg(Math.atan2(y, x)) + 360) % 360;
+    }
 
     function updateBanner() {
       if (lastUpdateAt === null) {
@@ -91,7 +122,11 @@
 
     function setMarkerPosition(lat, lng) {
       if (!marker) return;
+      if (lastPoint && (lastPoint.lat !== lat || lastPoint.lng !== lng)) {
+        marker.setRotation(computeBearing(lastPoint.lat, lastPoint.lng, lat, lng));
+      }
       marker.setLngLat([lng, lat]);
+      lastPoint = { lat, lng };
     }
 
     function updateTrail(trail) {
@@ -107,9 +142,21 @@
       updateBanner();
 
       if (!marker) {
-        marker = new mapboxgl.Marker({ color: '#1f9d55' })
+        marker = new mapboxgl.Marker({
+          element: createArrowElement(),
+          rotationAlignment: 'map',
+          pitchAlignment: 'map',
+        })
           .setLngLat([latest.lng, latest.lat])
           .addTo(map);
+        lastPoint = { lat: latest.lat, lng: latest.lng };
+        // If we're loading mid-run with history already in the trail, orient
+        // the arrow immediately using the last two points rather than waiting
+        // for the next update to give it a direction.
+        if (trail && trail.length >= 2) {
+          const prev = trail[trail.length - 2];
+          marker.setRotation(computeBearing(prev.lat, prev.lng, latest.lat, latest.lng));
+        }
       } else {
         setMarkerPosition(latest.lat, latest.lng);
       }

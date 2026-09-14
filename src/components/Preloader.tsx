@@ -97,7 +97,7 @@ export default function Preloader() {
           style={{ opacity: 0, filter: "brightness(0) blur(10px)" }}
         >
           <Image
-            src="/icons/rara.png"
+            src="/images/logo/rara.png"
             alt=""
             fill
             priority

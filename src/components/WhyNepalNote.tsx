@@ -86,7 +86,7 @@ export default function WhyNepalNote() {
               style={{ y: bioPhotoY }}
             >
               <Image
-                src="/images/himalayan-valley.png"
+                src="/images/1.png"
                 alt="Rahul Sharma, ultra-marathon runner"
                 fill
                 sizes="(max-width: 700px) 140px, 260px"

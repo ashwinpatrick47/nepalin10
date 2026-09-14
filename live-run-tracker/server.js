@@ -21,6 +21,10 @@ const trail = [];
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res) => {
+  res.redirect('/map.html');
+});
+
 app.get('/api/config', (req, res) => {
   res.json({ mapboxToken: process.env.MAPBOX_TOKEN || '' });
 });
