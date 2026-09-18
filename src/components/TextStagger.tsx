@@ -157,6 +157,13 @@ export default function TextStagger({
 
     measure();
     window.addEventListener("resize", measure);
+    // iOS Safari's dynamic toolbar collapsing/expanding on scroll changes
+    // the visible viewport width without firing a plain `resize` event —
+    // visualViewport does. Without this, a measurement taken while the
+    // toolbar was still expanded can go stale the moment it collapses,
+    // which is exactly the kind of width mismatch the nowrap fallback
+    // above exists to survive, but re-measuring avoids it happening at all.
+    window.visualViewport?.addEventListener("resize", measure);
 
     // A plain resize listener misses it when the measure span's own
     // width changes without the window resizing — e.g. a sibling image
@@ -180,6 +187,7 @@ export default function TextStagger({
 
     return () => {
       window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
       observer.disconnect();
     };
   }, [text, lines]);
@@ -209,7 +217,17 @@ export default function TextStagger({
   const MotionLine = LineMask === "span" ? motion.span : motion.div;
 
   return (
-    <Tag ref={containerRef} id={id} className={className} style={{ ...style, position: "relative" }}>
+    // minWidth:0 — the nowrap fallback above (each pre-split line is one
+    // unbreakable token) makes this element's intrinsic min-content width
+    // the width of its widest LINE rather than its widest word. Harmless
+    // in normal block flow, but a flex/grid ancestor's default
+    // min-width:auto would otherwise size the track to fit that whole
+    // line and blow out the layout at any viewport narrower than what the
+    // line was measured against (e.g. a grid column sized to a wide
+    // desktop line, rendered at tablet width). This is the standard fix
+    // for that class of bug: it only affects sizing as a flex/grid item,
+    // not layout in any other context.
+    <Tag ref={containerRef} id={id} className={className} style={{ ...style, position: "relative", minWidth: 0 }}>
       {!lines && text ? (
         <span
           ref={measureRef}
@@ -243,7 +261,18 @@ export default function TextStagger({
             // so the two would sometimes disagree on where a line breaks
             // once space got tight (e.g. behind a first-line text-indent)
             // and visibly re-wrap mid-line after already being split.
-            style={{ display: "block", willChange: "transform" }}
+            //
+            // whiteSpace:nowrap — a pre-split line is only correct if the
+            // rendered width exactly matches the width it was measured
+            // against. On real iOS Safari that width can shift after
+            // measurement (the dynamic toolbar collapsing/expanding
+            // resizes the viewport without firing a `resize` event), and
+            // without this, the browser silently re-wraps the now-too-wide
+            // line again — mid-word, since it's just one continuous string
+            // — producing garbled fragments with no visible space between
+            // them. nowrap turns that failure into a harmless 1-2px clip
+            // inside the line's own overflow:hidden mask instead.
+            style={{ display: "block", whiteSpace: "nowrap", willChange: "transform" }}
           >
             {line}
           </MotionLine>
