@@ -262,17 +262,22 @@ export default function TextStagger({
             // once space got tight (e.g. behind a first-line text-indent)
             // and visibly re-wrap mid-line after already being split.
             //
-            // whiteSpace:nowrap — a pre-split line is only correct if the
-            // rendered width exactly matches the width it was measured
-            // against. On real iOS Safari that width can shift after
-            // measurement (the dynamic toolbar collapsing/expanding
-            // resizes the viewport without firing a `resize` event), and
-            // without this, the browser silently re-wraps the now-too-wide
-            // line again — mid-word, since it's just one continuous string
-            // — producing garbled fragments with no visible space between
-            // them. nowrap turns that failure into a harmless 1-2px clip
-            // inside the line's own overflow:hidden mask instead.
-            style={{ display: "block", whiteSpace: "nowrap", willChange: "transform" }}
+            // whiteSpace:nowrap, but only in `text` mode (auto-measured —
+            // `lines` is falsy here) — a pre-split line there is only
+            // correct if the rendered width exactly matches the width it
+            // was measured against. On real iOS Safari that width can
+            // shift after measurement (the dynamic toolbar collapsing/
+            // expanding resizes the viewport without firing a `resize`
+            // event), and without this, the browser silently re-wraps the
+            // now-too-wide line again — mid-word, since it's just one
+            // continuous string — producing garbled fragments with no
+            // visible space between them. nowrap turns that failure into a
+            // harmless 1-2px clip inside the line's own overflow:hidden
+            // mask instead. `lines` mode has no measurement to go stale —
+            // each entry is a hand-written phrase that's always relied on
+            // the browser's own wrapping to break it further on narrow
+            // screens, so forcing nowrap there only breaks it instead.
+            style={{ display: "block", whiteSpace: lines ? "normal" : "nowrap", willChange: "transform" }}
           >
             {line}
           </MotionLine>
