@@ -2,8 +2,8 @@ services:
   - type: web
     name: live-run-tracker
     runtime: docker
-    rootDir: live-run-tracker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./live-run-tracker/Dockerfile
+    dockerContext: ./live-run-tracker
     plan: free
     envVars:
       - key: MAPBOX_TOKEN
