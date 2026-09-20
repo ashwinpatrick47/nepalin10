@@ -81,7 +81,9 @@
   <div id="config-error"></div>
 
   <script>
-    const NEPAL_CENTER = [84.1240, 28.3949]; // [lng, lat]
+    // Default view before a runner appears: south of Kathmandu, tilted and looking
+    // north over real 3D terrain toward the Himalayas. [lng, lat]
+    const NEPAL_CENTER = [85.3240, 27.35];
     const STALE_MS = 90 * 1000;
 
     const bannerEl = document.getElementById('banner');
@@ -238,10 +240,21 @@
         container: 'map',
         style: 'mapbox://styles/mapbox/standard', // 3D buildings, trees and landmarks
         center: NEPAL_CENTER,
-        zoom: 7,
+        zoom: 9.2,
+        pitch: 72,
+        bearing: 0,
       });
 
       map.on('load', async () => {
+        // Real 3D terrain (mountains). Standard draws hillshade only; the DEM makes it 3D.
+        map.addSource('mapbox-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 512,
+          maxzoom: 14,
+        });
+        map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.6 });
+
         map.addSource('trail', {
           type: 'geojson',
           data: trailToGeoJSON([]),
