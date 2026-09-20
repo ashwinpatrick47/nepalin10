@@ -21,8 +21,11 @@ const trail = [];
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// The tracker's root sends visitors to the main website; the website's
+// "Track me" link is what leads to /map.html.
+const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 app.get('/', (req, res) => {
-  res.redirect('/map.html');
+  res.redirect(SITE_URL);
 });
 
 app.get('/api/config', (req, res) => {
@@ -32,6 +35,15 @@ app.get('/api/config', (req, res) => {
 app.get('/api/location', (req, res) => {
   res.json({ latest, trail });
 });
+
+function addPoint(point) {
+  latest = point;
+  trail.push(point);
+  if (trail.length > MAX_TRAIL_POINTS) {
+    trail.splice(0, trail.length - MAX_TRAIL_POINTS);
+  }
+  io.emit('location', { latest, point });
+}
 
 app.post('/api/location', (req, res) => {
   const { lat, lng, accuracy, speed, secret } = req.body || {};
@@ -44,25 +56,21 @@ app.post('/api/location', (req, res) => {
     return res.status(400).json({ error: 'lat and lng must be numbers' });
   }
 
-  const point = {
+  addPoint({
     lat,
     lng,
     accuracy: typeof accuracy === 'number' ? accuracy : null,
     speed: typeof speed === 'number' ? speed : null,
     timestamp: Date.now(),
-  };
-
-  latest = point;
-  trail.push(point);
-  if (trail.length > MAX_TRAIL_POINTS) {
-    trail.splice(0, trail.length - MAX_TRAIL_POINTS);
-  }
-
-  io.emit('location', { latest, point });
+  });
 
   res.json({ ok: true });
 });
 
 server.listen(PORT, () => {
   console.log(`live-run-tracker listening on port ${PORT}`);
+  // Optional: mirror a Garmin LiveTrack session onto the map (see garmin.js).
+  if (process.env.GARMIN_LIVETRACK_URL) {
+    require('./garmin').start(process.env.GARMIN_LIVETRACK_URL, addPoint);
+  }
 });

@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
+import { TRACKER_URL } from "@/components/trackerUrl";
 import { NEPAL_COORDINATES } from "@/components/terrain/terrainRoute";
 
 // Same "NEPAL IN 10 / नेपाल १० दिनमा / coords" chain as the MapLabels
@@ -30,6 +31,7 @@ const SOCIAL_LINKS: readonly { label: string; href: string }[] = [
   { label: "Instagram", href: "https://www.instagram.com/rahuljsharma_/" },
   { label: "YouTube", href: "https://www.youtube.com/@ebbnflofilm" },
   { label: "Linktree", href: "https://linktr.ee/rahuljsharma" },
+  { label: "Track me", href: TRACKER_URL },
 ];
 
 // Status bar icons (signal/wifi/battery) — commented out per request, not

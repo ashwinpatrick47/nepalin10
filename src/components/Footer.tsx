@@ -1,5 +1,7 @@
 "use client";
 
+import { TRACKER_URL } from "@/components/trackerUrl";
+
 // Ported from framer.com/m/Footer-Oversized-Wordmark: a brand block next
 // to link columns, a copyright/credit row below with no divider between
 // them, then a giant wordmark filling the width with its top edge faded
@@ -26,6 +28,7 @@ const SOCIAL_LINKS: readonly { label: string; href: string }[] = [
   { label: "Instagram", href: "https://www.instagram.com/rahuljsharma_/" },
   { label: "YouTube", href: "https://www.youtube.com/@ebbnflofilm" },
   { label: "Linktree", href: "https://linktr.ee/rahuljsharma" },
+  { label: "Track me", href: TRACKER_URL },
 ];
 
 export default function Footer() {

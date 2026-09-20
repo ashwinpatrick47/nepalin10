@@ -215,9 +215,6 @@ export default function Testimonials() {
               />
             </div>
             <div className="testimonials-arrows">
-              <button type="button" aria-label="Previous testimonial" onClick={() => go(-1)}>
-                ←
-              </button>
               <button type="button" aria-label="Next testimonial" onClick={() => go(1)}>
                 →
               </button>

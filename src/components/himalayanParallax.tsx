@@ -20,6 +20,7 @@ import VideoReveal from "@/components/VideoReveal";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
+import { TRACKER_URL } from "@/components/trackerUrl";
 import TextStagger from "@/components/TextStagger";
 
 const storyWindows: readonly CinematicImageSlide[] = [
@@ -225,6 +226,11 @@ export default function HimalayanParallax() {
             <span>नेपाल</span>
           </div>
         </header>
+
+        <a className="hero-track-link" href={TRACKER_URL}>
+          <span className="hero-track-dot" aria-hidden="true" />
+          Track me
+        </a>
 
         <div className="hero-rara-mark" aria-hidden="true">
           <Image src="/images/logo/rara.png" alt="" fill priority sizes="44px" />
