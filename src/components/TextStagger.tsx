@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -107,51 +108,30 @@ export default function TextStagger({
     if (!element) return;
 
     const measure = () => {
-      const textNode = element.firstChild;
-      if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
-
-      // getClientRects() on the whole run returns exactly one DOMRect per
-      // *actual* visual line, computed by the browser's own line-box
-      // model — the authoritative line count/bounds, not a guess. Each
-      // character is then bucketed into whichever line's vertical center
-      // its own center is closest to. This replaced an earlier approach
-      // that grew a range char-by-char and watched its cumulative
-      // bounding-box bottom for a jump: that heuristic broke the moment a
-      // descender showed up (e.g. the "y" in "Why"), since adding a
-      // deeper-descending glyph shifts the range's bottom edge even
-      // though it's still the same line — misread as a wrap and split
-      // mid-word into garbled, overlapping fragments.
-      const fullRange = document.createRange();
-      fullRange.selectNodeContents(element);
-      const lineRects = Array.from(fullRange.getClientRects()).sort((a, b) => a.top - b.top);
-      if (lineRects.length === 0) {
+      // Group whole words by the visual line they land on. Each word is its
+      // own <span data-w> in the (hidden) measuring copy, so a word can never
+      // be split across lines. This replaced a character-by-character Range
+      // measurement: real Safari reports the first letter after a soft wrap
+      // on the PREVIOUS line's rect, which chopped words in half
+      // ("a|n ultra-marathon", "S|OMETHING").
+      const words = Array.from(element.querySelectorAll<HTMLElement>("[data-w]"));
+      if (words.length === 0) {
         setMeasuredLines([text]);
         return;
       }
 
-      const charRange = document.createRange();
-      const lines: string[] = Array.from({ length: lineRects.length }, () => "");
-
-      for (let i = 0; i < text.length; i++) {
-        charRange.setStart(textNode, i);
-        charRange.setEnd(textNode, i + 1);
-        const rect = charRange.getBoundingClientRect();
-        const center = (rect.top + rect.bottom) / 2;
-
-        let closest = 0;
-        let closestDistance = Infinity;
-        for (let l = 0; l < lineRects.length; l++) {
-          const lineCenter = (lineRects[l].top + lineRects[l].bottom) / 2;
-          const distance = Math.abs(center - lineCenter);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closest = l;
-          }
+      const result: string[] = [];
+      let currentTop = Number.NEGATIVE_INFINITY;
+      for (const word of words) {
+        const top = word.getBoundingClientRect().top;
+        // Same line = same top (allow sub-pixel/zoom rounding).
+        if (result.length === 0 || Math.abs(top - currentTop) > 2) {
+          result.push(word.textContent ?? "");
+          currentTop = top;
+        } else {
+          result[result.length - 1] += " " + (word.textContent ?? "");
         }
-        lines[closest] += text[i];
       }
-
-      const result = lines.filter((line) => line.length > 0);
       setMeasuredLines(result.length ? result : [text]);
     };
 
@@ -241,7 +221,14 @@ export default function TextStagger({
             pointerEvents: "none",
           }}
         >
-          {text}
+          {text.split(" ").map((word, i, all) => (
+            <Fragment key={i}>
+              <span data-w="" style={{ whiteSpace: "nowrap" }}>
+                {word}
+              </span>
+              {i < all.length - 1 ? " " : null}
+            </Fragment>
+          ))}
         </span>
       ) : null}
       {displayLines.map((line, i) => (
@@ -249,7 +236,21 @@ export default function TextStagger({
         // applies per block container — since every line here is now its
         // own block, only the first should inherit it; the rest are
         // pinned to 0 so the indent doesn't repeat on every line.
-        <LineMask key={i} style={{ display: "block", overflow: variant === "fade" ? "visible" : "hidden", textIndent: i === 0 ? undefined : 0 }}>
+        // The mask only needs to hide the slide-up, i.e. clip vertically. It
+        // used to be `overflow:hidden`, which also sliced the sides: if a
+        // pre-split nowrap line ends up wider than its box (iOS toolbar/
+        // font/viewport shifts after measuring), the end of the line got cut
+        // off. clip-path with a huge horizontal allowance keeps the vertical
+        // mask but never clips sideways, and the small vertical slack stops
+        // tight line-heights (.82) shaving the tops/bottoms of glyphs.
+        <LineMask
+          key={i}
+          style={{
+            display: "block",
+            ...(variant === "fade" ? null : { clipPath: "inset(-0.12em -100vw -0.12em -100vw)" }),
+            textIndent: i === 0 ? undefined : 0,
+          }}
+        >
           <MotionLine
             custom={i}
             initial={reduceMotion ? false : variant === "fade" ? { opacity: 0, y: 10 } : { opacity: 0, y: "100%" }}

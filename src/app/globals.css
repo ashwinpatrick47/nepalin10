@@ -877,4 +877,13 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
   .story-image-introduction p { line-height:1.1; padding:.2em .25em; }
   .story-image-introduction-nepali { line-height:1.2!important; }
 }
+/* Phones: a little slack on the pre-measured, one-line-per-row headings/copy
+   so small viewport shifts on iOS (toolbar collapse, font swap) can't push a
+   line wider than its box. */
+@media(max-width:700px){
+  .foundation-heading { font-size:clamp(32px,9vw,42px); }
+  .foundation-body { font-size:16px; line-height:1.7; }
+  .why-nepal-heading { font-size:clamp(32px,9vw,42px); }
+  .why-nepal-bio-headline { font-size:clamp(22px,6.2vw,28px); }
+}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fog-layer,.hero-copy p,.title-mask>span,.title-mask>em,.hero-copy>span{animation-duration:.01ms!important;animation-delay:0ms!important}*{transition-duration:.01ms!important}}
