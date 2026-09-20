@@ -5,6 +5,10 @@ services:
     dockerfilePath: ./live-run-tracker/Dockerfile
     dockerContext: ./live-run-tracker
     plan: free
+    # CMS edits to the LiveTrack link are picked up by polling, so they shouldn't rebuild the image.
+    buildFilter:
+      ignoredPaths:
+        - live-run-tracker/content/**
     envVars:
       - key: MAPBOX_TOKEN
         sync: false
@@ -15,4 +19,9 @@ services:
         sync: false
       # Where the tracker's "/" redirects: your Vercel site URL.
       - key: SITE_URL
+        sync: false
+      # Decap CMS sign-in (a GitHub OAuth App whose callback URL is <this site>/callback).
+      - key: GITHUB_OAUTH_CLIENT_ID
+        sync: false
+      - key: GITHUB_OAUTH_CLIENT_SECRET
         sync: false

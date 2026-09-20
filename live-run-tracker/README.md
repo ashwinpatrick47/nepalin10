@@ -90,3 +90,24 @@ help mitigate this in practice, but is not guaranteed.
 authentication — it's meant to keep casual randoms from POSTing fake
 locations to your public server, not to withstand a determined
 attacker. Don't put anything sensitive behind it.
+
+## Garmin LiveTrack link via Decap CMS
+
+`/admin` on the deployed tracker is a [Decap CMS](https://decapcms.org) page (loaded from
+the unpkg CDN) where you paste a Garmin LiveTrack share link. It saves to
+`content/livetrack.json` in the repo, and the server polls that file every minute, so
+a new link takes effect without redeploying (and starts a fresh trail). Clear the link
+to stop mirroring. Only real `https://livetrack.garmin.com/session/…/token/…` links are accepted.
+
+**One-time setup**
+1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App.
+   Homepage URL: your tracker URL; **Authorization callback URL: `<tracker URL>/callback`**.
+2. Create a client secret, then set `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET`
+   on the tracker's host (Render → Environment).
+3. If your tracker URL isn't `https://live-run-tracker.onrender.com`, edit `base_url`
+   (and `repo`/`branch` if needed) in `public/admin/config.yml`.
+4. Open `<tracker URL>/admin/`, log in with GitHub, edit **Live tracker → Garmin LiveTrack link**, Publish.
+
+**Note:** the repo is public, so a saved link (including its token) is visible in the repo
+and its git history. A LiveTrack session expires (typically within a day), but treat the link
+as sensitive — don't publish one you wouldn't want seen.
