@@ -1,13 +1,18 @@
 services:
   - type: web
     name: live-run-tracker
-    runtime: node
+    runtime: docker
     rootDir: live-run-tracker
-    buildCommand: npm install
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
     plan: free
     envVars:
       - key: MAPBOX_TOKEN
         sync: false
       - key: TRACKER_SECRET
+        sync: false
+      # Optional: mirrors a Garmin LiveTrack session onto the map.
+      - key: GARMIN_LIVETRACK_URL
+        sync: false
+      # Where the tracker's "/" redirects: your Vercel site URL.
+      - key: SITE_URL
         sync: false
