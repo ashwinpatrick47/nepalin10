@@ -5,6 +5,7 @@ import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
 import { TRACKER_URL } from "@/components/trackerUrl";
 import { NEPAL_COORDINATES } from "@/components/terrain/terrainRoute";
+import { cldVideoUrl } from "@/lib/cloudinary";
 
 // Same "NEPAL IN 10 / नेपाल १० दिनमा / coords" chain as the MapLabels
 // ticker further up the page — brought in here as a plain decorative
@@ -209,12 +210,12 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
             <video
               ref={videoRef}
               className="socials-phone-video"
-              src="/images/socials.mp4"
+              src={cldVideoUrl("/images/socials.mp4")}
               loop
               playsInline
             />
             {showHint && (
-              <span className="socials-phone-hint">{isMuted ? "Tap screen to pause" : "Tap screen to pause"}</span>
+              <span className="socials-phone-hint">{isMuted ? "Tap for sound" : "Tap screen to pause"}</span>
             )}
           </div>
           <div className="socials-phone-home" aria-hidden="true" />

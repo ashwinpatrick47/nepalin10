@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
+import SiteImage from "@/components/SiteImage";
 import { useReducedMotion, useScroll, useTransform } from "framer-motion";
 import MapLabels from "@/components/terrain/MapLabels";
 
@@ -35,7 +35,7 @@ export default function RunnerChapter() {
           (see .why-nepal-bio's margin-top:-100svh in globals.css). */}
       <div className="runner-chapter-visuals">
         <div className="runner-chapter-parallax">
-          <Image
+          <SiteImage
             src="/images/character.jpg"
             alt="A wide view across the Himalayan range"
             fill
@@ -67,7 +67,7 @@ export default function RunnerChapter() {
 //             style={{ y: windowImageY }}
 //           >
 //             {/* Placeholder image — swap for the real one when it's ready */}
-//             <Image
+//             <SiteImage
 //               src="/images/himalayan-valley.png"
 //               alt="Placeholder"
 //               fill
@@ -78,7 +78,7 @@ export default function RunnerChapter() {
 //           {/* Static mark centred on the window — no scroll-triggered fade,
 //               no load-in animation. */}
 //           <div className="runner-chapter-window-logo" aria-hidden="true">
-//             <Image
+//             <SiteImage
 //               src="/images/logo/rara.png"
 //               alt="Rara Runs Nepal"
 //               width={220}

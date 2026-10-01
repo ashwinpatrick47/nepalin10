@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image, { type ImageProps } from "next/image";
+import SiteImage from "@/components/SiteImage";
 import {
   AnimatePresence,
   motion,
@@ -22,7 +22,7 @@ const TESTIMONIALS: readonly {
   quote: string;
   name: string;
   role: string;
-  image: ImageProps["src"];
+  image: string;
 }[] = [
   {
     quote:
@@ -73,7 +73,7 @@ export default function Testimonials() {
   // than a plain crossfade) produces the "shutter" look. Direction flips
   // which edge the reveal sweeps from, so "previous" visibly runs the
   // opposite way from "next" instead of always sweeping the same way.
-  const [baseImage, setBaseImage] = useState<ImageProps["src"]>(active.image);
+  const [baseImage, setBaseImage] = useState<string>(active.image);
 
   // A click mid-wipe used to jump straight to whatever slide it landed on,
   // skipping the ones in between, which read as a glitch rather than
@@ -174,7 +174,7 @@ export default function Testimonials() {
           <div ref={imageRef} className="testimonials-image">
             <div className="testimonials-image-base">
               <motion.div className="testimonials-image-inner" style={{ y: imageY }}>
-                <Image src={baseImage} alt="" fill sizes="(max-width: 700px) 80vw, 420px" />
+                <SiteImage src={baseImage} alt="" fill sizes="(max-width: 700px) 80vw, 420px" />
               </motion.div>
             </div>
             <motion.div
@@ -188,7 +188,7 @@ export default function Testimonials() {
               onAnimationComplete={handleWipeComplete}
             >
               <motion.div className="testimonials-image-inner" style={{ y: imageY }}>
-                <Image
+                <SiteImage
                   src={active.image}
                   alt=""
                   fill

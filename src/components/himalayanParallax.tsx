@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import SiteImage from "@/components/SiteImage";
 import { motion, useScroll, useTransform } from "framer-motion";
 import CinematicImageScroll, {
   type CinematicImageSlide,
@@ -233,7 +233,7 @@ export default function HimalayanParallax() {
         </a>
 
         <div className="hero-rara-mark" aria-hidden="true">
-          <Image src="/images/logo/rara.png" alt="" fill priority sizes="44px" />
+          <SiteImage src="/images/logo/rara.png" alt="" fill priority sizes="44px" />
         </div>
 
         <div
@@ -246,7 +246,7 @@ export default function HimalayanParallax() {
             className="hero-project-wordmark"
             aria-hidden="true"
           >
-            <Image
+            <SiteImage
               src="/images/logo/title.png"
               alt=""
               fill
@@ -276,7 +276,7 @@ export default function HimalayanParallax() {
               className="image-layer sky-layer"
               style={{ y: skyY }}
             >
-              <Image
+              <SiteImage
                 src="/images/himalaya-clouds.jpg"
                 alt="Open blue sky over Nepal"
                 fill
@@ -290,7 +290,7 @@ export default function HimalayanParallax() {
               style={{ y: mountainY }}
             >
               <div className="mountain-entry">
-                <Image
+                <SiteImage
                   src="/images/mountains-foreground.png"
                   alt="The snow-covered Himalayas in Nepal"
                   fill
@@ -305,7 +305,7 @@ export default function HimalayanParallax() {
               style={{ y: monasteryY }}
             >
               <div className="monastery-entry">
-                <Image
+                <SiteImage
                   src="/images/monastery-foreground.png"
                   alt="A Himalayan monastery with prayer flags"
                   fill
@@ -359,7 +359,7 @@ export default function HimalayanParallax() {
           </div>
 
           <div className="fog-logo" aria-hidden="true">
-            <Image
+            <SiteImage
               src="/images/logo/rara.png"
               alt=""
               fill

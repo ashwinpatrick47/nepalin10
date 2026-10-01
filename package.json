@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "upload-images": "node scripts/upload-to-cloudinary.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.42.2",
@@ -24,6 +25,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "cloudinary": "^2.11.0",
+    "dotenv": "^18.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",

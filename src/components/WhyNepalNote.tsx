@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
+import SiteImage from "@/components/SiteImage";
 import {
   motion,
   useReducedMotion,
@@ -85,7 +85,7 @@ export default function WhyNepalNote() {
               className="why-nepal-bio-photo-inner"
               style={{ y: bioPhotoY }}
             >
-              <Image
+              <SiteImage
                 src="/images/1.png"
                 alt="Rahul Sharma, ultra-marathon runner"
                 fill
@@ -139,7 +139,7 @@ export default function WhyNepalNote() {
       <section ref={mediaRef} className="why-nepal-stage">
       <div className="why-nepal-media">
         <motion.div className="why-nepal-media-inner" style={{ y: imageY }}>
-          <Image
+          <SiteImage
             src="/images/flag-nepal.jpg"
             alt="The flag of Nepal"
             fill

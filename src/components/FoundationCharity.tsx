@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import SiteImage from "@/components/SiteImage";
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
@@ -99,7 +99,7 @@ function FoundationStackCard({
       >
         <div className="foundation-stack-image-frame">
           <motion.div className="foundation-stack-image-inner" style={{ y: imageY }}>
-            <Image
+            <SiteImage
               className="foundation-stack-image"
               src={image.src}
               alt={image.alt}

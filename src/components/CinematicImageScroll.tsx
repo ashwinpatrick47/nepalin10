@@ -1,6 +1,6 @@
 "use client";
 
-import Image, { type ImageProps } from "next/image";
+import SiteImage from "@/components/SiteImage";
 import {
   motion,
   type Variants,
@@ -12,7 +12,7 @@ import {
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 export type CinematicImageSlide = {
-  src: ImageProps["src"];
+  src: string;
   alt: string;
   title: string;
 };
@@ -199,7 +199,7 @@ function CinematicWindow({
       }
     >
       <motion.div className="story-card-media" style={{ y: imageY }}>
-        <Image
+        <SiteImage
           src={slide.src}
           alt={slide.alt}
           fill
@@ -298,7 +298,7 @@ export function CinematicImageFrame({
   src,
   alt,
 }: {
-  src: ImageProps["src"];
+  src: string;
   alt: string;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -385,7 +385,7 @@ export function CinematicImageFrame({
       <div className="story-image-sticky">
         <motion.figure className="story-image">
           <motion.div className="story-image-media">
-            <Image src={src} alt={alt} fill sizes="100vw" />
+            <SiteImage src={src} alt={alt} fill sizes="100vw" />
           </motion.div>
           <motion.div className="story-image-introduction-layer">
             <motion.div

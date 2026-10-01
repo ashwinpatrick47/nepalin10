@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Image from "next/image";
+import SiteImage from "@/components/SiteImage";
 import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
 
@@ -18,7 +18,7 @@ export default function Newsletter() {
   return (
     <div className="newsletter-section">
       <div className="newsletter-backdrop" aria-hidden="true">
-        <Image
+        <SiteImage
           src="/images/himalayan-valley.png"
           alt=""
           fill
