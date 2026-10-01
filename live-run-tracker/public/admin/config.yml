@@ -31,3 +31,20 @@ collections:
             widget: string
             required: false
             hint: "For your own reference, e.g. whose run this is."
+
+      - name: strava
+        label: Strava Beacon link
+        file: live-run-tracker/content/strava.json
+        format: json
+        fields:
+          - label: Beacon link
+            name: url
+            widget: string
+            required: false
+            hint: "Paste the Beacon link Strava texts you when an activity starts (strava.com/beacon/…). Leave empty to stop mirroring. Takes effect within about a minute of publishing."
+            pattern: ['^$|^https://(www\.)?strava\.com/beacon/.+$', 'Must be a Strava Beacon share link']
+          - label: Note (optional)
+            name: note
+            widget: string
+            required: false
+            hint: "For your own reference, e.g. whose run this is."

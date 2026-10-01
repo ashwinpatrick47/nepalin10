@@ -91,6 +91,8 @@ authentication — it's meant to keep casual randoms from POSTing fake
 locations to your public server, not to withstand a determined
 attacker. Don't put anything sensitive behind it.
 
+## Live-source links via Decap CMS
+
 ## Garmin LiveTrack link via Decap CMS
 
 `/admin` on the deployed tracker is a [Decap CMS](https://decapcms.org) page (loaded from
@@ -111,3 +113,18 @@ to stop mirroring. Only real `https://livetrack.garmin.com/session/…/token/…
 **Note:** the repo is public, so a saved link (including its token) is visible in the repo
 and its git history. A LiveTrack session expires (typically within a day), but treat the link
 as sensitive — don't publish one you wouldn't want seen.
+
+## Strava Beacon — not functional yet
+
+The admin page (same `/admin` as above, **Strava Beacon link**) and the server-side
+polling for it already exist, matching the Garmin setup one-for-one. What's missing is
+`strava.js` itself: unlike the Garmin bridge, which was written by inspecting real
+network traffic from an actual live LiveTrack session, nobody has supplied a real
+Strava Beacon link to inspect the same way. Saving a Beacon link right now just logs a
+warning in the server log — it won't appear on the map.
+
+To finish it: start a Strava activity with Beacon on, grab the link it texts you, and
+use it to find out what the Beacon page actually requests (the same way
+`livetrack.garmin.com`'s `/api/.../track-points` endpoint was found) — then fill in
+`strava.js`, following `garmin.js` as a template. It already exports the same
+`setUrl(url, onPoint)` shape `server.js` expects.

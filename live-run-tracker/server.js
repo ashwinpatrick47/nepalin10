@@ -144,10 +144,44 @@ async function syncLivetrack() {
   }
 }
 
+
+// --- Strava Beacon link, editable from the CMS ------------------------------
+// Same pattern as syncLivetrack()/garmin.js above. strava.js is currently a
+// stub (see its header comment) — the polling/CMS wiring is ready, but no
+// data is actually mirrored yet until it's filled in against a real Beacon
+// link.
+const strava = require('./strava');
+const STRAVA_SOURCE =
+  process.env.STRAVA_SOURCE_URL ||
+  `https://raw.githubusercontent.com/${process.env.GITHUB_REPO || 'ashwinpatrick47/nepalin10'}/${process.env.GITHUB_BRANCH || 'main'}/live-run-tracker/content/strava.json`;
+
+async function syncStrava() {
+  let url = process.env.STRAVA_BEACON_URL || '';
+  try {
+    const r = await fetch(`${STRAVA_SOURCE}${STRAVA_SOURCE.includes('?') ? '&' : '?'}t=${Date.now()}`);
+    if (r.ok) {
+      const data = await r.json();
+      url = (data.url || '').trim();
+    } else if (r.status !== 404) {
+      return;
+    }
+  } catch {
+    return;
+  }
+  if (strava.setUrl(url, addPoint)) {
+    latest = null;
+    trail.length = 0;
+  }
+}
+
 server.listen(PORT, () => {
   console.log(`live-run-tracker listening on port ${PORT}`);
   if (process.env.DISABLE_GARMIN_BRIDGE !== '1') {
     syncLivetrack();
     setInterval(syncLivetrack, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);
+  }
+  if (process.env.DISABLE_STRAVA_BRIDGE !== '1') {
+    syncStrava();
+    setInterval(syncStrava, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);
   }
 });
