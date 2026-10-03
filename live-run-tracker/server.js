@@ -18,6 +18,14 @@ const MAX_TRAIL_POINTS = 2000;
 let latest = null;
 const trail = [];
 
+// Garmin resets its own distance to 0 at the start of every LiveTrack
+// session (a new one each day) — this is added on top of whatever the live
+// session reports, so the map shows the whole event's total instead of just
+// today's. Set via the "Event distance so far (km)" field in content/
+// livetrack.json (edited through /admin); see syncLivetrack() below. Setting
+// it back to 0 there IS the reset — there's no separate reset control.
+let distanceOffsetMeters = 0;
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -36,7 +44,14 @@ app.get('/api/location', (req, res) => {
   res.json({ latest, trail });
 });
 
-function addPoint(point) {
+function addPoint(rawPoint) {
+  // Phone-tracker points (POST /api/location, below) never carry
+  // distanceMeters, so this only ever touches Garmin/Strava points — the
+  // offset addition is skipped entirely when there's nothing to add it to.
+  const point =
+    typeof rawPoint.distanceMeters === 'number'
+      ? { ...rawPoint, distanceMeters: rawPoint.distanceMeters + distanceOffsetMeters }
+      : rawPoint;
   latest = point;
   trail.push(point);
   if (trail.length > MAX_TRAIL_POINTS) {
@@ -132,6 +147,13 @@ async function syncLivetrack() {
     if (r.ok) {
       const data = await r.json();
       url = (data.url || '').trim();
+      if (typeof data.distanceOffsetKm === 'number' && Number.isFinite(data.distanceOffsetKm)) {
+        const newOffsetMeters = data.distanceOffsetKm * 1000;
+        if (newOffsetMeters !== distanceOffsetMeters) {
+          console.log(`distance offset updated: ${data.distanceOffsetKm}km`);
+          distanceOffsetMeters = newOffsetMeters;
+        }
+      }
     } else if (r.status !== 404) {
       return; // temporary problem reading the file — keep whatever is running
     }

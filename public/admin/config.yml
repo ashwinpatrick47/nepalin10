@@ -35,6 +35,13 @@ collections:
             widget: string
             required: false
             hint: "For your own reference, e.g. whose run this is."
+          - label: Event distance so far (km)
+            name: distanceOffsetKm
+            widget: number
+            value_type: float
+            default: 0
+            required: false
+            hint: "Garmin resets its own distance to 0 every time a new LiveTrack session starts (a new one each day), so this is what makes the map show the whole event's total instead of just today's run: it's added on top of whatever the live session currently reports. Each time you paste a new day's link, first check today's final distance on the map, then add it here before publishing. To reset the whole event's counter (e.g. starting a new event), set this back to 0 and publish — that IS the reset button, there's no separate one."
 
       - name: strava
         label: Strava Beacon link

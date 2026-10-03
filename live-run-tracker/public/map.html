@@ -68,6 +68,26 @@
     height: 30px;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
   }
+
+  #recenter {
+    position: absolute;
+    right: 16px;
+    bottom: 28px;
+    z-index: 10;
+    display: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: #111418;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  #recenter.show { display: flex; }
+  #recenter:active { background: #1f9d55; }
 </style>
 </head>
 <body>
@@ -79,6 +99,12 @@
     <div><b id="stat-hr">—</b><span>bpm</span></div>
   </div>
   <div id="config-error"></div>
+  <button id="recenter" aria-label="Recenter on runner" title="Recenter on runner">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    </svg>
+  </button>
 
   <script>
     // Default view before a runner appears: south of Kathmandu, tilted and looking
@@ -88,6 +114,7 @@
 
     const bannerEl = document.getElementById('banner');
     const configErrorEl = document.getElementById('config-error');
+    const recenterEl = document.getElementById('recenter');
 
     let lastUpdateAt = null;
     let map = null;
@@ -192,6 +219,7 @@
           .setLngLat([latest.lng, latest.lat])
           .addTo(map);
         lastPoint = { lat: latest.lat, lng: latest.lng };
+        recenterEl.classList.add('show');
         // If we're loading mid-run with history already in the trail, orient
         // the arrow immediately using the last two points rather than waiting
         // for the next update to give it a direction.
@@ -216,6 +244,17 @@
         map.easeTo({ center: [latest.lng, latest.lat], duration: 500 });
       }
     }
+
+    recenterEl.addEventListener('click', () => {
+      if (!lastPoint || !map) return;
+      map.easeTo({
+        center: [lastPoint.lng, lastPoint.lat],
+        // Keep the zoom the viewer chose, but pull back in if they'd
+        // drifted/zoomed out far enough that the runner was the thing lost.
+        zoom: Math.max(map.getZoom(), 15),
+        duration: 800,
+      });
+    });
 
     async function init() {
       let config;

@@ -93,13 +93,16 @@ attacker. Don't put anything sensitive behind it.
 
 ## Live-source links via Decap CMS
 
-## Garmin LiveTrack link via Decap CMS
-
 `/admin` on the deployed tracker is a [Decap CMS](https://decapcms.org) page (loaded from
-the unpkg CDN) where you paste a Garmin LiveTrack share link. It saves to
-`content/livetrack.json` in the repo, and the server polls that file every minute, so
-a new link takes effect without redeploying (and starts a fresh trail). Clear the link
-to stop mirroring. Only real `https://livetrack.garmin.com/session/…/token/…` links are accepted.
+the unpkg CDN) for editing the links below without redeploying anything.
+
+### Garmin LiveTrack link
+
+Paste a Garmin LiveTrack share link here. It saves to `content/livetrack.json` in the
+repo, and the server polls that file every minute, so a new link takes effect within
+about a minute (and starts a fresh trail — see "Event distance so far" below for why
+the distance total doesn't also reset). Clear the link to stop mirroring. Only real
+`https://livetrack.garmin.com/session/…/token/…` links are accepted.
 
 **One-time setup**
 1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App.
@@ -114,7 +117,20 @@ to stop mirroring. Only real `https://livetrack.garmin.com/session/…/token/…
 and its git history. A LiveTrack session expires (typically within a day), but treat the link
 as sensitive — don't publish one you wouldn't want seen.
 
-## Strava Beacon — not functional yet
+### Event distance so far (km)
+
+Garmin resets its own distance to 0 at the start of every new LiveTrack session (a new
+one every day, since sessions expire) — this field is added on top of whatever the
+live session currently reports, so the map's distance stat shows the whole event's
+total instead of resetting each day. The trail (the line drawn on the map) still
+starts fresh each session — this only affects the number, not the drawn route.
+
+Each time you paste a new day's link: first check today's final distance on the map,
+then add it to this field before publishing. To reset the whole event's counter (e.g.
+starting a new event), set it back to **0** and publish — that's the reset, there's no
+separate button for it.
+
+### Strava Beacon link — not functional yet
 
 The admin page (same `/admin` as above, **Strava Beacon link**) and the server-side
 polling for it already exist, matching the Garmin setup one-for-one. What's missing is
