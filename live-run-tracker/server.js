@@ -21,9 +21,12 @@ const trail = [];
 // Garmin resets its own distance to 0 at the start of every LiveTrack
 // session (a new one each day) — this is added on top of whatever the live
 // session reports, so the map shows the whole event's total instead of just
-// today's. Set via the "Event distance so far (km)" field in content/
-// livetrack.json (edited through /admin); see syncLivetrack() below. Setting
-// it back to 0 there IS the reset — there's no separate reset control.
+// today's. syncLivetrack() below carries this forward automatically on every
+// session change (and persists it via github-content.js, if configured, so
+// it survives a restart too) — the "Event distance so far (km)" field in
+// content/livetrack.json is only for a manual correction if one's ever
+// needed. Setting it to 0 there and publishing is the reset — there's no
+// separate reset control.
 let distanceOffsetMeters = 0;
 
 app.use(express.json());
@@ -134,6 +137,7 @@ app.get('/callback', async (req, res) => {
 // committed file (public repo => plain raw URL) so a change takes effect within a
 // minute without redeploying.
 const garmin = require('./garmin');
+const { updateDistanceOffsetKm } = require('./github-content');
 const LIVETRACK_SOURCE =
   process.env.LIVETRACK_SOURCE_URL ||
   `https://raw.githubusercontent.com/${process.env.GITHUB_REPO || 'ashwinpatrick47/nepalin10'}/${process.env.GITHUB_BRANCH || 'main'}/live-run-tracker/content/livetrack.json`;
@@ -147,6 +151,11 @@ async function syncLivetrack() {
     if (r.ok) {
       const data = await r.json();
       url = (data.url || '').trim();
+      // Adopts whatever's currently in the file — normally that's just this
+      // same automatic carry-forward reflecting back at us (a no-op, since
+      // it already matches what's in memory), but it's also how a manual
+      // correction in /admin, or the value last persisted before a restart,
+      // gets picked back up.
       if (typeof data.distanceOffsetKm === 'number' && Number.isFinite(data.distanceOffsetKm)) {
         const newOffsetMeters = data.distanceOffsetKm * 1000;
         if (newOffsetMeters !== distanceOffsetMeters) {
@@ -160,7 +169,28 @@ async function syncLivetrack() {
   } catch {
     return;
   }
-  if (garmin.setUrl(url, addPoint)) {
+
+  const sessionChanged = garmin.setUrl(url, addPoint);
+  if (sessionChanged) {
+    // Carry forward whatever the map was showing right before this new
+    // session started — latest.distanceMeters is already the cumulative
+    // total (the offset's already baked in by addPoint), so it's exactly
+    // tomorrow's starting point, no separate addition needed. Only runs
+    // when there WAS a previous session with at least one point; pasting
+    // the very first link ever has nothing to carry forward from.
+    if (latest && typeof latest.distanceMeters === 'number') {
+      const carryForwardKm = latest.distanceMeters / 1000;
+      distanceOffsetMeters = carryForwardKm * 1000;
+      console.log(`session changed — carrying distance forward: ${carryForwardKm}km`);
+      // Persisted in the background — doesn't block the map from already
+      // using the new value above. If this fails (or GITHUB_WRITE_TOKEN
+      // isn't set), the carry-forward still works for as long as this
+      // process stays up; it just won't survive a restart until the field
+      // is set by hand again.
+      updateDistanceOffsetKm(carryForwardKm).catch((err) =>
+        console.error('github-content: unexpected error:', err.message),
+      );
+    }
     latest = null;
     trail.length = 0; // a different session => start a fresh trail
   }

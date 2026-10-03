@@ -120,15 +120,24 @@ as sensitive — don't publish one you wouldn't want seen.
 ### Event distance so far (km)
 
 Garmin resets its own distance to 0 at the start of every new LiveTrack session (a new
-one every day, since sessions expire) — this field is added on top of whatever the
-live session currently reports, so the map's distance stat shows the whole event's
-total instead of resetting each day. The trail (the line drawn on the map) still
-starts fresh each session — this only affects the number, not the drawn route.
+one every day, since sessions expire). The server carries this forward **automatically**:
+every time it notices a new LiveTrack link (a session change), it takes whatever the map
+was showing right before that moment and adds it on top of the new session's distance
+going forward — so the map's total always reflects the whole event, not just the
+current day, with no manual step. The trail (the line drawn on the map) still starts
+fresh each session; only the distance number is cumulative.
 
-Each time you paste a new day's link: first check today's final distance on the map,
-then add it to this field before publishing. To reset the whole event's counter (e.g.
-starting a new event), set it back to **0** and publish — that's the reset, there's no
-separate button for it.
+This field in `/admin` is only a manual override — to correct a mistake, or to reset the
+whole event's counter (e.g. starting a new event): set it to the number you want and
+publish. The server adopts whatever's in the field on its very next poll (within about a
+minute), same as a normal edit.
+
+**For this to survive a server restart** — Render's free tier can sleep/restart anytime,
+which wipes everything in memory, including this — set `GITHUB_WRITE_TOKEN` (see
+`.env.example`) so the server can persist the carried-forward number back to this same
+file itself. Without it, the automatic carry-forward still works for as long as the
+server process happens to stay up, it just needs the field set by hand again after any
+restart — for a 10-day event, set the token up beforehand rather than finding out mid-event.
 
 ### Strava Beacon link — not functional yet
 
