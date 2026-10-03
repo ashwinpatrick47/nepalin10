@@ -12,7 +12,7 @@ import FoundationCharity from "@/components/FoundationCharity";
 import RunnerChapter from "@/components/RunnerChapter";
 import WhyNepalNote from "@/components/WhyNepalNote";
 import BrandsGrid from "@/components/BrandsGrid";
-import Testimonials from "@/components/Testimonials";
+// import Testimonials from "@/components/Testimonials"; // WIP — commented out until real quotes/photos exist
 import Socials from "@/components/Socials";
 import VideoReveal from "@/components/VideoReveal";
 // Newsletter is temporarily out of the page (commented out below where
@@ -421,7 +421,7 @@ export default function HimalayanParallax() {
 
         <BrandsGrid />
 
-        <Testimonials />
+        {/* <Testimonials /> — WIP until real quotes/photos exist, see import above */}
 
         <Socials
           paused={activePlayer === "youtube"}
