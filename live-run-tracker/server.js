@@ -44,6 +44,48 @@ app.get('/api/location', (req, res) => {
   res.json({ latest, trail });
 });
 
+// Lets a non-technical person publish a new LiveTrack link with just a
+// password — no GitHub account needed. /update.html posts here; this writes
+// content/livetrack.json straight to GitHub using a token only the site
+// owner holds (GITHUB_WRITE_TOKEN), so the commit is attributed to the owner,
+// not the person submitting the form.
+const { updateLivetrackFile } = require('./github-write');
+const UPDATE_PASSWORD = process.env.UPDATE_PASSWORD;
+const GITHUB_WRITE_TOKEN = process.env.GITHUB_WRITE_TOKEN;
+const LIVETRACK_URL_PATTERN = /^$|^https:\/\/livetrack\.garmin\.com\/session\/[0-9a-fA-F-]{36}\/token\/[0-9A-Fa-f]{16,64}\/?$/;
+
+app.post('/api/update-livetrack', async (req, res) => {
+  if (!UPDATE_PASSWORD) {
+    return res.status(503).json({ error: 'not configured' });
+  }
+  const { password, url, note, distanceOffsetKm } = req.body || {};
+  if (password !== UPDATE_PASSWORD) {
+    return res.status(401).json({ error: 'wrong password' });
+  }
+  if (!GITHUB_WRITE_TOKEN) {
+    return res.status(503).json({ error: 'not configured' });
+  }
+  if (typeof url !== 'string' || !LIVETRACK_URL_PATTERN.test(url)) {
+    return res.status(400).json({ error: 'invalid link' });
+  }
+  const offset = Number(distanceOffsetKm);
+  if (!Number.isFinite(offset) || offset < 0) {
+    return res.status(400).json({ error: 'invalid distance' });
+  }
+
+  try {
+    await updateLivetrackFile(GITHUB_WRITE_TOKEN, {
+      url,
+      note: typeof note === 'string' ? note : '',
+      distanceOffsetKm: offset,
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('update-livetrack failed:', err.message);
+    res.status(502).json({ error: 'GitHub write failed' });
+  }
+});
+
 function addPoint(rawPoint) {
   // Phone-tracker points (POST /api/location, below) never carry
   // distanceMeters, so this only ever touches Garmin/Strava points — the

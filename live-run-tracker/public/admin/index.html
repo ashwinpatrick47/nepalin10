@@ -1,13 +1,108 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="robots" content="noindex" />
-  <title>Live Tracker — Admin</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Live Tracker — Admin</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 420px; margin: 60px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 1.3rem; }
+  .choices { display: flex; gap: 12px; margin-top: 24px; }
+  .choice { flex: 1; padding: 16px; border: 1px solid #ccc; border-radius: 8px; background: none; font-size: 1rem; cursor: pointer; }
+  .choice.active { border-color: #1a7f37; background: #f0fdf4; }
+  #github-panel, #password-panel { margin-top: 24px; display: none; }
+  #github-panel.show, #password-panel.show { display: block; }
+  a.button { display: block; text-align: center; padding: 12px; border-radius: 6px; background: #24292f; color: white; text-decoration: none; }
+  label { display: block; margin-top: 16px; font-size: 0.95rem; }
+  input { width: 100%; box-sizing: border-box; padding: 10px; margin-top: 6px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
+  button[type="submit"] { margin-top: 24px; width: 100%; padding: 12px; font-size: 1rem; border: none; border-radius: 6px; background: #1a7f37; color: white; cursor: pointer; }
+  button[type="submit"]:disabled { background: #999; }
+  #status { margin-top: 16px; font-size: 0.95rem; }
+  .hint { color: #666; font-size: 0.85rem; margin-top: 4px; }
+</style>
 </head>
 <body>
-  <!-- Decap CMS from the CDN. Its settings are read from /admin/config.yml -->
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <h1>Live Tracker — Admin</h1>
+  <div class="choices">
+    <button class="choice" id="choose-github">Login with GitHub</button>
+    <button class="choice" id="choose-password">Login with password</button>
+  </div>
+
+  <div id="github-panel">
+    <p class="hint">For whoever manages the repo directly.</p>
+    <a class="button" href="cms.html">Continue to GitHub login →</a>
+  </div>
+
+  <div id="password-panel">
+    <p class="hint">For publishing a new link with just a password — no GitHub account needed.</p>
+    <form id="f">
+      <label>Password
+        <input type="password" name="password" required autocomplete="current-password" />
+      </label>
+      <label>Garmin LiveTrack link
+        <input type="text" name="url" required placeholder="https://livetrack.garmin.com/session/.../token/..." />
+      </label>
+      <div class="hint">Leave blank to stop mirroring (no live session right now).</div>
+      <label>Event distance so far (km)
+        <input type="number" name="distanceOffsetKm" step="0.1" min="0" value="0" required />
+      </label>
+      <div class="hint">Check today's final distance on the map before pasting tomorrow's link, and add it here.</div>
+      <label>Note (optional)
+        <input type="text" name="note" placeholder="e.g. whose run this is" />
+      </label>
+      <button type="submit">Publish</button>
+    </form>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const panels = { github: document.getElementById('github-panel'), password: document.getElementById('password-panel') };
+    const buttons = { github: document.getElementById('choose-github'), password: document.getElementById('choose-password') };
+    function choose(name) {
+      for (const key in panels) {
+        panels[key].classList.toggle('show', key === name);
+        buttons[key].classList.toggle('active', key === name);
+      }
+    }
+    buttons.github.addEventListener('click', () => choose('github'));
+    buttons.password.addEventListener('click', () => choose('password'));
+
+    const form = document.getElementById('f');
+    const status = document.getElementById('status');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      status.textContent = 'Saving…';
+      const fd = new FormData(form);
+      const payload = {
+        password: fd.get('password'),
+        url: fd.get('url').trim(),
+        note: fd.get('note') || '',
+        distanceOffsetKm: Number(fd.get('distanceOffsetKm')),
+      };
+      try {
+        const res = await fetch('/api/update-livetrack', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const body = await res.json();
+        if (res.ok) {
+          status.textContent = 'Saved! Takes effect within about a minute.';
+          status.style.color = '#1a7f37';
+        } else {
+          status.textContent = 'Error: ' + (body.error || res.status);
+          status.style.color = '#c00';
+        }
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+        status.style.color = '#c00';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>

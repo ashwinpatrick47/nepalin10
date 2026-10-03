@@ -91,12 +91,39 @@ authentication — it's meant to keep casual randoms from POSTing fake
 locations to your public server, not to withstand a determined
 attacker. Don't put anything sensitive behind it.
 
-## Live-source links via Decap CMS
+## Live-source links via /admin
 
-`/admin` on the deployed tracker is a [Decap CMS](https://decapcms.org) page (loaded from
-the unpkg CDN) for editing the links below without redeploying anything.
+`<tracker URL>/admin` is a landing page with two options:
 
-### Garmin LiveTrack link
+- **Login with GitHub** — goes to the real [Decap CMS](https://decapcms.org) page
+  (`admin/cms.html`, loaded from the unpkg CDN), for whoever manages the repo directly.
+- **Login with password** — a plain form (link, note, distance, Publish) for
+  non-technical people, with no GitHub account needed at all.
+
+Both end up editing the same `content/livetrack.json` the server polls every minute.
+
+### Login with password: how it works
+
+Submitting the form hits `POST /api/update-livetrack` on the server, which checks
+`UPDATE_PASSWORD` and then writes `content/livetrack.json` straight to GitHub using
+**your** token — so the commit is attributed to you, not to whoever filled out the form.
+It only writes when the form is actually submitted; nothing runs in the background.
+
+**Setup**
+1. Set `UPDATE_PASSWORD` on the tracker's host (Render → Environment) to whatever
+   password you'll hand out.
+2. Create a GitHub fine-grained token: GitHub → Settings → Developer settings →
+   Fine-grained tokens → Generate new token → Repository access "Only select
+   repositories" → this repo → Permissions → Contents: Read and write.
+3. Set that token as `GITHUB_WRITE_TOKEN` on the tracker's host.
+4. Give whoever needs it the URL (`<tracker URL>/admin`) and the password. That's all
+   they need — no invite, no account; they just pick "Login with password" on the
+   landing page.
+
+Leave `UPDATE_PASSWORD` or `GITHUB_WRITE_TOKEN` unset and the form will show an error on
+submit instead of silently doing nothing.
+
+### Login with GitHub: Garmin LiveTrack link
 
 Paste a Garmin LiveTrack share link here. It saves to `content/livetrack.json` in the
 repo, and the server polls that file every minute, so a new link takes effect within
@@ -111,7 +138,8 @@ the distance total doesn't also reset). Clear the link to stop mirroring. Only r
    on the tracker's host (Render → Environment).
 3. If your tracker URL isn't `https://live-run-tracker.onrender.com`, edit `base_url`
    (and `repo`/`branch` if needed) in `public/admin/config.yml`.
-4. Open `<tracker URL>/admin/`, log in with GitHub, edit **Live tracker → Garmin LiveTrack link**, Publish.
+4. Open `<tracker URL>/admin/`, choose **Login with GitHub**, sign in, edit
+   **Live tracker → Garmin LiveTrack link**, Publish.
 
 **Note:** the repo is public, so a saved link (including its token) is visible in the repo
 and its git history. A LiveTrack session expires (typically within a day), but treat the link
