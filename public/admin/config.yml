@@ -41,7 +41,7 @@ collections:
             value_type: float
             default: 0
             required: false
-            hint: "Normally automatic — the server carries this forward itself every time it notices a new LiveTrack link, by adding whatever the map was showing right before that moment on top of the new session's distance. This field is only a manual override: to correct a mistake, or to reset the whole event's counter (e.g. starting a new event), set it to the number you want and publish."
+            hint: "Garmin resets its own distance to 0 every time a new LiveTrack session starts (a new one each day), so this is what makes the map show the whole event's total instead of just today's run: it's added on top of whatever the live session currently reports. Each time you paste a new day's link, first check today's final distance on the map, then add it here before publishing. To reset the whole event's counter (e.g. starting a new event), set this back to 0 and publish — that IS the reset button, there's no separate one."
 
       - name: strava
         label: Strava Beacon link

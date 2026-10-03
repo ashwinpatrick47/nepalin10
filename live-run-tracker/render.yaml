@@ -25,7 +25,3 @@ services:
         sync: false
       - key: GITHUB_OAUTH_CLIENT_SECRET
         sync: false
-      # Recommended: lets the server persist the cross-session distance
-      # carry-forward so it survives a restart (see github-content.js).
-      - key: GITHUB_WRITE_TOKEN
-        sync: false
