@@ -55,3 +55,17 @@ collections:
             widget: string
             required: false
             hint: "For your own reference, e.g. whose run this is."
+
+  - name: settings
+    label: Site settings
+    files:
+      - name: site
+        label: Main site
+        file: src/content/site-settings.json
+        format: json
+        fields:
+          - label: Tracking live
+            name: trackingLive
+            widget: boolean
+            default: false
+            hint: "Off: every 'Track me' link on the main site (hero button, socials, footer) shows greyed out and isn't clickable. On: they show normally and link to the map. This is baked into the site at build time, not polled like the links above — takes about 1-2 minutes after publishing for Vercel to rebuild and show the change."
