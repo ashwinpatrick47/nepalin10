@@ -1,6 +1,6 @@
 "use client";
 
-import { TRACKER_URL } from "@/components/trackerUrl";
+import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 
 // Ported from framer.com/m/Footer-Oversized-Wordmark: a brand block next
 // to link columns, a copyright/credit row below with no divider between
@@ -83,11 +83,26 @@ export default function Footer() {
 
             <div className="site-footer-column">
               <span className="site-footer-column-title">Social</span>
-              {SOCIAL_LINKS.map((social) => (
-                <a key={social.label} href={social.href}>
-                  {social.label}
-                </a>
-              ))}
+              {SOCIAL_LINKS.map((social) => {
+                const isTrackMe = social.label === "Track me";
+                if (isTrackMe && !TRACKING_LIVE) {
+                  return (
+                    <span
+                      key={social.label}
+                      className="is-disabled"
+                      aria-disabled="true"
+                      title="Tracking starts once the run begins"
+                    >
+                      {social.label}
+                    </span>
+                  );
+                }
+                return (
+                  <a key={social.label} href={social.href}>
+                    {social.label}
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>

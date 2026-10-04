@@ -142,6 +142,11 @@ html.hima-intro.hima-assets-ready .fog-loader-content { animation:fog-loader-dis
 .hero-track-link:hover .hero-track-dot { background:#fff; }
 @keyframes hero-track-pulse { 0% { box-shadow:0 0 0 0 rgba(255,0,82,.6); } 100% { box-shadow:0 0 0 10px rgba(255,0,82,0); } }
 @media (prefers-reduced-motion:reduce) { .hero-track-dot { animation:none; } }
+/* Before the run starts, "Track me" has nowhere to send anyone — grey it
+   out and kill the hover/pulse instead of linking to an empty map. */
+.hero-track-link.is-disabled { color:rgba(255,255,255,.5); border-color:rgba(255,255,255,.25); cursor:default; }
+.hero-track-link.is-disabled:hover { background:rgba(4,6,5,.35); border-color:rgba(255,255,255,.25); }
+.hero-track-dot.is-disabled { background:rgba(255,255,255,.4); box-shadow:none; animation:none; }
 .hero-project-mark {
   position:absolute;
   z-index:10; top:calc(100svh - 54px); left:4vw; display:flex; align-items:center; gap:10px;
@@ -788,6 +793,8 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .socials-link { position:relative; color:#f2f3ef; font-size:12px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; }
 .socials-link::after { content:""; position:absolute; left:0; right:0; bottom:-6px; height:1.5px; background:#ff0052; transform:scaleX(0); transform-origin:left; transition:transform .4s linear; }
 .socials-link:hover::after { transform:scaleX(1); transition:transform .3s linear; }
+.socials-link.is-disabled { color:rgba(242,243,239,.4); cursor:default; }
+.socials-link.is-disabled:hover::after { transform:scaleX(0); }
 
 /* Video reveal — a plain rounded card (same size/radius as the other
    still-image frames on the page) with a one-time scroll-in reveal, not
@@ -855,6 +862,7 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .site-footer-column-title { color:#e8ebe3; font-size:14px; font-weight:700; }
 .site-footer-column a { color:rgba(232,235,227,.55); font-size:14px; text-decoration:none; transition:color .25s ease; }
 .site-footer-column a:hover { color:#ff0052; }
+.site-footer-column .is-disabled { color:rgba(232,235,227,.3); font-size:14px; cursor:default; }
 .site-footer-bottom { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; justify-content:space-between; padding-bottom:2vh; font-size:12px; letter-spacing:.02em; color:rgba(232,235,227,.5); }
 .site-footer-credit { color:rgba(232,235,227,.82); text-decoration:none; transition:color .25s ease; }
 .site-footer-credit:hover { color:#ff0052; }

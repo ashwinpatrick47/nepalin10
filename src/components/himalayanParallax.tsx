@@ -20,7 +20,7 @@ import VideoReveal from "@/components/VideoReveal";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
-import { TRACKER_URL } from "@/components/trackerUrl";
+import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 import TextStagger from "@/components/TextStagger";
 
 const storyWindows: readonly CinematicImageSlide[] = [
@@ -227,10 +227,21 @@ export default function HimalayanParallax() {
           </div>
         </header>
 
-        <a className="hero-track-link" href={TRACKER_URL}>
-          <span className="hero-track-dot" aria-hidden="true" />
-          Track me
-        </a>
+        {TRACKING_LIVE ? (
+          <a className="hero-track-link" href={TRACKER_URL}>
+            <span className="hero-track-dot" aria-hidden="true" />
+            Track me
+          </a>
+        ) : (
+          <span
+            className="hero-track-link is-disabled"
+            aria-disabled="true"
+            title="Tracking starts once the run begins"
+          >
+            <span className="hero-track-dot is-disabled" aria-hidden="true" />
+            Track me
+          </span>
+        )}
 
         <div className="hero-rara-mark" aria-hidden="true">
           <SiteImage src="/images/logo/rara.png" alt="" fill priority sizes="44px" />

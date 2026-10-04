@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
-import { TRACKER_URL } from "@/components/trackerUrl";
+import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 import { NEPAL_COORDINATES } from "@/components/terrain/terrainRoute";
 import { cldVideoUrl } from "@/lib/cloudinary";
 
@@ -223,16 +223,31 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
         </div>
 
         <div className="socials-links-row">
-          {SOCIAL_LINKS.map((social) => (
-            <a
-              key={social.label}
-              className="socials-link"
-              href={social.href}
-              onClick={social.label === "YouTube" ? onYoutubeLinkClick : undefined}
-            >
-              {social.label}
-            </a>
-          ))}
+          {SOCIAL_LINKS.map((social) => {
+            const isTrackMe = social.label === "Track me";
+            if (isTrackMe && !TRACKING_LIVE) {
+              return (
+                <span
+                  key={social.label}
+                  className="socials-link is-disabled"
+                  aria-disabled="true"
+                  title="Tracking starts once the run begins"
+                >
+                  {social.label}
+                </span>
+              );
+            }
+            return (
+              <a
+                key={social.label}
+                className="socials-link"
+                href={social.href}
+                onClick={social.label === "YouTube" ? onYoutubeLinkClick : undefined}
+              >
+                {social.label}
+              </a>
+            );
+          })}
         </div>
       </CinematicTextReveal>
     </section>
