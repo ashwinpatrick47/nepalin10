@@ -135,6 +135,7 @@ export default function Testimonials() {
         : { opacity: 0, x: dir * -18, filter: "blur(5px)" },
   };
 
+
   const wipe = {
     initial: (dir: number) => ({
       clipPath: dir < 0 ? "inset(0 0 0 100%)" : "inset(0 100% 0 0)",
