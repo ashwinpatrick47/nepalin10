@@ -15,7 +15,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://nepalin10.com";
+// www, not the bare domain — nepalin10.com 308-redirects to this, so this is
+// the address pages actually render at and what canonical/OG tags must match.
+const SITE_URL = "https://www.nepalin10.com";
 const SITE_TITLE = "Nepal in 10 — A 1000km Run Across Nepal in 10 Days";
 const SITE_DESCRIPTION =
   "Follow an ultrarunner's 1000km journey across Nepal in 10 days on the Mahendra Highway — a cinematic documentary project, live run tracking, and a cause-driven crossing of the country on foot.";
