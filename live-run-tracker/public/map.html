@@ -88,6 +88,27 @@
   }
   #recenter.show { display: flex; }
   #recenter:active { background: #1f9d55; }
+
+  #refresh {
+    position: absolute;
+    right: 16px;
+    bottom: 84px;
+    z-index: 10;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: #111418;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  #refresh:active { background: #1f9d55; }
+  #refresh.spin svg { animation: refresh-spin 0.6s linear; }
+  @keyframes refresh-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -105,6 +126,12 @@
       <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
     </svg>
   </button>
+  <button id="refresh" aria-label="Refresh" title="Refresh">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </svg>
+  </button>
 
   <script>
     // Default view before a runner appears: south of Kathmandu, tilted and looking
@@ -115,6 +142,7 @@
     const bannerEl = document.getElementById('banner');
     const configErrorEl = document.getElementById('config-error');
     const recenterEl = document.getElementById('recenter');
+    const refreshEl = document.getElementById('refresh');
 
     let lastUpdateAt = null;
     let map = null;
@@ -254,6 +282,18 @@
         zoom: Math.max(map.getZoom(), 15),
         duration: 800,
       });
+    });
+
+    refreshEl.addEventListener('click', async () => {
+      refreshEl.classList.add('spin');
+      try {
+        const data = await fetch('/api/location').then((r) => r.json());
+        if (data.latest) handleLocationUpdate(data.latest, data.trail);
+      } catch (err) {
+        console.error('Refresh failed', err);
+      } finally {
+        setTimeout(() => refreshEl.classList.remove('spin'), 600);
+      }
     });
 
     async function init() {
