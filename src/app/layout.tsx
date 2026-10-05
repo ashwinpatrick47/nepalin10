@@ -64,7 +64,10 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true },
+    // Keeps the page itself indexed normally, but asks Google not to show
+    // its images in Google Images search results.
+    noimageindex: true,
+    googleBot: { index: true, follow: true, noimageindex: true },
   },
   icons: {
     icon: "/favicon.ico",
