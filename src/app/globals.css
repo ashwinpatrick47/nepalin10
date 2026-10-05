@@ -87,7 +87,15 @@ a { color:inherit; text-decoration:none; }
 .monastery-entry::after { content:""; position:absolute; z-index:2; top:70%; left:0; width:100%; height:300%; pointer-events:none; background:linear-gradient(to bottom,transparent 0,rgba(6,9,8,.12) 7vh,rgba(6,9,8,.48) 16vh,#060908 30vh,#060908 100%); }
 .monastery-entry img { z-index:1; }
 
+/* Standard visually-hidden pattern: present for screen readers/search
+   engines, invisible on screen. Not display:none — that would also hide it
+   from assistive tech and crawlers, defeating the point. */
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
 .hero-copy { position:absolute; z-index:3; left:50%; top:15svh; width:92%; transform:translate3d(-50%,0,0); text-align:center; text-shadow:0 2px 32px rgba(0,0,0,.28); background:transparent!important; backdrop-filter:none!important; }
+/* Overrides the tiny 8px .hero-copy p rule below (kept for whatever else
+   still uses it) — this is a real sentence, not a kicker label. */
+.hero-copy .hero-intro { margin:18px auto 0; max-width:30em; font:italic 15px/1.6 Georgia,serif; letter-spacing:.01em; font-weight:400; text-transform:none; color:rgba(255,255,255,.82); }
 .hero-copy h1,.hero-copy .title-mask { background:transparent!important; backdrop-filter:none!important; }
 .hero-copy p { margin:0 0 20px; font-size:8px; font-weight:600; letter-spacing:.4em; }.hero-copy h1 { margin:0; font-size:clamp(72px,10.7vw,174px); line-height:.72; font-weight:700; letter-spacing:-.075em; }.title-mask { display:block; overflow:visible; padding-bottom:.08em; margin-bottom:-.08em; }.title-mask > span,.title-mask > em { display:block; opacity:1; transform:none; animation:none; }.title-mask.title-serif > em { font-family:Georgia,serif; font-size:.56em; font-weight:400; }.hero-copy > span { display:block; margin-top:35px; font:italic 14px Georgia,serif; }
 /* Staggered so the hero text plays out as a sequence once loading finishes
@@ -98,6 +106,7 @@ a { color:inherit; text-decoration:none; }
   transition-delay:.15s;
 }
 .hero-copy .title-mask:nth-child(2) > em { transition-delay:.3s; }
+.hero-copy .hero-intro { opacity:1; transition:opacity .72s cubic-bezier(.25,1,.5,1); transition-delay:.45s; }
 @keyframes title-line-arrive { to{opacity:1;transform:translate3d(0,0,0) rotate(0)} }
 @keyframes copy-arrive { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
@@ -166,6 +175,9 @@ html.hima-intro:not(.hima-reveal) .site-header-center {
 html.hima-intro:not(.hima-reveal) .parallax-layers { transform:translateZ(0) scale(1.03); }
 html.hima-intro:not(.hima-reveal) .hero-copy .title-mask > span,
 html.hima-intro:not(.hima-reveal) .hero-copy .title-mask > em {
+  opacity:0;
+}
+html.hima-intro:not(.hima-reveal) .hero-copy .hero-intro {
   opacity:0;
 }
 html.hima-intro:not(.hima-reveal) .hero-project-mark {

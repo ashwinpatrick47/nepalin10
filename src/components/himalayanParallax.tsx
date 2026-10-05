@@ -270,7 +270,11 @@ export default function HimalayanParallax() {
         </div>
 
         <div className="hero-copy">
-          <h1 aria-label="Attempting a world record">
+          <h1>
+            {/* Real text for Google/screen readers — the visible title below
+                reads "RARA RUNS NEPAL" alone, which never states the site's
+                actual name. Visually hidden, not a design change. */}
+            <span className="sr-only">Nepal in 10: </span>
             <span className="title-mask">
               <span>RARA RUNS</span>
             </span>
@@ -279,6 +283,9 @@ export default function HimalayanParallax() {
               <em>NEPAL</em>
             </span>
           </h1>
+          <p className="hero-intro">
+            Nepal in 10 — a 1000km run across Nepal in 10 days, attempting a world record.
+          </p>
         </div>
 
         <div className="parallax-visuals">

@@ -19,9 +19,15 @@ const geistMono = Geist_Mono({
 // the address pages actually render at and what canonical/OG tags must match.
 const SITE_URL = "https://www.nepalin10.com";
 const SITE_TITLE = "Nepal in 10 — A 1000km Run Across Nepal in 10 Days";
+// Kept close to Google's ~155-char snippet cutoff, with the brand name
+// ("Nepal in 10") leading so it's the first thing both Google and a reader see.
 const SITE_DESCRIPTION =
-  "Follow an ultrarunner's 1000km journey across Nepal in 10 days on the Mahendra Highway — a cinematic documentary project, live run tracking, and a cause-driven crossing of the country on foot.";
+  "Nepal in 10: a 1000km run across Nepal in 10 days. Follow live tracking, a cinematic documentary, and a cause-driven crossing of the country on foot.";
 const OG_IMAGE = "/images/monastery-hero.png";
+// South of Kathmandu — the same coordinates already shown in the site header
+// (27.7172° N / 85.3240° E) — used below for the Event's location.
+const EVENT_LAT = 27.7172;
+const EVENT_LNG = 85.324;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -70,10 +76,30 @@ export const metadata: Metadata = {
 // just inferring it from body text.
 const JSON_LD = {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Nepal in 10",
-  url: SITE_URL,
-  description: SITE_DESCRIPTION,
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "Nepal in 10",
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+    },
+    {
+      "@type": "SportsEvent",
+      name: "Nepal in 10",
+      description: SITE_DESCRIPTION,
+      url: SITE_URL,
+      image: `${SITE_URL}${OG_IMAGE}`,
+      location: {
+        "@type": "Place",
+        name: "Nepal",
+        geo: { "@type": "GeoCoordinates", latitude: EVENT_LAT, longitude: EVENT_LNG },
+      },
+      // startDate intentionally left out — not decided yet. Google's
+      // structured-data guidelines explicitly warn against fake/placeholder
+      // event dates, so omitting it is safer than inventing one; add
+      // startDate (and endDate/eventStatus) here once there's a real date.
+    },
+  ],
 };
 
 export default function RootLayout({
