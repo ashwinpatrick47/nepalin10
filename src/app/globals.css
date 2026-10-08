@@ -107,7 +107,7 @@ a { color:inherit; text-decoration:none; }
   .title-outline { color:transparent; -webkit-text-stroke:0.02em #fff; }
 }
 .hero-nepali-word { display:block; margin:28px 0 0; font:italic 32px/1 Georgia,serif; letter-spacing:.02em; color:rgba(255,255,255,.92); }
-.hero-copy p { margin:0 0 20px; font-size:8px; font-weight:600; letter-spacing:.4em; }.hero-copy h1 { margin:0; font-size:clamp(72px,10.7vw,174px); line-height:.72; font-weight:700; letter-spacing:-.075em; }.title-mask { display:block; overflow:visible; padding-bottom:.08em; margin-bottom:-.08em; }.title-mask > span,.title-mask > em { display:block; opacity:1; transform:none; animation:none; }.title-mask.title-serif > em { font-family:Georgia,serif; font-size:.56em; font-weight:400; }.hero-copy > span { display:block; margin-top:35px; font:italic 14px Georgia,serif; }
+.hero-copy p { margin:0 0 20px; font-size:8px; font-weight:600; letter-spacing:.4em; }.hero-copy h1 { margin:0; font-size:clamp(72px,10.7vw,174px); line-height:.72; font-weight:700; letter-spacing:-.075em; }.title-mask { display:block; overflow:visible; padding-bottom:.08em; margin-bottom:-.08em; }.title-mask > span,.title-mask > em { display:block; opacity:1; transform:none; animation:none; }.title-mask.title-serif > em { font-family:Georgia,serif; font-size:.56em; font-weight:400; }
 /* Staggered so the hero text plays out as a sequence once loading finishes
    (header, then each title line, then the project mark) rather than every
    gated element fading in on the same beat. */
