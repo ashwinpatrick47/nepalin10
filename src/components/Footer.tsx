@@ -75,7 +75,24 @@ export default function Footer() {
             <div className="site-footer-column">
               <span className="site-footer-column-title">Quick Links</span>
               {QUICK_LINKS.map((link) => (
-                <a key={link.label} href={link.href}>
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={
+                    link.href.startsWith("#")
+                      ? (event) => {
+                          // Lenis (smooth-scroll) already listens for anchor
+                          // clicks on its own and animates the scroll — it
+                          // never calls preventDefault itself, so the
+                          // browser's native jump-and-append-#hash-to-the-
+                          // URL behavior was firing right alongside it. This
+                          // only stops that default navigation; Lenis's own
+                          // listener still runs the actual smooth scroll.
+                          event.preventDefault();
+                        }
+                      : undefined
+                  }
+                >
                   {link.label}
                 </a>
               ))}
