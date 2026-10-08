@@ -76,7 +76,7 @@ export default function WhyNepalNote() {
         <TextStagger
           as="h3"
           className="why-nepal-bio-headline"
-          text="My name is Rahul Sharma — an ultra-marathon runner preparing to cross Nepal coast to coast, roughly 1,000 kilometres along the Mahendra Highway, on foot, in ten days."
+          text="My name is Rahul Sharma — an ultra-endurance runner preparing to cross Nepal's western to eastern terrain, roughly 1,027 kilometres along the Mahendra Highway, on foot, in ten days."
         />
 
         <div className="why-nepal-bio-foot">

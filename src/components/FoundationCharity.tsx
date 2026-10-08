@@ -178,7 +178,12 @@ export default function FoundationCharity() {
         <div className="foundation-copy-sticky">
           <div className="foundation-copy-text">
             <TextStagger as="span" className="narrative-kicker" text="Foundation & Charity" />
-            <TextStagger as="h2" className="foundation-heading" text="Running toward something bigger." startDelay={0.15} />
+            <TextStagger
+              as="h2"
+              className="foundation-heading"
+              startDelay={0.15}
+              lines={["Running toward", "something", <em key="em">bigger.</em>]}
+            />
             <CinematicTextReveal className="foundation-body" delay={0.3}>
               <p>
                 Every step carries a purpose. This journey supports Nepal Heart Foundation’s work to build healthier communities across Nepal through heart health awareness, early detection, prevention, and access to essential care. By running together, we hope to turn every kilometre into meaningful support for people and families affected by heart disease.

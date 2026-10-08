@@ -223,7 +223,6 @@ export default function HimalayanParallax() {
         <header className="site-header">
           <div className="site-header-center">
             <span>27.7172° N / 85.3240° E</span>
-            <span>नेपाल</span>
           </div>
         </header>
 
@@ -244,7 +243,7 @@ export default function HimalayanParallax() {
         )}
 
         <div className="hero-rara-mark" aria-hidden="true">
-          <SiteImage src="/images/logo/rara.png" alt="" fill priority sizes="44px" />
+          <SiteImage src="/images/logo/rara.png" alt="" fill priority sizes="88px" />
         </div>
 
         <div
@@ -276,17 +275,22 @@ export default function HimalayanParallax() {
                 actual name. Visually hidden, not a design change. */}
             <span className="sr-only">Nepal in 10: </span>
             <span className="title-mask">
-              <span>RARA RUNS</span>
+              <span className="title-outline">RARA RUNS</span>
             </span>
 
             <span className="title-mask title-serif">
               <em>NEPAL</em>
             </span>
           </h1>
-          <p className="hero-intro">
-            Nepal in 10 — a 1000km run across Nepal in 10 days, attempting a world record.
-          </p>
+          <span className="hero-nepali-word">नेपाल</span>
         </div>
+
+        {/* Not nested in .hero-copy — positioned independently near the
+            bottom of the hero, around the same height as "AN EBB&FLO
+            PROJECT", rather than stacking directly under the title. */}
+        <p className="hero-intro">
+          Nepal in 10 — a 1000km run across Nepal in 10 days, attempting a world record.
+        </p>
 
         <div className="parallax-visuals">
           <div className="parallax-layers">
@@ -417,7 +421,7 @@ export default function HimalayanParallax() {
             as="h2"
             id="story-title"
             startDelay={0.15}
-            lines={["Where the trail", <em key="em">becomes ritual.</em>]}
+            lines={["Where the trail", <em key="em">becomes a ritual.</em>]}
           />
         </div>
 
