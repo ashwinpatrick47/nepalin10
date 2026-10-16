@@ -71,7 +71,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.ico",
-    apple: "/images/logo/rara.png",
+    // Was the raw rara.png — white line art on a transparent background,
+    // invisible once composited onto a white page (exactly the bug
+    // favicon.ico itself used to have, fixed separately). Google's search
+    // favicon appears to prefer this higher-res declared icon over
+    // favicon.ico, so the same fix (composite onto the site's dark bg)
+    // had to be applied here too — see public/apple-touch-icon.png.
+    apple: "/apple-touch-icon.png",
   },
 };
 
