@@ -54,6 +54,20 @@ const UPDATE_PASSWORD = process.env.UPDATE_PASSWORD;
 const GITHUB_WRITE_TOKEN = process.env.GITHUB_WRITE_TOKEN;
 const LIVETRACK_URL_PATTERN = /^$|^https:\/\/livetrack\.garmin\.com\/session\/[0-9a-fA-F-]{36}\/token\/[0-9A-Fa-f]{16,64}\/?$/;
 
+// Lets /admin check the password on its own, before showing the rest of the
+// form — so a wrong password is caught immediately instead of only after
+// someone's filled in the LiveTrack link too.
+app.post('/api/check-password', (req, res) => {
+  if (!UPDATE_PASSWORD) {
+    return res.status(503).json({ error: 'not configured' });
+  }
+  const { password } = req.body || {};
+  if (password !== UPDATE_PASSWORD) {
+    return res.status(401).json({ error: 'wrong password' });
+  }
+  res.json({ ok: true });
+});
+
 app.post('/api/update-livetrack', async (req, res) => {
   if (!UPDATE_PASSWORD) {
     return res.status(503).json({ error: 'not configured' });

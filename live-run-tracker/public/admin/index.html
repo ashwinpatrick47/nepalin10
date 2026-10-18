@@ -18,8 +18,10 @@
   input { width: 100%; box-sizing: border-box; padding: 10px; margin-top: 6px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; }
   button[type="submit"] { margin-top: 24px; width: 100%; padding: 12px; font-size: 1rem; border: none; border-radius: 6px; background: #1a7f37; color: white; cursor: pointer; }
   button[type="submit"]:disabled { background: #999; }
-  #status { margin-top: 16px; font-size: 0.95rem; }
+  #status, #pwd-status { margin-top: 16px; font-size: 0.95rem; }
   .hint { color: #666; font-size: 0.85rem; margin-top: 4px; }
+  a.hint { display: block; text-decoration: none; }
+  .hidden-step { display: none; }
 </style>
 </head>
 <body>
@@ -36,10 +38,16 @@
 
   <div id="password-panel">
     <p class="hint">For publishing a new link with just a password — no GitHub account needed.</p>
-    <form id="f">
+
+    <form id="pwd-step">
       <label>Password
         <input type="password" name="password" required autocomplete="current-password" />
       </label>
+      <button type="submit">Continue</button>
+      <p id="pwd-status"></p>
+    </form>
+
+    <form id="publish-step" class="hidden-step">
       <label>Garmin LiveTrack link
         <input type="text" name="url" required placeholder="https://livetrack.garmin.com/session/.../token/..." />
       </label>
@@ -52,6 +60,7 @@
         <input type="text" name="note" placeholder="e.g. whose run this is" />
       </label>
       <button type="submit">Publish</button>
+      <a href="#" id="start-over" class="hint">← wrong password entered, start over</a>
     </form>
     <p id="status"></p>
   </div>
@@ -68,16 +77,67 @@
     buttons.github.addEventListener('click', () => choose('github'));
     buttons.password.addEventListener('click', () => choose('password'));
 
-    const form = document.getElementById('f');
+    // Two steps: the password is checked on its own first (so a typo is
+    // caught right away), and only once it's accepted does the rest of the
+    // form — the part that actually matters — appear. Filling everything in
+    // only to get "wrong password" on Publish was the thing being fixed.
+    let verifiedPassword = null;
+
+    const pwdStep = document.getElementById('pwd-step');
+    const publishStep = document.getElementById('publish-step');
+    const pwdStatus = document.getElementById('pwd-status');
     const status = document.getElementById('status');
-    form.addEventListener('submit', async (e) => {
+    const startOver = document.getElementById('start-over');
+
+    pwdStep.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const button = form.querySelector('button[type="submit"]');
+      const button = pwdStep.querySelector('button[type="submit"]');
+      button.disabled = true;
+      pwdStatus.textContent = 'Checking…';
+      pwdStatus.style.color = '';
+      const password = new FormData(pwdStep).get('password');
+      try {
+        const res = await fetch('/api/check-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        if (res.ok) {
+          verifiedPassword = password;
+          pwdStatus.textContent = '';
+          pwdStep.classList.add('hidden-step');
+          publishStep.classList.remove('hidden-step');
+        } else {
+          const body = await res.json().catch(() => ({}));
+          pwdStatus.textContent = res.status === 401 ? 'Wrong password.' : 'Error: ' + (body.error || res.status);
+          pwdStatus.style.color = '#c00';
+        }
+      } catch (err) {
+        pwdStatus.textContent = 'Error: ' + err.message;
+        pwdStatus.style.color = '#c00';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    startOver.addEventListener('click', (e) => {
+      e.preventDefault();
+      verifiedPassword = null;
+      publishStep.reset();
+      publishStep.classList.add('hidden-step');
+      pwdStep.reset();
+      pwdStep.classList.remove('hidden-step');
+      status.textContent = '';
+    });
+
+    publishStep.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const button = publishStep.querySelector('button[type="submit"]');
       button.disabled = true;
       status.textContent = 'Saving…';
-      const fd = new FormData(form);
+      const fd = new FormData(publishStep);
       const payload = {
-        password: fd.get('password'),
+        password: verifiedPassword,
         url: fd.get('url').trim(),
         note: fd.get('note') || '',
         distanceOffsetKm: Number(fd.get('distanceOffsetKm')),
