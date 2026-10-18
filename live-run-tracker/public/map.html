@@ -66,7 +66,17 @@
   .run-arrow-marker {
     width: 30px;
     height: 30px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    /* Stacked drop-shadows at increasing blur radius is the standard CSS
+       neon-glow trick — each one re-blurs the whole opaque arrow shape
+       (not just its edges), so they layer into one soft bloom instead of
+       a single hard-edged shadow. Keeps a touch of dark shadow underneath
+       so the arrow still reads as a solid shape against the satellite
+       imagery, not just a glow with no form. */
+    filter:
+      drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45))
+      drop-shadow(0 0 4px #ff0052)
+      drop-shadow(0 0 10px #ff0052)
+      drop-shadow(0 0 18px rgba(255, 0, 82, 0.8));
   }
 
   #recenter {
@@ -159,7 +169,7 @@
       el.className = 'run-arrow-marker';
       el.innerHTML =
         '<svg width="30" height="30" viewBox="0 0 24 24">' +
-        '<path d="M12 1.5 L20 21 L12 16.5 L4 21 Z" fill="#1f9d55" stroke="#04150a" stroke-width="1.5" stroke-linejoin="round"/>' +
+        '<path d="M12 1.5 L20 21 L12 16.5 L4 21 Z" fill="#ff0052" stroke="#04150a" stroke-width="1.5" stroke-linejoin="round"/>' +
         '</svg>';
       return el;
     }
@@ -317,7 +327,13 @@
 
       map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/standard', // 3D buildings, trees and landmarks
+        // Classic style, not the "Standard" family — satellite-streets-v12 still
+        // exposes its layers/sources normally (getStyle().layers, a real
+        // 'composite' source), which the Standard style's internal style-import
+        // locks away. That's what lets the 3D building extrusion below work at
+        // all: Standard Satellite has real satellite texture too, but its config
+        // schema has no 3D-buildings toggle, full stop — not a setting we missed.
+        style: 'mapbox://styles/mapbox/satellite-streets-v12',
         center: NEPAL_CENTER,
         zoom: 9.2,
         pitch: 72,
@@ -325,7 +341,8 @@
       });
 
       map.on('load', async () => {
-        // Real 3D terrain (mountains). Standard draws hillshade only; the DEM makes it 3D.
+        // Real 3D terrain (mountains) — the imagery alone is flat; the DEM is
+        // what makes ridgelines/valleys actually rise and fall in 3D.
         map.addSource('mapbox-dem', {
           type: 'raster-dem',
           url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
@@ -334,18 +351,92 @@
         });
         map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.6 });
 
+        // No building extrusion — fill-extrusion only has footprint + height
+        // to work with, so it can only ever render as a flat-roofed box; no
+        // amount of color/lighting fixes that without real building meshes
+        // (not available for this route). Route is mostly rural highway
+        // anyway, so satellite texture + real terrain + the trail do the work.
+        // Still grabbing the label layer so the trail draws under place names.
+        const labelLayerId = map
+          .getStyle()
+          .layers.find((l) => l.type === 'symbol' && l.layout?.['text-field'])?.id;
+
         map.addSource('trail', {
           type: 'geojson',
           data: trailToGeoJSON([]),
         });
-        map.addLayer({
-          id: 'trail-line',
-          type: 'line',
-          source: 'trail',
-          slot: 'middle', // Standard style: draw above roads, below labels/3D
-          layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#22e06b', 'line-width': 7, 'line-opacity': 0.95, 'line-emissive-strength': 1 },
-        });
+        // Neon glow: four stacked line layers sharing the same source/geometry
+        // — widest+most-blurred at the bottom up to a thin bright core on
+        // top. A single line can't do this; `line-blur` blurs one line's
+        // edges, it doesn't bloom light outward the way overlapping
+        // progressively-wider soft layers do. Each one still only needs to
+        // be *a* line — the stacking is what reads as a glow.
+        const TRAIL_LAYOUT = { 'line-join': 'round', 'line-cap': 'round' };
+        map.addLayer(
+          {
+            id: 'trail-glow-outer',
+            type: 'line',
+            source: 'trail',
+            layout: TRAIL_LAYOUT,
+            paint: {
+              'line-color': '#ff0052',
+              'line-width': 22,
+              'line-blur': 20,
+              'line-opacity': 0.22,
+            },
+          },
+          labelLayerId,
+        );
+        map.addLayer(
+          {
+            id: 'trail-glow-mid',
+            type: 'line',
+            source: 'trail',
+            layout: TRAIL_LAYOUT,
+            paint: {
+              'line-color': '#ff0052',
+              'line-width': 12,
+              'line-blur': 9,
+              'line-opacity': 0.4,
+            },
+          },
+          labelLayerId,
+        );
+        map.addLayer(
+          {
+            id: 'trail-core',
+            type: 'line',
+            source: 'trail',
+            layout: TRAIL_LAYOUT,
+            paint: {
+              'line-color': '#ff0052',
+              'line-width': 5,
+              'line-blur': 0.5,
+              'line-opacity': 1,
+              'line-emissive-strength': 1,
+            },
+          },
+          labelLayerId,
+        );
+        map.addLayer(
+          {
+            id: 'trail-hot-center',
+            type: 'line',
+            source: 'trail',
+            layout: TRAIL_LAYOUT,
+            paint: {
+              // Pale pink, not pure white — a true white core reads as a
+              // separate stripe down the middle rather than "this line is so
+              // saturated it's blown out", which is the actual neon look.
+              'line-color': '#ffc9df',
+              'line-width': 1.6,
+              'line-blur': 0.3,
+              'line-opacity': 0.9,
+              'line-emissive-strength': 1,
+            },
+          },
+          labelLayerId,
+        );
 
         // Load whatever the server already has, in case we're a new viewer.
         try {
