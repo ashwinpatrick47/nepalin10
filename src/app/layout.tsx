@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 // www, not the bare domain — nepalin10.com 308-redirects to this, so this is
 // the address pages actually render at and what canonical/OG tags must match.
 const SITE_URL = "https://www.nepalin10.com";
-const SITE_TITLE = "Nepal in 10 — A 1000km Run Across Nepal in 10 Days";
+const SITE_TITLE = "Nepal in 10 — A 1027km Run Across Nepal in 10 Days";
 // Kept close to Google's ~155-char snippet cutoff, with the brand name
 // ("Nepal in 10") leading so it's the first thing both Google and a reader see.
 const SITE_DESCRIPTION =
-  "Nepal in 10: a 1000km run across Nepal in 10 days. Follow live tracking, a cinematic documentary, and a cause-driven crossing of the country on foot.";
+  "Nepal in 10: a 1027km run across Nepal in 10 days. Follow live tracking, a cinematic documentary, and a cause-driven crossing of the country on foot.";
 const OG_IMAGE = "/images/monastery-hero.png";
 // South of Kathmandu — the same coordinates already shown in the site header
 // (27.7172° N / 85.3240° E) — used below for the Event's location.
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   keywords: [
     "Nepal in 10",
     "Nepal ultramarathon",
-    "1000km run Nepal",
+    "1027km run Nepal",
     "Mahendra Highway run",
     "ultrarunning Nepal",
     "Nepal documentary",
