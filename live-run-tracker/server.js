@@ -49,7 +49,7 @@ app.get('/api/location', (req, res) => {
 // content/livetrack.json straight to GitHub using a token only the site
 // owner holds (GITHUB_WRITE_TOKEN), so the commit is attributed to the owner,
 // not the person submitting the form.
-const { updateLivetrackFile } = require('./github-write');
+const { updateLivetrackFile, updateSiteSettingsFile } = require('./github-write');
 const UPDATE_PASSWORD = process.env.UPDATE_PASSWORD;
 const GITHUB_WRITE_TOKEN = process.env.GITHUB_WRITE_TOKEN;
 const LIVETRACK_URL_PATTERN = /^$|^https:\/\/livetrack\.garmin\.com\/session\/[0-9a-fA-F-]{36}\/token\/[0-9A-Fa-f]{16,64}\/?$/;
@@ -96,6 +96,49 @@ app.post('/api/update-livetrack', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('update-livetrack failed:', err.message);
+    res.status(502).json({ error: 'GitHub write failed' });
+  }
+});
+
+// Read-only, unauthenticated — same raw-file pattern as syncLivetrack() below,
+// just for a different file. Used by /admin to pre-check the "Track me live"
+// box with whatever it's currently set to, so publishing a link doesn't
+// silently flip tracking off just because the box defaulted unchecked.
+const SITE_SETTINGS_RAW_URL =
+  `https://raw.githubusercontent.com/${process.env.GITHUB_REPO || 'ashwinpatrick47/nepalin10'}/${process.env.GITHUB_BRANCH || 'main'}/src/content/site-settings.json`;
+
+app.get('/api/site-settings', async (req, res) => {
+  try {
+    const settings = await fetch(SITE_SETTINGS_RAW_URL).then((r) => r.json());
+    res.json({ trackingLive: Boolean(settings.trackingLive) });
+  } catch (err) {
+    res.status(502).json({ error: 'could not read site settings' });
+  }
+});
+
+// Same password-gated, token-backed write as /api/update-livetrack, but for
+// the "Track me" on/off switch (src/content/site-settings.json) — the one
+// toggle that was only reachable through the GitHub-login side of /admin.
+app.post('/api/update-site-settings', async (req, res) => {
+  if (!UPDATE_PASSWORD) {
+    return res.status(503).json({ error: 'not configured' });
+  }
+  const { password, trackingLive } = req.body || {};
+  if (password !== UPDATE_PASSWORD) {
+    return res.status(401).json({ error: 'wrong password' });
+  }
+  if (!GITHUB_WRITE_TOKEN) {
+    return res.status(503).json({ error: 'not configured' });
+  }
+  if (typeof trackingLive !== 'boolean') {
+    return res.status(400).json({ error: 'invalid trackingLive' });
+  }
+
+  try {
+    await updateSiteSettingsFile(GITHUB_WRITE_TOKEN, { trackingLive });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('update-site-settings failed:', err.message);
     res.status(502).json({ error: 'GitHub write failed' });
   }
 });

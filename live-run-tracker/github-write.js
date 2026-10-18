@@ -1,14 +1,13 @@
-// Writes content/livetrack.json straight to GitHub via the Contents API,
-// using a token only the site owner holds. Used by POST /api/update-livetrack
-// so non-technical friends can publish a new link with just a password —
-// no GitHub account of their own needed.
+// Writes JSON content files straight to GitHub via the Contents API, using a
+// token only the site owner holds. Used by the /api/update-* routes so
+// non-technical friends can publish updates with just a password — no GitHub
+// account of their own needed.
 const REPO = 'ashwinpatrick47/nepalin10';
 const BRANCH = 'main';
-const FILE_PATH = 'live-run-tracker/content/livetrack.json';
 const API_BASE = process.env.GITHUB_API_BASE || 'https://api.github.com';
 
-async function updateLivetrackFile(token, data) {
-  const url = `${API_BASE}/repos/${REPO}/contents/${FILE_PATH}`;
+async function writeJsonFile(token, filePath, data, message) {
+  const url = `${API_BASE}/repos/${REPO}/contents/${filePath}`;
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github+json',
@@ -25,12 +24,7 @@ async function updateLivetrackFile(token, data) {
   const putRes = await fetch(url, {
     method: 'PUT',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: 'Update LiveTrack link via /update.html',
-      content,
-      sha: current.sha,
-      branch: BRANCH,
-    }),
+    body: JSON.stringify({ message, content, sha: current.sha, branch: BRANCH }),
   });
   if (!putRes.ok) {
     throw new Error(`GitHub write failed: ${putRes.status} ${await putRes.text()}`);
@@ -38,4 +32,22 @@ async function updateLivetrackFile(token, data) {
   return putRes.json();
 }
 
-module.exports = { updateLivetrackFile };
+function updateLivetrackFile(token, data) {
+  return writeJsonFile(
+    token,
+    'live-run-tracker/content/livetrack.json',
+    data,
+    'Update LiveTrack link via /update.html',
+  );
+}
+
+function updateSiteSettingsFile(token, data) {
+  return writeJsonFile(
+    token,
+    'src/content/site-settings.json',
+    data,
+    'Update site settings via /update.html',
+  );
+}
+
+module.exports = { updateLivetrackFile, updateSiteSettingsFile };
