@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 
 // Ported from framer.com/m/Footer-Oversized-Wordmark: a brand block next
@@ -32,6 +33,14 @@ const SOCIAL_LINKS: readonly { label: string; href: string }[] = [
 ];
 
 export default function Footer() {
+  // The Quick Links are section anchors that only exist on the homepage.
+  // Elsewhere (e.g. /shop) a bare "#foundation" has nothing to scroll to,
+  // so those links are prefixed back to "/" there — a normal navigation to
+  // the homepage section — while staying same-page anchors (Lenis-smoothed)
+  // when the footer is already rendered on the homepage itself.
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
   return (
     <footer className="site-footer">
       <div className="site-footer-top">
@@ -74,28 +83,41 @@ export default function Footer() {
           <div className="site-footer-columns">
             <div className="site-footer-column">
               <span className="site-footer-column-title">Quick Links</span>
-              {QUICK_LINKS.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onClick={
-                    link.href.startsWith("#")
-                      ? (event) => {
-                          // Lenis (smooth-scroll) already listens for anchor
-                          // clicks on its own and animates the scroll — it
-                          // never calls preventDefault itself, so the
-                          // browser's native jump-and-append-#hash-to-the-
-                          // URL behavior was firing right alongside it. This
-                          // only stops that default navigation; Lenis's own
-                          // listener still runs the actual smooth scroll.
-                          event.preventDefault();
-                        }
-                      : undefined
-                  }
-                >
-                  {link.label}
-                </a>
-              ))}
+              {QUICK_LINKS.map((link) => {
+                const isAnchor = link.href.startsWith("#");
+                const href = isAnchor && !isHome ? `/${link.href}` : link.href;
+                return (
+                  <a
+                    key={link.label}
+                    href={href}
+                    onClick={
+                      isAnchor && isHome
+                        ? (event) => {
+                            event.preventDefault();
+                            // Also stop this from reaching Lenis's own
+                            // window-level anchors:true click listener —
+                            // that auto-handler computes its target using
+                            // Lenis's internally tracked scroll position,
+                            // which can be stale (e.g. right after the intro
+                            // forces a native scroll reset outside Lenis's
+                            // own API) and lands far from the right section.
+                            // Scrolling explicitly here, from the real
+                            // window.scrollY, sidesteps that.
+                            event.stopPropagation();
+                            const target = document.getElementById(link.href.slice(1));
+                            if (!target) return;
+                            const top = target.getBoundingClientRect().top + window.scrollY;
+                            const lenis = window.__lenis;
+                            if (lenis) lenis.scrollTo(top, { force: true });
+                            else window.scrollTo({ top, behavior: "smooth" });
+                          }
+                        : undefined
+                    }
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
             </div>
 
             <div className="site-footer-column">
@@ -126,7 +148,7 @@ export default function Footer() {
       </div>
 
       <div className="site-footer-bottom">
-        <span>&copy; 2026 Ebb&Flo. All rights reserved.</span>
+        <span>&copy; 2026 Nepal in 10 · An Ebb&Flo project</span>
         
       </div>
 

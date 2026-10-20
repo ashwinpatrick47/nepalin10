@@ -269,11 +269,13 @@ export default function HimalayanParallax() {
         </div>
 
         <div className="hero-copy">
+          {/* Visible kicker, not sr-only — states the site's actual name
+              above the stylized "RARA RUNS NEPAL" wordmark, which never
+              spells it out on its own. Reuses the .hero-copy p rule already
+              in globals.css (small, wide-tracked — matches the kicker/
+              eyebrow pattern used elsewhere on the page). */}
+          <p>Nepal in 10</p>
           <h1>
-            {/* Real text for Google/screen readers — the visible title below
-                reads "RARA RUNS NEPAL" alone, which never states the site's
-                actual name. Visually hidden, not a design change. */}
-            <span className="sr-only">Nepal in 10: </span>
             <span className="title-mask">
               <span className="title-outline">RARA RUNS</span>
             </span>

@@ -17,18 +17,29 @@ const geistMono = Geist_Mono({
 
 // www, not the bare domain — nepalin10.com 308-redirects to this, so this is
 // the address pages actually render at and what canonical/OG tags must match.
+// No trailing slash: Next's metadata resolver normalizes alternates.canonical
+// and openGraph.url back to this form regardless of what's passed in (tested
+// — a trailing-slash value still rendered without one), so CANONICAL_URL just
+// aliases SITE_URL rather than fighting that and ending up with canonical/
+// og:url and the JSON-LD url fields disagreeing with each other.
 const SITE_URL = "https://www.nepalin10.com";
-// Short on purpose — matches the JSON-LD/og:site_name "Nepal in 10" exactly,
-// no trailing description text. One documented theory for why Google shows
-// the bare domain instead of the declared name is a long/decorated title
-// diluting the match; the full "1027km Run Across..." version still lives in
-// SITE_DESCRIPTION, which Google renders as the snippet line below the title.
-const SITE_TITLE = "Nepal in 10";
+const CANONICAL_URL = SITE_URL;
+// Short — matches the JSON-LD/og:site_name "Nepal in 10" exactly. Used for
+// og:title/twitter:title/JSON-LD names; kept separate from the longer
+// <title> tag below (PAGE_TITLE) since Google treats "site name" and "page
+// title" as different signals — og:site_name and the title tag disagreeing
+// on length isn't a conflict, it's two different fields doing two different
+// jobs.
+const BRAND_NAME = "Nepal in 10";
+const PAGE_TITLE = "Nepal in 10 | Rahul Sharma's 1,027km Run Across Nepal";
 // Kept close to Google's ~155-char snippet cutoff, with the brand name
 // ("Nepal in 10") leading so it's the first thing both Google and a reader see.
 const SITE_DESCRIPTION =
-  "Nepal in 10: a 1027km run across Nepal in 10 days. Follow live tracking, a cinematic documentary, and a cause-driven crossing of the country on foot.";
-const OG_IMAGE = "/images/monastery-hero.png";
+  "Nepal in 10 — a 1027km run across Nepal in 10 days. Follow live tracking, a cinematic documentary, and a cause-driven crossing of the country on foot.";
+// Dedicated 1200x630 crop of monastery-hero.png for link previews —
+// og:image/twitter:image want a specific aspect ratio and a small file
+// size, neither of which the full 3024x1634 hero PNG (3.4MB) is optimized for.
+const OG_IMAGE_SOCIAL = "/images/og-image.jpg";
 // South of Kathmandu — the same coordinates already shown in the site header
 // (27.7172° N / 85.3240° E) — used below for the Event's location.
 const EVENT_LAT = 27.7172;
@@ -37,7 +48,7 @@ const EVENT_LNG = 85.324;
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: SITE_TITLE,
+    default: PAGE_TITLE,
     template: "%s — Nepal in 10",
   },
   description: SITE_DESCRIPTION,
@@ -50,21 +61,21 @@ export const metadata: Metadata = {
     "Nepal documentary",
     "live run tracker",
   ],
-  alternates: { canonical: "/" },
+  alternates: { canonical: CANONICAL_URL },
   openGraph: {
-    title: SITE_TITLE,
+    title: BRAND_NAME,
     description: SITE_DESCRIPTION,
-    url: SITE_URL,
-    siteName: "Nepal in 10",
-    images: [{ url: OG_IMAGE, width: 3024, height: 1634, alt: "A monastery and prayer flags against the Himalayas" }],
+    url: CANONICAL_URL,
+    siteName: BRAND_NAME,
+    images: [{ url: OG_IMAGE_SOCIAL, width: 1200, height: 630, alt: "A monastery and prayer flags against the Himalayas" }],
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_TITLE,
+    title: BRAND_NAME,
     description: SITE_DESCRIPTION,
-    images: [OG_IMAGE],
+    images: [OG_IMAGE_SOCIAL],
   },
   robots: {
     index: true,
@@ -88,47 +99,70 @@ export const metadata: Metadata = {
 
 // Helps Google understand this as a single coherent site/event rather than
 // just inferring it from body text.
+const RAHUL_ID = `${CANONICAL_URL}/#rahul`;
+const ORG_ID = `${CANONICAL_URL}/#organization`;
+
 const JSON_LD = {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "WebSite",
+      "@id": `${CANONICAL_URL}/#website`,
       name: "Nepal in 10",
       // Google's site-names guidelines recommend this explicitly: giving it
-      // the bare domain as a sanctioned *alternate* name is how you offer it
-      // as a backup, instead of Google falling back to inventing one itself
-      // (which is what's currently showing in search results instead of the
-      // real name — see https://developers.google.com/search/docs/appearance/site-names).
-      alternateName: "Nepal in 10",
-      url: SITE_URL,
+      // sanctioned alternates is how you offer backups, instead of Google
+      // falling back to inventing one itself (which is what's currently
+      // showing in search results instead of the real name — see
+      // https://developers.google.com/search/docs/appearance/site-names).
+      alternateName: ["Nepal in 10 Run", "NepalIn10"],
+      url: CANONICAL_URL,
       description: SITE_DESCRIPTION,
+    },
+    {
+      // Real-person entity for Rahul so the SportsEvent's `performer` below
+      // can reference someone concrete rather than the project name again.
+      "@type": "Person",
+      "@id": RAHUL_ID,
+      name: "Rahul Sharma",
+      jobTitle: "Ultra-endurance runner",
+      sameAs: [
+        "https://www.instagram.com/rahuljsharma_/",
+        "https://www.youtube.com/@ebbnflofilm",
+        "https://linktr.ee/rahuljsharma",
+      ],
     },
     {
       "@type": "SportsEvent",
       name: "Nepal in 10",
-      description: SITE_DESCRIPTION,
-      url: SITE_URL,
-      image: `${SITE_URL}${OG_IMAGE}`,
+      description:
+        "Rahul Sharma attempts a 1,027km run across Nepal via the Mahendra Highway in 10 days, raising support for Nepal Heart Foundation.",
+      url: CANONICAL_URL,
+      image: `${SITE_URL}${OG_IMAGE_SOCIAL}`,
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      performer: { "@id": RAHUL_ID },
+      organizer: { "@id": ORG_ID },
       location: {
         "@type": "Place",
-        name: "Nepal",
+        name: "Mahendra Highway, Nepal",
+        address: { "@type": "PostalAddress", addressCountry: "NP" },
         geo: { "@type": "GeoCoordinates", latitude: EVENT_LAT, longitude: EVENT_LNG },
       },
-      // startDate intentionally left out — not decided yet. Google's
-      // structured-data guidelines explicitly warn against fake/placeholder
-      // event dates, so omitting it is safer than inventing one; add
-      // startDate (and endDate/eventStatus) here once there's a real date.
+      // startDate intentionally left out — not decided yet (currently
+      // targeting January 2027, no confirmed day). Google's structured-data
+      // guidelines explicitly warn against fake/placeholder event dates, so
+      // omitting it is safer than inventing one; add startDate (and
+      // endDate/eventStatus) here once there's a real date.
     },
     {
-      // sameAs ties this entity to its real social profiles — the same
-      // links already live in Footer.tsx's SOCIAL_LINKS — which is the
-      // actual documented way to reinforce "this brand/name belongs to
-      // this site" beyond just the WebSite block above. Strava's left out:
-      // it's a dynamic strava.app.link redirect, not a stable canonical
-      // profile URL, so it's not a reliable sameAs target.
+      // Ebb&Flo is the production entity behind the run (see Footer's
+      // "An Ebb&Flo project" credit and the @ebbnflofilm YouTube channel) —
+      // distinct from "Nepal in 10", which is the event/project name above,
+      // not an organization. Referenced as the SportsEvent's organizer via
+      // @id rather than duplicated inline.
       "@type": "Organization",
-      name: "Nepal in 10",
-      url: SITE_URL,
+      "@id": ORG_ID,
+      name: "Ebb&Flo",
+      url: CANONICAL_URL,
       logo: `${SITE_URL}/images/logo/rara.png`,
       sameAs: [
         "https://www.instagram.com/rahuljsharma_/",

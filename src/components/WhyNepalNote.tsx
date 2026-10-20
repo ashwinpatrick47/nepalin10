@@ -74,7 +74,7 @@ export default function WhyNepalNote() {
         </div>
 
         <TextStagger
-          as="h3"
+          as="h2"
           className="why-nepal-bio-headline"
           text="My name is Rahul Sharma — an ultra-endurance runner preparing to cross Nepal's western to eastern terrain, roughly 1,027 kilometres along the Mahendra Highway, on foot, in ten days."
         />
@@ -102,7 +102,7 @@ export default function WhyNepalNote() {
 
             <div className="why-nepal-bio-row">
               <TextStagger as="span" className="why-nepal-bio-label" text="How" />
-              <TextStagger as="p" text="Having set a recent world record running the length of Sri Lanka 566km in 6 days, we aim to go from extreme heat to the extreme cold. 1027km in 10 days, averaging 103 km per day on foot." />
+              <TextStagger as="p" text="Having set a recent world record running the length of Sri Lanka 568km in 6 days, we aim to go from extreme heat to the extreme cold. 1027km in 10 days, averaging 103 km per day on foot." />
             </div>
 
             <div className="why-nepal-bio-row">
@@ -169,7 +169,7 @@ export default function WhyNepalNote() {
         />
         <CinematicTextReveal className="why-nepal-body" delay={0.3}>
           <p style={{ color: "white" }}>
-            Although the Sri Lanka project was successful we completed the mission, created a documentary for the world to see, raised 27,000 for children’s cancers but it was a failure on a personal level. I failed to run 100km a day which is a challenge I had set for myself, so here we aim to tick that box.
+            Although the Sri Lanka project was successful we completed the mission, created a documentary for the world to see, raised AUD $27,000 for children’s cancers but it was a failure on a personal level. I failed to run 100km a day which is a challenge I had set for myself, so here we aim to tick that box.
           </p>
         </CinematicTextReveal>
       </div>
