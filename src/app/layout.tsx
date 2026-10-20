@@ -89,6 +89,12 @@ const JSON_LD = {
     {
       "@type": "WebSite",
       name: "Nepal in 10",
+      // Google's site-names guidelines recommend this explicitly: giving it
+      // the bare domain as a sanctioned *alternate* name is how you offer it
+      // as a backup, instead of Google falling back to inventing one itself
+      // (which is what's currently showing in search results instead of the
+      // real name — see https://developers.google.com/search/docs/appearance/site-names).
+      alternateName: "nepalin10.com",
       url: SITE_URL,
       description: SITE_DESCRIPTION,
     },
