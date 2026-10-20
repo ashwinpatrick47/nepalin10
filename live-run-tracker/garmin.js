@@ -27,9 +27,26 @@ function toPoint(tp) {
 
 async function run(url, onPoint, setBrowser) {
   const { chromium } = require('playwright');
-  const browser = await chromium.launch();
+  // --disable-dev-shm-usage: containers often cap /dev/shm well below what
+  // Chromium wants by default, which otherwise shows up as random crashes
+  // under load rather than a clean error — this makes it use /tmp instead.
+  const browser = await chromium.launch({ args: ['--disable-dev-shm-usage', '--disable-gpu'] });
   setBrowser(browser);
   const page = await browser.newPage();
+
+  // All this bridge actually reads is the page's own background fetches for
+  // track-points JSON (below) — it never needs to visually render Garmin's
+  // live map. Blocking the expensive resource types means Chromium's JS
+  // still runs and still fires those requests, but skips the actual map
+  // tiles/images/fonts, which is what was pushing memory past the free
+  // tier's 512MB cap and getting the whole container killed after a while.
+  await page.route('**/*', (route) => {
+    const type = route.request().resourceType();
+    if (type === 'image' || type === 'media' || type === 'font' || type === 'stylesheet') {
+      return route.abort();
+    }
+    route.continue();
+  });
 
   page.on('response', async (res) => {
     if (!/\/api\/.*track-points/.test(res.url())) return;
