@@ -18,7 +18,12 @@ const geistMono = Geist_Mono({
 // www, not the bare domain — nepalin10.com 308-redirects to this, so this is
 // the address pages actually render at and what canonical/OG tags must match.
 const SITE_URL = "https://www.nepalin10.com";
-const SITE_TITLE = "Nepal in 10 — A 1027km Run Across Nepal in 10 Days";
+// Short on purpose — matches the JSON-LD/og:site_name "Nepal in 10" exactly,
+// no trailing description text. One documented theory for why Google shows
+// the bare domain instead of the declared name is a long/decorated title
+// diluting the match; the full "1027km Run Across..." version still lives in
+// SITE_DESCRIPTION, which Google renders as the snippet line below the title.
+const SITE_TITLE = "Nepal in 10";
 // Kept close to Google's ~155-char snippet cutoff, with the brand name
 // ("Nepal in 10") leading so it's the first thing both Google and a reader see.
 const SITE_DESCRIPTION =
