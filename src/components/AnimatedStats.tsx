@@ -2,6 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// The digit track's transform is only actually moving for the 2.25s the CSS
+// transition (globals.css .story-stat-digit-track) takes to run, once, the
+// first time this scrolls into view — after that it sits still forever.
+// will-change was previously hard-coded permanently in that CSS rule, so
+// every digit on the page (there are several per stat) stayed its own
+// promoted compositor layer for the rest of the session. Matches the same
+// settle-then-release pattern as TextStagger.
+const DIGIT_TRANSITION_MS = 2250;
+
 type Stat = {
   number: string;
   label: string;
@@ -25,6 +34,13 @@ function RollingDigit({
 }) {
   const destination = 10 + Number(digit);
   const reelStep = 1.16;
+  const [settled, setSettled] = useState(false);
+
+  useEffect(() => {
+    if (!isActive) return;
+    const timer = window.setTimeout(() => setSettled(true), delay + DIGIT_TRANSITION_MS);
+    return () => window.clearTimeout(timer);
+  }, [isActive, delay]);
 
   return (
     <span className="story-stat-digit" aria-hidden="true">
@@ -35,6 +51,7 @@ function RollingDigit({
             ? `translate3d(0, -${destination * reelStep}em, 0)`
             : "translate3d(0, 0, 0)",
           transitionDelay: `${delay}ms`,
+          willChange: isActive && !settled ? "transform" : "auto",
         }}
       >
         {DIGITS.map((value, index) => (
@@ -51,6 +68,7 @@ export default function AnimatedStats({
 }: AnimatedStatsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isActive, setIsActive] = useState(false);
+  const [settled, setSettled] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -69,13 +87,29 @@ export default function AnimatedStats({
     return () => observer.disconnect();
   }, []);
 
+  // .story-stat-item's opacity/transform fade-in (globals.css) plays once —
+  // last item finishes at (stats.length-1)*staggerDelay + its own .9s
+  // transition. will-change is released once every item has settled rather
+  // than staying hard-coded in the CSS forever (see TextStagger for why).
+  useEffect(() => {
+    if (!isActive) return;
+    const timer = window.setTimeout(
+      () => setSettled(true),
+      (stats.length - 1) * staggerDelay + 900,
+    );
+    return () => window.clearTimeout(timer);
+  }, [isActive, stats.length, staggerDelay]);
+
   return (
     <div ref={containerRef} className="story-stats" aria-label="Journey details">
       {stats.map((stat, statIndex) => (
         <div
           key={`${stat.number}-${stat.label}`}
           className={`story-stat-item${isActive ? " is-visible" : ""}`}
-          style={{ transitionDelay: `${statIndex * staggerDelay}ms` }}
+          style={{
+            transitionDelay: `${statIndex * staggerDelay}ms`,
+            willChange: settled ? "auto" : "opacity, transform",
+          }}
         >
           <strong className="story-stat-number" aria-label={stat.number}>
             {stat.number.split("").map((digit, digitIndex) => (

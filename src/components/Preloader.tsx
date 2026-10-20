@@ -113,11 +113,24 @@ export default function Preloader() {
       // dissolving means the mountains and the hero text arrive together
       // instead of the mountains showing through an already-fading overlay
       // for a beat before the text even starts moving.
+      //
+      // This is also exactly why the overlay's own exit used to animate
+      // `filter:blur(20px)` alongside opacity: that's a full-viewport
+      // blur filter animating at the SAME moment 8+ other hero elements
+      // (title-mask spans, hero-intro, hero-project-mark, hero-rara-mark,
+      // the parallax layer scale, ...) all start their own CSS transitions
+      // at once, gated behind hima-intro's removal just above. Measured via
+      // real frame timing: that convergence produced a ~700ms burst of
+      // sub-30fps frames right as the loading screen dismissed — the worst
+      // stutter on the whole page, and it's Safari-specific because WebKit
+      // is markedly slower than Chromium at animating `filter:blur()` on a
+      // large/full-viewport element. Opacity-only is a plain compositor
+      // fade — visually still a clean dismiss, none of the cost.
       window.dispatchEvent(new Event("hima:intro-complete"));
 
       await animate(
         ".preloader-overlay",
-        { opacity: 0, filter: "blur(20px)" },
+        { opacity: 0 },
         { duration: 1 * speed, ease: "easeInOut" },
       );
       if (cancelled) return;

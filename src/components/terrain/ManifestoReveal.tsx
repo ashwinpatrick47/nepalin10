@@ -75,6 +75,8 @@ export default function ManifestoReveal() {
     let scrollTrigger: import("gsap/ScrollTrigger").ScrollTrigger | undefined;
     let cancelled = false;
 
+    let unsubscribeLenis: (() => void) | undefined;
+
     Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
       ([{ default: gsap }, { ScrollTrigger }]) => {
         if (cancelled || !sectionRef.current) return;
@@ -92,12 +94,34 @@ export default function ManifestoReveal() {
           invalidateOnRefresh: true,
           onUpdate: (self) => applyProgress(self.progress),
         });
+
+        // This is the only place in the codebase GSAP ScrollTrigger is
+        // used — everywhere else is Lenis + Framer Motion. Left
+        // unintegrated, ScrollTrigger falls back to polling the native
+        // scroll position on its own schedule, completely independent of
+        // Lenis's own rAF-driven smoothing loop (which also suppresses
+        // some native scroll events it causes itself, so ScrollTrigger's
+        // default listener doesn't even see every Lenis-driven scroll).
+        // Two uncoordinated continuous scroll-reactive systems computing
+        // and writing to the DOM every frame across this section's full
+        // 420svh height is exactly the kind of thing Safari's compositor
+        // handles far worse than Chromium's. Subscribing to Lenis's own
+        // 'scroll' event and recalculating ScrollTrigger from that instead
+        // makes the two agree on scroll position every frame rather than
+        // racing each other.
+        const lenis = window.__lenis;
+        if (lenis) {
+          const handleLenisScroll = () => ScrollTrigger.update();
+          lenis.on("scroll", handleLenisScroll);
+          unsubscribeLenis = () => lenis.off("scroll", handleLenisScroll);
+        }
       },
     );
 
     return () => {
       cancelled = true;
       scrollTrigger?.kill();
+      unsubscribeLenis?.();
     };
   }, []);
 

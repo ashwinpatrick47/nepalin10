@@ -172,8 +172,22 @@ export default function TextStagger({
     };
   }, [text, lines]);
 
+  // Drives the `willChange` hint below — promoting a compositor layer is
+  // only worth it while a line is actually about to/currently sliding in.
+  // Every TextStagger on the page (there are dozens — nearly every heading
+  // and paragraph) used to hard-code willChange:"transform" permanently,
+  // which meant every line of every one of them stayed a separate
+  // permanently-promoted GPU layer for the rest of the session, even
+  // seconds after its one-time reveal finished. Safari's compositor
+  // degrades much faster than Chromium's under that many simultaneous
+  // layers, which read as stuttering/stuck animations elsewhere on the
+  // page. `settled` flips true once this instance's own reveal has
+  // actually finished playing, at which point the hint is dropped.
+  const [settled, setSettled] = useState(false);
+
   useEffect(() => {
     if (reduceMotion || hasAnimated || !inView || !startWhen || !fontsReady) return;
+    const displayLines = lines ?? measuredLines;
     controls.start((i: number) => ({
       y: 0,
       opacity: 1,
@@ -184,7 +198,10 @@ export default function TextStagger({
       },
     }));
     setHasAnimated(true);
-  }, [inView, reduceMotion, hasAnimated, startWhen, fontsReady, controls, delay, duration, startDelay]);
+    const settleMs = (startDelay + displayLines.length * delay + duration) * 1000;
+    const settleTimer = window.setTimeout(() => setSettled(true), settleMs);
+    return () => window.clearTimeout(settleTimer);
+  }, [inView, reduceMotion, hasAnimated, startWhen, fontsReady, controls, delay, duration, startDelay, lines, measuredLines]);
 
   const displayLines: ReactNode[] = lines ?? measuredLines;
 
@@ -278,7 +295,11 @@ export default function TextStagger({
             // each entry is a hand-written phrase that's always relied on
             // the browser's own wrapping to break it further on narrow
             // screens, so forcing nowrap there only breaks it instead.
-            style={{ display: "block", whiteSpace: lines ? "normal" : "nowrap", willChange: "transform" }}
+            style={{
+              display: "block",
+              whiteSpace: lines ? "normal" : "nowrap",
+              willChange: !reduceMotion && inView && !settled ? "transform" : "auto",
+            }}
           >
             {line}
           </MotionLine>

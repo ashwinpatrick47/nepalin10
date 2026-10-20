@@ -177,10 +177,26 @@ function CinematicWindow({
     reduceMotion ? ["0%", "0%"] : ["-9%", "9%"],
   );
 
+  // .story-card/figcaption's opacity fade (windowVariants/mobileWindowVariants)
+  // plays once, ever — but their will-change used to be hard-coded in the
+  // static CSS, so every card on the page stayed a promoted layer for the
+  // rest of the session regardless. Released once this card's own fade (its
+  // beat-staggered delay + duration) has actually finished.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    if (reduceMotion || !isWindowInView) return;
+    const delayS = isMobile ? 0 : beat * 0.14;
+    const durationS = isMobile ? 1.2 : 1.35;
+    const timer = window.setTimeout(() => setSettled(true), (delayS + durationS) * 1000);
+    return () => window.clearTimeout(timer);
+  }, [isWindowInView, reduceMotion, isMobile, beat]);
+  const fadeWillChange = reduceMotion || settled ? "auto" : "opacity";
+
   return (
     <motion.figure
       ref={windowRef}
       className="story-card"
+      style={{ willChange: fadeWillChange }}
       custom={isMobile ? 0 : beat}
       variants={
         reduceMotion
@@ -206,7 +222,7 @@ function CinematicWindow({
           sizes="(max-width: 700px) 100vw, 44vw"
         />
       </motion.div>
-      <figcaption>{slide.title}</figcaption>
+      <figcaption style={{ willChange: fadeWillChange }}>{slide.title}</figcaption>
     </motion.figure>
   );
 }
