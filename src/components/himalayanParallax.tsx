@@ -289,7 +289,7 @@ export default function HimalayanParallax() {
             bottom of the hero, around the same height as "AN EBB&FLO
             PROJECT", rather than stacking directly under the title. */}
         <p className="hero-intro">
-          Nepal in 10 — a 1000km run across Nepal in 10 days, attempting a world record.
+          Nepal in 10 — a 1027km run across Nepal in 10 days, attempting a world record.
         </p>
 
         <div className="parallax-visuals">
