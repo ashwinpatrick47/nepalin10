@@ -119,6 +119,23 @@ const JSON_LD = {
       // event dates, so omitting it is safer than inventing one; add
       // startDate (and endDate/eventStatus) here once there's a real date.
     },
+    {
+      // sameAs ties this entity to its real social profiles — the same
+      // links already live in Footer.tsx's SOCIAL_LINKS — which is the
+      // actual documented way to reinforce "this brand/name belongs to
+      // this site" beyond just the WebSite block above. Strava's left out:
+      // it's a dynamic strava.app.link redirect, not a stable canonical
+      // profile URL, so it's not a reliable sameAs target.
+      "@type": "Organization",
+      name: "Nepal in 10",
+      url: SITE_URL,
+      logo: `${SITE_URL}/images/logo/rara.png`,
+      sameAs: [
+        "https://www.instagram.com/rahuljsharma_/",
+        "https://www.youtube.com/@ebbnflofilm",
+        "https://linktr.ee/rahuljsharma",
+      ],
+    },
   ],
 };
 
