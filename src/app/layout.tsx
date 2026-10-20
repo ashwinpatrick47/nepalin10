@@ -99,7 +99,7 @@ const JSON_LD = {
       // as a backup, instead of Google falling back to inventing one itself
       // (which is what's currently showing in search results instead of the
       // real name — see https://developers.google.com/search/docs/appearance/site-names).
-      alternateName: "nepalin10.com",
+      alternateName: "Nepal in 10",
       url: SITE_URL,
       description: SITE_DESCRIPTION,
     },
