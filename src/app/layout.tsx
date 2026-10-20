@@ -139,6 +139,9 @@ const JSON_LD = {
       url: CANONICAL_URL,
       image: `${SITE_URL}${OG_IMAGE_SOCIAL}`,
       eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      startDate: "2027-01-16",
+      endDate: "2027-01-26",
       performer: { "@id": RAHUL_ID },
       organizer: { "@id": ORG_ID },
       location: {
@@ -147,11 +150,6 @@ const JSON_LD = {
         address: { "@type": "PostalAddress", addressCountry: "NP" },
         geo: { "@type": "GeoCoordinates", latitude: EVENT_LAT, longitude: EVENT_LNG },
       },
-      // startDate intentionally left out — not decided yet (currently
-      // targeting January 2027, no confirmed day). Google's structured-data
-      // guidelines explicitly warn against fake/placeholder event dates, so
-      // omitting it is safer than inventing one; add startDate (and
-      // endDate/eventStatus) here once there's a real date.
     },
     {
       // Ebb&Flo is the production entity behind the run (see Footer's
