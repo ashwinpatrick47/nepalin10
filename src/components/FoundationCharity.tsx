@@ -186,7 +186,7 @@ export default function FoundationCharity() {
             />
             <CinematicTextReveal className="foundation-body" delay={0.3}>
               <p>
-                Every step carries a purpose. This journey supports Nepal Heart Foundation’s work to build healthier communities across Nepal through heart health awareness, early detection, prevention, and access to essential care. By running together, we hope to turn every kilometre into meaningful support for people and families affected by heart disease.
+                Every step carries a purpose. After the flash floods that recently devastated communities across Nepal, this journey supports Nepal Heart Foundation’s work to rebuild healthier communities through heart health awareness, early detection, prevention, and access to essential care. By running together, we hope to turn every kilometre into meaningful support for the families affected by this disaster.
               </p>
             </CinematicTextReveal>
           </div>
