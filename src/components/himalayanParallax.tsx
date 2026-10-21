@@ -275,17 +275,12 @@ export default function HimalayanParallax() {
               Runs", the project's own internal nickname). */}
           <p>Rara Runs</p>
           <h1>
+            {/* One line, one mask — splitting "10" onto its own line kept
+                landing badly (buried behind the mountain peak, or shrunk
+                into an afterthought). Whole phrase together reads as one
+                clean statement instead. */}
             <span className="title-mask">
-              <span className="title-outline">NEPAL IN</span>
-            </span>
-
-            {/* "10" is the whole brand's number — shrinking it down to the
-                old serif-flourish treatment (built for a quiet place name,
-                "NEPAL") made it read as an afterthought. Full outline
-                weight/scale instead, same as the line above, so it lands
-                as the second half of one bold statement, not a footnote. */}
-            <span className="title-mask">
-              <span className="title-outline">10</span>
+              <span className="title-outline">NEPAL IN 10</span>
             </span>
           </h1>
           <span className="hero-nepali-word">नेपाल</span>
