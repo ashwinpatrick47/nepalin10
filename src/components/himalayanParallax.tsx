@@ -269,19 +269,18 @@ export default function HimalayanParallax() {
         </div>
 
         <div className="hero-copy">
-          {/* Visible kicker, not sr-only — states the site's actual name
-              above the stylized "RARA RUNS NEPAL" wordmark, which never
-              spells it out on its own. Reuses the .hero-copy p rule already
-              in globals.css (small, wide-tracked — matches the kicker/
-              eyebrow pattern used elsewhere on the page). */}
-          <p>Nepal in 10</p>
+          {/* Kicker above the big wordmark, same two-weight treatment as
+              before — just swapped which name is large (the actual site
+              name, "Nepal in 10") and which is the small eyebrow ("Rara
+              Runs", the project's own internal nickname). */}
+          <p>Rara Runs</p>
           <h1>
             <span className="title-mask">
-              <span className="title-outline">RARA RUNS</span>
+              <span className="title-outline">NEPAL IN</span>
             </span>
 
             <span className="title-mask title-serif">
-              <em>NEPAL</em>
+              <em>10</em>
             </span>
           </h1>
           <span className="hero-nepali-word">नेपाल</span>
