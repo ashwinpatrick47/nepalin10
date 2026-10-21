@@ -279,8 +279,13 @@ export default function HimalayanParallax() {
               <span className="title-outline">NEPAL IN</span>
             </span>
 
-            <span className="title-mask title-serif">
-              <em>10</em>
+            {/* "10" is the whole brand's number — shrinking it down to the
+                old serif-flourish treatment (built for a quiet place name,
+                "NEPAL") made it read as an afterthought. Full outline
+                weight/scale instead, same as the line above, so it lands
+                as the second half of one bold statement, not a footnote. */}
+            <span className="title-mask">
+              <span className="title-outline">10</span>
             </span>
           </h1>
           <span className="hero-nepali-word">नेपाल</span>
