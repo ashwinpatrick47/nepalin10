@@ -31,7 +31,7 @@ const CANONICAL_URL = SITE_URL;
 // on length isn't a conflict, it's two different fields doing two different
 // jobs.
 const BRAND_NAME = "Nepal in 10";
-const PAGE_TITLE = "Nepal in 10 | Rahul Sharma's 1,027km Run Across Nepal";
+const PAGE_TITLE = "Nepal in 10 : Rahul Sharma's 1,027km Run Across Nepal";
 // Kept close to Google's ~155-char snippet cutoff, with the brand name
 // ("Nepal in 10") leading so it's the first thing both Google and a reader see.
 const SITE_DESCRIPTION =
@@ -114,9 +114,16 @@ const JSON_LD = {
       // falling back to inventing one itself (which is what's currently
       // showing in search results instead of the real name — see
       // https://developers.google.com/search/docs/appearance/site-names).
-      alternateName: ["Nepal in 10 Run", "NepalIn10"],
+      alternateName: ["Nepal in 10 Run"],
       url: CANONICAL_URL,
       description: SITE_DESCRIPTION,
+      // Ties the site to its production entity below instead of leaving two
+      // differently-named entities (WebSite "Nepal in 10" vs. Organization
+      // "Ebb&Flo") both claiming the same URL with no stated relationship —
+      // an unlinked same-URL/different-name pair is exactly the kind of
+      // conflicting signal that pushes Google toward falling back to the
+      // bare domain instead of committing to either name.
+      publisher: { "@id": ORG_ID },
     },
     {
       // Real-person entity for Rahul so the SportsEvent's `performer` below
@@ -125,9 +132,13 @@ const JSON_LD = {
       "@id": RAHUL_ID,
       name: "Rahul Sharma",
       jobTitle: "Ultra-endurance runner",
+      // Only Rahul's own profiles here — the YouTube channel moved to
+      // Organization below. Person and Organization previously listed the
+      // identical sameAs set, which is its own conflict signal: sameAs is
+      // supposed to disambiguate one entity from another, not fingerprint
+      // two differently-named entities identically.
       sameAs: [
         "https://www.instagram.com/rahuljsharma_/",
-        "https://www.youtube.com/@ebbnflofilm",
         "https://linktr.ee/rahuljsharma",
       ],
     },
@@ -162,11 +173,8 @@ const JSON_LD = {
       name: "Ebb&Flo",
       url: CANONICAL_URL,
       logo: `${SITE_URL}/images/logo/rara.png`,
-      sameAs: [
-        "https://www.instagram.com/rahuljsharma_/",
-        "https://www.youtube.com/@ebbnflofilm",
-        "https://linktr.ee/rahuljsharma",
-      ],
+      // Just the production channel — see the sameAs note on Person above.
+      sameAs: ["https://www.youtube.com/@ebbnflofilm"],
     },
   ],
 };
