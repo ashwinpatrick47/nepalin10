@@ -31,7 +31,7 @@ const CANONICAL_URL = SITE_URL;
 // on length isn't a conflict, it's two different fields doing two different
 // jobs.
 const BRAND_NAME = "Nepal in 10";
-const PAGE_TITLE = "Nepal in 10 : Rahul Sharma's 1,027km Run Across Nepal";
+const PAGE_TITLE = "Nepal in 10: Rahul Sharma's 1027km Run Across Nepal";
 // Kept close to Google's ~155-char snippet cutoff, with the brand name
 // ("Nepal in 10") leading so it's the first thing both Google and a reader see.
 const SITE_DESCRIPTION =
