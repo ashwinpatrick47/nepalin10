@@ -125,8 +125,8 @@
   <div id="map"></div>
   <div id="banner" class="none">Waiting for location…</div>
   <div id="stats">
-    <div><b id="stat-distance">—</b><span>km</span></div>
-    <div><b id="stat-pace">—</b><span>pace /km</span></div>
+    <div><b id="stat-distance">—</b><span>mi</span></div>
+    <div><b id="stat-pace">—</b><span>pace /mi</span></div>
     <div><b id="stat-hr">—</b><span>bpm</span></div>
   </div>
   <div id="config-error"></div>
@@ -227,17 +227,41 @@
       }
     }
 
-    function updateStats(p) {
+    const METERS_PER_MILE = 1609.344;
+
+    // Pace is derived from distanceMeters/timestamp deltas across the trail
+    // rather than Garmin's own `speedMetersPerSec` field — that field has
+    // been unreliable in practice (some LiveTrack sessions appear to return
+    // it already converted toward the account's display unit despite the
+    // SI-sounding name), while distanceMeters has consistently matched
+    // Garmin's own distance display when checked directly. Looks back far
+    // enough (at least 30s and 50m) to smooth out per-point GPS noise
+    // instead of reacting to two points a couple of seconds apart.
+    function paceFromTrail(p, trail) {
+      if (!trail || trail.length < 2 || p.distanceMeters == null) return null;
+      for (let i = trail.length - 2; i >= 0; i--) {
+        const prev = trail[i];
+        if (prev.distanceMeters == null || prev.timestamp == null || p.timestamp == null) continue;
+        const deltaMeters = p.distanceMeters - prev.distanceMeters;
+        const deltaSeconds = (p.timestamp - prev.timestamp) / 1000;
+        if (deltaSeconds < 30 || deltaMeters < 50) continue;
+        if (deltaMeters <= 0) return null;
+        return Math.round(deltaSeconds / (deltaMeters / METERS_PER_MILE));
+      }
+      return null;
+    }
+
+    function updateStats(p, trail) {
       const hasStats = p.distanceMeters != null || p.heartRate != null;
       document.getElementById('stats').classList.toggle('show', hasStats);
       if (!hasStats) return;
       document.getElementById('stat-distance').textContent =
-        p.distanceMeters != null ? (p.distanceMeters / 1000).toFixed(2) : '—';
+        p.distanceMeters != null ? (p.distanceMeters / METERS_PER_MILE).toFixed(2) : '—';
       document.getElementById('stat-hr').textContent = p.heartRate != null ? p.heartRate : '—';
       let pace = '—';
-      if (p.speed != null && p.speed > 0.3) {
-        const secPerKm = Math.round(1000 / p.speed);
-        pace = Math.floor(secPerKm / 60) + ':' + String(secPerKm % 60).padStart(2, '0');
+      const secPerMile = paceFromTrail(p, trail);
+      if (secPerMile != null) {
+        pace = Math.floor(secPerMile / 60) + ':' + String(secPerMile % 60).padStart(2, '0');
       }
       document.getElementById('stat-pace').textContent = pace;
     }
@@ -246,7 +270,11 @@
       if (!latest) return;
       lastUpdateAt = latest.timestamp;
       updateBanner();
-      updateStats(latest);
+      // Live socket pushes pass trail as null (currentTrail only gets the
+      // new point appended further below, after this runs) — fall back to
+      // the already-tracked history so pace still has something to diff
+      // against instead of going blank on every single live update.
+      updateStats(latest, trail && trail.length ? trail : currentTrail);
 
       if (!marker) {
         marker = new mapboxgl.Marker({
