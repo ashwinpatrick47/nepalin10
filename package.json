@@ -9,9 +9,11 @@
     "lint": "eslint",
     "upload-images": "node scripts/upload-to-cloudinary.mjs",
     "upload-videos": "node scripts/upload-to-blob.mjs",
+    "upload-videos-r2": "node scripts/upload-to-r2.mjs",
     "create-audience": "node scripts/create-resend-audience.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1156.0",
     "@vercel/blob": "^2.8.2",
     "framer-motion": "^12.42.2",
     "gsap": "^3.15.0",

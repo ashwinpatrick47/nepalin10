@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import SiteImage from "@/components/SiteImage";
 import { motion, useScroll, useTransform } from "framer-motion";
-import CinematicImageScroll, {
-  type CinematicImageSlide,
-} from "@/components/CinematicImageScroll";
+import VideoPerlinReveal from "@/components/VideoPerlinReveal";
 import AnimatedStats from "@/components/AnimatedStats";
 import ManifestoReveal from "@/components/terrain/ManifestoReveal";
 import FoundationCharity from "@/components/FoundationCharity";
@@ -23,29 +21,6 @@ import Footer from "@/components/Footer";
 import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 import TextStagger from "@/components/TextStagger";
 
-
-const storyWindows: readonly CinematicImageSlide[] = [
-  {
-    src: "/images/nepal-1.jpg",
-    alt: "Clouds drifting above Nepal",
-    title: "",
-  },
-  {
-    src: "/images/2.jpg",
-    alt: "Snow-covered Himalayan peaks",
-    title: "",
-  },
-  {
-    src: "/images/3.jpg",
-    alt: "A trail through the Himalayan valley",
-    title: "",
-  },
-  {
-    src: "/images/4.jpg",
-    alt: "A monastery beneath the Himalayas",
-    title: "",
-  },
-];
 
 const journeyStats = [
   { number: "10", label: "Days on foot" },
@@ -417,21 +392,21 @@ export default function HimalayanParallax() {
         className="story-content"
         aria-labelledby="story-title"
       >
-        <div className="story-intro">
-          <TextStagger as="p" className="story-kicker" variant="fade" text="The Endless Stretch" />
-          <TextStagger
-            as="h2"
-            id="story-title"
-            startDelay={0.15}
-            lines={["Where the trail", <em key="em">becomes a ritual.</em>]}
-          />
-        </div>
-
-        <CinematicImageScroll images={storyWindows}>
-          <p>
-            The Mahendra Highway threads through nearly every terrain a runner can face in one country — heat, altitude, monsoon roads, mountain passes — compressed into a single unbroken line.
-          </p>
-        </CinematicImageScroll>
+        <VideoPerlinReveal src="https://pub-4a50931df60f4c439b6752caaf2c2fc5.r2.dev/nepal1.mp4">
+          <div className="video-perlin-reveal-top">
+            <TextStagger
+              as="h2"
+              id="story-title"
+              startDelay={0.15}
+              lines={["Where the trail", <em key="em">becomes a ritual.</em>]}
+            />
+          </div>
+          <div className="video-perlin-reveal-bottom">
+            <p>
+              The Mahendra Highway threads through nearly every terrain a runner can face in one country — heat, altitude, monsoon roads, mountain passes — compressed into a single unbroken line.
+            </p>
+          </div>
+        </VideoPerlinReveal>
 
         <AnimatedStats stats={journeyStats} />
 

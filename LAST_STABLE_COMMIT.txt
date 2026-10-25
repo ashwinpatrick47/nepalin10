@@ -1,0 +1,26 @@
+Backup reference — saved 2026-10-26, before restoring the video/Perlin-reveal
+sections to use Cloudflare R2.
+
+Commit: 8de72bd49c70a07ddf461e649dfd7528ef6c2210
+Message: Take Donation page and run-started email out of the live site
+Date: 2026-10-25 21:38:27 +1100
+
+This is the live, deployed, working state immediately before the R2 video
+restoration. If anything goes wrong after that change, this commit is the
+safe point to return to.
+
+To go back to exactly this state:
+  git checkout 8de72bd49c70a07ddf461e649dfd7528ef6c2210 -- .
+  git commit -m "Revert to last stable commit (8de72bd)"
+  git push origin main
+
+Or, to just look at the code at that point without changing anything:
+  git show 8de72bd49c70a07ddf461e649dfd7528ef6c2210:src/components/himalayanParallax.tsx
+
+This commit is also tagged on GitHub for a stronger backup than this file
+alone — to jump straight to it:
+  git checkout backup-before-r2-video-restore-2026-10-26
+
+There's also a tag from an earlier backup, further back (before this
+session's video/sponsor/donation work entirely):
+  backup-before-video-sponsor-update-2026-10-25
