@@ -139,11 +139,12 @@ export default function WhyNepalNote() {
       <section ref={mediaRef} className="why-nepal-stage">
       <div className="why-nepal-media">
         <motion.div className="why-nepal-media-inner" style={{ y: imageY }}>
-          <SiteImage
-            src="/images/flag-nepal.jpg"
-            alt="The flag of Nepal"
-            fill
-            sizes="100vw"
+          <video
+            src="https://qjh1snyodokgd5b0.public.blob.vercel-storage.com/nepal.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
           />
         </motion.div>
       </div>

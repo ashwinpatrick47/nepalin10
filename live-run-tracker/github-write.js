@@ -50,4 +50,13 @@ function updateSiteSettingsFile(token, data) {
   );
 }
 
-module.exports = { updateLivetrackFile, updateSiteSettingsFile };
+function updateRunStatusFile(token, data) {
+  return writeJsonFile(
+    token,
+    'live-run-tracker/content/run-status.json',
+    data,
+    'Mark run as started',
+  );
+}
+
+module.exports = { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile };

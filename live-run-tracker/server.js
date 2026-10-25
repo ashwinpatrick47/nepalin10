@@ -49,7 +49,7 @@ app.get('/api/location', (req, res) => {
 // content/livetrack.json straight to GitHub using a token only the site
 // owner holds (GITHUB_WRITE_TOKEN), so the commit is attributed to the owner,
 // not the person submitting the form.
-const { updateLivetrackFile, updateSiteSettingsFile } = require('./github-write');
+const { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile } = require('./github-write');
 const UPDATE_PASSWORD = process.env.UPDATE_PASSWORD;
 const GITHUB_WRITE_TOKEN = process.env.GITHUB_WRITE_TOKEN;
 const LIVETRACK_URL_PATTERN = /^$|^https:\/\/livetrack\.garmin\.com\/session\/[0-9a-fA-F-]{36}\/token\/[0-9A-Fa-f]{16,64}\/?$/;
@@ -143,6 +143,64 @@ app.post('/api/update-site-settings', async (req, res) => {
   }
 });
 
+// --- "Run started" email broadcast ------------------------------------------
+// Fires once, the very first time ANY GPS point arrives (phone POST, Garmin
+// bridge, or Strava — addPoint() is the shared entry point for all three)
+// after content/run-status.json says the run hasn't started yet. The flag
+// is committed to the repo (same poll-the-committed-file pattern as
+// syncLivetrack()/syncStrava() below), not just held in memory — Render's
+// free tier can restart this process mid-run, and an in-memory-only flag
+// would re-broadcast to the whole subscriber list the next time a GPS
+// point arrived after a restart.
+const { sendRunStartedBroadcast } = require('./run-started-email');
+const RUN_STATUS_SOURCE =
+  process.env.RUN_STATUS_SOURCE_URL ||
+  `https://raw.githubusercontent.com/${process.env.GITHUB_REPO || 'ashwinpatrick47/nepalin10'}/${process.env.GITHUB_BRANCH || 'main'}/live-run-tracker/content/run-status.json`;
+
+let runStarted = false;
+let runStatusLoaded = false;
+
+async function loadRunStatus() {
+  try {
+    const r = await fetch(`${RUN_STATUS_SOURCE}?t=${Date.now()}`);
+    if (r.ok) {
+      const data = await r.json();
+      runStarted = Boolean(data.started);
+    }
+    // 404 (file not there yet) leaves runStarted = false, which is correct.
+  } catch {
+    // Temporary read problem — keep whatever's already in memory, same as
+    // syncLivetrack()'s handling below.
+  } finally {
+    runStatusLoaded = true;
+  }
+}
+
+async function markRunStarted() {
+  if (runStarted) return;
+  runStarted = true; // set synchronously first, so a point arriving a moment later can't race past this check
+  console.log('First GPS point received — run has started, sending notification email.');
+  try {
+    await sendRunStartedBroadcast();
+  } catch (err) {
+    console.error('Failed to send run-started email:', err.message);
+    // Don't revert runStarted — a transient email-API error shouldn't risk
+    // a duplicate send once a retry succeeds later.
+  }
+  if (GITHUB_WRITE_TOKEN) {
+    try {
+      await updateRunStatusFile(GITHUB_WRITE_TOKEN, {
+        started: true,
+        startedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('Failed to commit run-status.json:', err.message);
+    }
+  } else {
+    console.warn('GITHUB_WRITE_TOKEN not set — run-status.json was not updated, so a restart before it is committed manually could trigger a duplicate email.');
+  }
+}
+
 function addPoint(rawPoint) {
   // Phone-tracker points (POST /api/location, below) never carry
   // distanceMeters, so this only ever touches Garmin/Strava points — the
@@ -157,6 +215,10 @@ function addPoint(rawPoint) {
     trail.splice(0, trail.length - MAX_TRAIL_POINTS);
   }
   io.emit('location', { latest, point });
+
+  if (runStatusLoaded && !runStarted) {
+    markRunStarted();
+  }
 }
 
 app.post('/api/location', (req, res) => {
@@ -297,6 +359,7 @@ async function syncStrava() {
 
 server.listen(PORT, () => {
   console.log(`live-run-tracker listening on port ${PORT}`);
+  loadRunStatus();
   if (process.env.DISABLE_GARMIN_BRIDGE !== '1') {
     syncLivetrack();
     setInterval(syncLivetrack, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);

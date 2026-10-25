@@ -8,11 +8,30 @@ import TextStagger from "@/components/TextStagger";
 export default function Newsletter() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email) return;
-    setSubmitted(true);
+    if (!email || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong — try again.");
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -49,10 +68,14 @@ export default function Newsletter() {
                 value={email}
                 onChange={event => setEmail(event.target.value)}
                 aria-label="Email address"
+                disabled={submitting}
               />
-              <button type="submit">Subscribe</button>
+              <button type="submit" disabled={submitting}>
+                {submitting ? "Subscribing…" : "Subscribe"}
+              </button>
             </form>
           )}
+          {error && <p className="newsletter-error">{error}</p>}
         </CinematicTextReveal>
       </div>
     </div>

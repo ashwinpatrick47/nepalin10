@@ -137,7 +137,7 @@ export default function ManifestoReveal() {
         <TextReveal ref={textRef} startScale={START_SCALE}>
           REDEFINING LIMITS,
           <br />
-          <em>FIGHTING FOR HEARTS.</em>
+          <em>RUNNING FOR HEARTS.</em>
         </TextReveal>
       </div>
     </section>

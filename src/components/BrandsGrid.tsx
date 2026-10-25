@@ -11,12 +11,11 @@ import TextStagger from "@/components/TextStagger";
 // currentColor, masked by the logo's own alpha channel) rather than the
 // image itself — grey at rest, the site's pink (#ff0052) on hover. That
 // sidesteps the mixed-source problem entirely: Green Street's cream/white
-// mark, asics' navy, zuum's black text, the Amacx/Chasing Chai/Grens
-// glow-PNGs — none of that original colour matters once it's just an alpha
+// mark, zuum's black text, the Amacx/Chasing Chai/Grens glow-PNGs — none
+// of that original colour matters once it's just an alpha
 // mask, so no per-logo invert/mute special-casing is needed.
-// Seven sponsors — 4 on the top row, 3 on the bottom.
+// Six sponsors — 3 per row.
 const SPONSORS: readonly { name: string; src: string }[] = [
-  { name: "Asics", src: "/images/logo/brands/asics.svg" },
   { name: "Plasmaide", src: "/images/logo/brands/plasmaide.svg" },
   { name: "Chasing Chai", src: "/images/logo/brands/chaisingchai.png" },
   { name: "Amacx", src: "/images/logo/brands/amacx.png" },

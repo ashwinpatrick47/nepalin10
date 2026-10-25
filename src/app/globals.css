@@ -26,7 +26,6 @@
   font-style: normal;
   font-display: swap;
 }
-
 :root { --font-primary: "BDO Grotesk", Arial, Helvetica, sans-serif; }
 
 * { box-sizing:border-box; }
@@ -110,12 +109,11 @@ a { color:inherit; text-decoration:none; }
    other BDO Grotesk piece of text on the site is set, upright. */
 .hero-intro { position:absolute; z-index:3; left:50%; top:calc(100svh - 130px); width:92%; max-width:30em; transform:translate3d(-50%,0,0); text-align:center; text-shadow:0 2px 32px rgba(0,0,0,.28); margin:0; font:500 16px/1.6 var(--font-primary); letter-spacing:.01em; text-transform:none; color:rgba(255,255,255,.82); }
 .hero-copy h1,.hero-copy .title-mask { background:transparent!important; backdrop-filter:none!important; }
-/* Solid fallback for browsers without -webkit-text-stroke (Firefox) — same
-   look as before the outline treatment, rather than invisible transparent text. */
-.title-outline { color:#fff; }
-@supports (-webkit-text-stroke:1px){
-  .title-outline { color:transparent; -webkit-text-stroke:0.02em #fff; }
-}
+/* A gradient + heavy stroke version (tried first) read as a dated 3D
+   bevel/emboss effect, not elegant — simple wins here: one flat, cool
+   whitish-grey with just enough shadow to stay separated from the bright
+   sky it sits over. */
+.title-outline { color:#e7edf3; text-shadow:0 10px 44px rgba(8,16,28,.55),0 2px 9px rgba(8,16,28,.5); }
 .hero-nepali-word { display:block; margin:28px 0 0; font:italic 32px/1 Georgia,serif; letter-spacing:.02em; color:rgba(255,255,255,.92); }
 .hero-copy p { margin:0 0 20px; font-size:11px; font-weight:600; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.82); }.hero-copy h1 { margin:0; font-size:clamp(72px,10.7vw,174px); line-height:.72; font-weight:700; letter-spacing:-.075em; }.title-mask { display:block; overflow:visible; padding-bottom:.08em; margin-bottom:-.08em; }.title-mask > span,.title-mask > em { display:block; opacity:1; transform:none; animation:none; }.title-mask.title-serif > em { font-family:Georgia,serif; font-size:.56em; font-weight:400; }
 /* Staggered so the hero text plays out as a sequence once loading finishes
@@ -244,6 +242,23 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .cinematic-story-sequence { position:relative; }
 .story-card-grid { width:min(1120px,88vw); margin:14vh auto 0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .story-card { position:relative; height:clamp(130px,12vw,190px); margin:0; overflow:hidden; background:#121816; backface-visibility:hidden; }.story-card::after { content:""; position:absolute; z-index:1; inset:0; background:rgba(4,7,6,.12); transition:background .45s ease; }.story-card-media { position:absolute; inset:-12px 0; will-change:transform; }.story-card img { object-fit:cover; filter:saturate(.82) contrast(1.02) brightness(.94); transition:filter .5s ease; }.story-card figcaption { position:absolute; z-index:2; inset:50% auto auto 50%; margin:0; transform:translate(-50%,-50%); color:#f2f3ef; font-size:clamp(17px,1.5vw,24px); font-weight:600; letter-spacing:-.025em; }.story-card:hover::after { background:rgba(4,7,6,.04); }.story-card:hover img { filter:saturate(.9) contrast(1.02) brightness(1); }
+.video-perlin-reveal { position:relative; width:100vw; margin-left:calc(50% - 50vw); margin-top:4vh; height:100svh; overflow:hidden; }
+.video-perlin-reveal-canvas-layer { position:absolute; inset:0; z-index:1; }
+.video-perlin-reveal-canvas-layer canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+.video-perlin-reveal-fallback-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+.video-perlin-reveal img { object-fit:cover; }
+.video-perlin-reveal-overlay { position:absolute; inset:0; z-index:2; padding:14vh 6vw 7vh; pointer-events:none; }
+.video-perlin-reveal-top { position:relative; width:fit-content; }
+.video-perlin-reveal-top h2 { margin:0; font-size:clamp(48px,5.4vw,84px); line-height:.86; letter-spacing:-.065em; font-weight:700; color:#f5f6f1; text-shadow:0 1px 2px rgba(0,0,0,.75),0 2px 12px rgba(0,0,0,.4); }
+.video-perlin-reveal-top h2 em { display:block; color:#ff0052; font:400 .62em/.9 Georgia,serif; }
+.video-perlin-reveal-bottom { position:absolute; bottom:8vh; left:50%; transform:translateX(-50%); width:min(560px,70vw); text-align:center; color:#f5f6f1; font-size:clamp(14px,1.15vw,18px); line-height:1.75; text-shadow:0 1px 2px rgba(0,0,0,.75),0 2px 12px rgba(0,0,0,.4); }
+.video-perlin-reveal-bottom p { margin:0; }
+@media (max-width:700px) {
+  .video-perlin-reveal { margin-top:2vh; }
+  .video-perlin-reveal-overlay { padding:12vh 20px 6vh; }
+  .video-perlin-reveal-top h2 { font-size:clamp(38px,11vw,54px); }
+  .video-perlin-reveal-bottom { width:84vw; }
+}
 .story-grid-copy { width:min(760px,78vw); margin:7vh auto 0; text-align:center; color:#929d99; font-size:clamp(14px,1.15vw,18px); line-height:1.75; }.story-grid-copy p { margin:0; }
 .story-stats { width:min(1120px,88vw); margin:16vh auto; padding:54px 0 50px; display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid #25302d; border-bottom:1px solid #25302d; }
 .story-stat-item { min-width:0; padding:0 clamp(24px,3vw,48px); display:flex; flex-direction:column; align-items:center; gap:14px; border-left:1px solid #25302d; text-align:center; opacity:0; transform:translate3d(0,24px,0); transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1); }
@@ -620,7 +635,7 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
    clobbers the other's transform. */
 .why-nepal-media { position:absolute; inset:0; z-index:0; }
 .why-nepal-media-inner { position:absolute; inset:-8% -8%; will-change:transform; }
-.why-nepal-media-inner img { object-fit:cover; }
+.why-nepal-media-inner img,.why-nepal-media-inner video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .why-nepal-scrim { position:absolute; inset:0; z-index:1; background:linear-gradient(100deg,rgba(6,9,8,.7) 0%,rgba(6,9,8,.42) 42%,rgba(6,9,8,.08) 72%); pointer-events:none; }
 .why-nepal-copy { position:relative; z-index:2; max-width:34em; padding:10vh 6vw; margin-left: 60vw; }
 /* Shutter/flap: one opaque panel covering the whole stage (flag photo +
@@ -711,6 +726,61 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .foundation-heading em { color:#ff0052; }
 .foundation-body { margin:0; color:color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)); font-size:18px; line-height:1.8; }
 
+/* Donate — centred, single column: kicker/heading/body, then a single neon
+   heart that lights itself up via scroll-linked pathLength (one clean path,
+   stacked glow layers building a true neon-tube look, straight on the
+   page's own light background — no backdrop panel behind it), then two
+   CTAs. Sits in the same --scene-t "light" zone as Foundation & Partners
+   either side of it. */
+.donation-section { position:relative; width:min(760px,90vw); margin:18vh auto; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.donation-heading { margin:0 0 22px; max-width:16em; color:color-mix(in srgb,#e8ebe3 calc(100% - var(--scene-t,0) * 100%),#0d0f0e calc(var(--scene-t,0) * 100%)); font:700 clamp(40px,calc(28px + 3.2vw),56px)/1.05 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
+.donation-heading em { color:#ff0052; font-style:normal; }
+.donation-body { margin:0; max-width:34em; color:color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)); font-size:18px; line-height:1.8; }
+.donation-heart-wrap { position:relative; margin:56px 0 44px; transform-origin:center; animation:donationHeartbeat 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion:reduce) { .donation-heart-wrap { animation:none; } }
+@keyframes donationHeartbeat { 0%,100% { transform:scale(1); } 25% { transform:scale(1.045); } 40% { transform:scale(1); } 55% { transform:scale(1.03); } }
+/* Small embers drifting up past the heart, each on its own offset/duration
+   (set via inline custom properties) for an organic, non-repeating feel
+   without any per-particle JS animation loop. */
+.donation-embers { position:absolute; inset:0; overflow:visible; pointer-events:none; }
+.donation-ember { position:absolute; bottom:10%; width:var(--ember-size,4px); height:var(--ember-size,4px); border-radius:50%; background:#ff5a96; box-shadow:0 0 6px 1px rgba(255,45,120,.9); opacity:0; animation:donationEmberRise var(--ember-duration,6s) ease-in var(--ember-delay,0s) infinite; }
+@keyframes donationEmberRise {
+  0% { transform:translateY(0) scale(.6); opacity:0; }
+  12% { opacity:1; }
+  70% { opacity:.55; }
+  100% { transform:translateY(-170px) scale(1); opacity:0; }
+}
+.donation-heart { position:relative; width:min(280px,55vw); height:auto; overflow:visible; }
+.donation-heart-core { fill:none; stroke:#fff0f5; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.donation-heart-glow { fill:none; stroke:#ff2d78; stroke-linecap:round; stroke-linejoin:round; }
+.donation-heart-glow-soft { stroke-width:14; opacity:.55; }
+.donation-heart-glow-med { stroke-width:7; opacity:.7; }
+.donation-heart-glow-tight { stroke:#ff5a96; stroke-width:3.5; opacity:.9; }
+.donation-ctas { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:16px; }
+.donation-cta { position:relative; display:inline-flex; align-items:center; gap:14px; border-radius:999px; overflow:hidden; transition:transform .35s cubic-bezier(.5,0,.2,1); }
+.donation-cta:hover { transform:translateY(-2px); }
+/* Same mechanic as .foundation-cta: a circle hidden at the badge's spot
+   expands via clip-path to wash over the whole pill on hover. */
+.donation-cta-fill { position:absolute; z-index:0; inset:0; clip-path:circle(16px at calc(100% - 24px) 50%); transition:clip-path .5s cubic-bezier(.5,0,.2,1); }
+.donation-cta:hover .donation-cta-fill { clip-path:circle(150% at calc(100% - 24px) 50%); }
+.donation-cta-label,.donation-cta-circle { position:relative; z-index:1; }
+.donation-cta-label { font-size:10px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; transition:color .35s ease; }
+.donation-cta-arrow { display:block; font-size:14px; line-height:1; transition:transform .5s cubic-bezier(.5,0,.2,1); }
+.donation-cta:hover .donation-cta-arrow { transform:rotate(-45deg); }
+/* Same pink-to-magenta sweep and glow the neon heart uses (its glow-tight
+   stroke is #ff5a96, its base is #ff2d78) — flat #ff0052 alone, used
+   elsewhere on the site, read as disconnected from the heart right above
+   these buttons. */
+.donation-cta-primary { padding:8px 8px 8px 26px; background:linear-gradient(135deg,#ff5a96,#ff2d78 55%,#ff0052); box-shadow:0 20px 44px -16px rgba(255,45,120,.65),0 0 24px -6px rgba(255,90,150,.5); }
+.donation-cta-primary .donation-cta-fill { background:#0d0f0e; }
+.donation-cta-primary .donation-cta-label { color:#0d0f0e; }
+.donation-cta-primary:hover .donation-cta-label { color:#f2f3ef; }
+.donation-cta-primary .donation-cta-circle { flex:none; display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:#0d0f0e; color:#f2f3ef; }
+.donation-cta-secondary { padding:7px 7px 7px 26px; border:1.5px solid #ff2d78; box-shadow:0 0 18px -8px rgba(255,45,120,.7); }
+.donation-cta-secondary .donation-cta-fill { background:linear-gradient(135deg,#ff5a96,#ff2d78 55%,#ff0052); }
+.donation-cta-secondary .donation-cta-label { color:#ff2d78; }
+.donation-cta-secondary:hover .donation-cta-label { color:#fff; }
+.donation-cta-secondary .donation-cta-circle { flex:none; display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#ff5a96,#ff2d78 55%,#ff0052); color:#fff; }
 
 /* Grid of tiles under a large, centred heading, modelled on
    norda.framer.website's "Our Partners" section — replaces the earlier
@@ -727,14 +797,10 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
    them went dark mid-scroll. */
 .brands-heading { margin:14px 0 22px; color:color-mix(in srgb,color-mix(in srgb,#e8ebe3 calc(100% - var(--scene-t,0) * 100%),#0d0f0e calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),#e8ebe3 calc(var(--dusk-t,0) * 100%)); font:700 clamp(40px,calc(28px + 3.2vw),56px)/1 var(--font-primary); letter-spacing:-.03em; text-transform:uppercase; }
 .brands-body { margin:0 auto; max-width:34em; color:color-mix(in srgb,color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.78) calc(var(--dusk-t,0) * 100%)); font-size:18px; line-height:1.8; }
-/* 8 sub-columns so each tile (span 2) still reads as a 4-up grid, but the
-   trailing 3-item row (sponsors 5-7) can be given an explicit centred
-   start instead of hugging the left edge under normal auto-placement. */
-.brands-row { display:grid; grid-template-columns:repeat(8,1fr); gap:0; margin-top:8vh; }
+/* 6 sponsors, 3 per row — tile span divides the row evenly, so no centred-
+   start overrides are needed for a trailing partial row. */
+.brands-row { display:grid; grid-template-columns:repeat(6,1fr); gap:0; margin-top:8vh; }
 .brand-tile { position:relative; grid-column:span 2; display:flex; align-items:center; justify-content:center; aspect-ratio:3/2; }
-.brand-tile:nth-child(5) { grid-column:2 / span 2; }
-.brand-tile:nth-child(6) { grid-column:4 / span 2; }
-.brand-tile:nth-child(7) { grid-column:6 / span 2; }
 .brand-logo { position:relative; width:112px; height:40px; color:color-mix(in srgb,color-mix(in srgb,rgba(242,243,239,.5) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.42) calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.5) calc(var(--dusk-t,0) * 100%)); transition:color .3s ease; }
 .brand-logo:hover { color:#ff0052; }
 .brand-logo-mask { position:absolute; inset:0; background:currentColor; mask-size:contain; mask-repeat:no-repeat; mask-position:center; -webkit-mask-size:contain; -webkit-mask-repeat:no-repeat; -webkit-mask-position:center; }
@@ -879,6 +945,8 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .newsletter-form button::after { content:"\2192"; margin-left:8px; }
 .newsletter-form button:hover { opacity:.7; }
 .newsletter-confirm { margin-top:36px; color:#e8ebe3; font-size:13px; letter-spacing:.04em; }
+.newsletter-form input:disabled,.newsletter-form button:disabled { opacity:.5; cursor:default; }
+.newsletter-error { margin:14px 0 0; color:#ff5a1f; font-size:13px; letter-spacing:.04em; }
 
 /* Footer — ported from framer.com/m/Footer-Oversized-Wordmark: a slim row
    of links, a copyright/credit line, then a giant wordmark filling the
@@ -923,7 +991,7 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
   .site-header { top:calc(100svh - 46px); right:20px; }.site-header-center { gap:7px; }.hero-rara-mark { top:20px; left:20px; width:64px; }.hero-track-link { top:72px; right:20px; padding:7px 12px; font-size:10px; letter-spacing:.18em; }
   .image-layer,.fog-layer { left:-28%; width:156%; }.hero-copy { top:24svh; width:calc(100% - 32px); }.hero-copy h1 { font-size:16vw; letter-spacing:-.07em; }
   .hero-project-mark { top:calc(100svh - 46px); left:20px; }
-  .story-content { margin-top:-100svh; padding:8vh 20px 35px; }.story-intro { width:100%; display:block; }.story-intro h2 { margin-top:35px; }.story-card-grid { width:100%; margin-top:10vh; grid-template-columns:1fr; gap:12px; }.story-card { height:145px; will-change:transform,filter,opacity; }.story-grid-copy { width:92%; margin-top:6vh; }.story-stats { width:100%; margin:12vh auto; padding:0; grid-template-columns:1fr; }.story-stat-item,.story-stat-item:first-child { padding:30px 0; border-left:0; border-top:1px solid #25302d; }.story-stat-item:first-child { border-top:0; }.story-image-expansion { width:calc(100% + 40px); margin-left:-20px; }.manifesto-reveal { width:calc(100% + 40px); height:336svh; margin-left:-20px; }.terrain-text-reveal-line { font-size:clamp(30px,10vw,44px); }.terrain-ticker { padding:3.5svh 0 2.5svh; }.terrain-ticker-track { gap:36px; animation:none; }.story-chapters { width:100%; margin:12vh auto; grid-template-columns:1fr; gap:70px; }.foundation-charity { width:100%; margin:12vh auto; grid-template-columns:minmax(0,1fr); gap:6vh; }.foundation-copy-range { height:auto; }.foundation-copy-sticky { position:static; top:auto; max-width:none; }.foundation-stack-card-shell { position:static; top:auto; margin-bottom:4vh; }.foundation-stack-image-frame { aspect-ratio:4/3.4; }.brands-section { width:100%; margin:12vh auto; }.brands-row { grid-template-columns:repeat(4,1fr); gap:0; margin-top:6vh; }.brand-tile { grid-column:span 2; aspect-ratio:2/1; }.brand-tile:nth-child(5),.brand-tile:nth-child(6) { grid-column:span 2; }.brand-tile:nth-child(7) { grid-column:2 / span 2; }.brand-logo { width:78px; height:30px; }.testimonials-section { width:100%; margin:12vh auto; }.testimonials-kicker { display:flex; justify-content:center; }.testimonials-heading { text-align:center; }.testimonials-layout { grid-template-columns:1fr; gap:6vh; text-align:center; }.testimonials-media { order:-1; }.testimonials-quote { max-width:none; }.testimonials-attribution { align-items:center; }.testimonials-copy { min-height:280px; display:flex; flex-direction:column; justify-content:center; }.testimonials-image,.testimonials-controls { max-width:min(320px,78vw); margin-left:auto; margin-right:auto; }.socials-section { margin:12vh auto; }.socials-stage { gap:4vh; padding:2vh 0; }.socials-phone { width:min(220px,58vw); }.socials-links-row { display:grid; grid-template-columns:repeat(2,1fr); justify-items:center; column-gap:16px; row-gap:14px; width:100%; }.video-reveal-intro { margin:12vh auto; }.video-reveal-card { width:calc(100% + 40px); aspect-ratio:16/9; margin-left:-20px; border-radius:20px; }.video-reveal-play { padding:8px 18px 8px 8px; }.video-reveal-play-icon { width:26px; height:26px; }.newsletter-section { width:calc(100% + 40px); margin:14vh auto; margin-left:-20px; padding:10vh 8vw; border-radius:20px; }.site-footer { margin:6vh 0 0; padding:6vh 20px 0; }.site-footer-top { flex-direction:column; gap:6vh; padding-bottom:6vh; }.site-footer-brand { width:100%; max-width:none; align-items:center; text-align:center; }.site-footer-brand-marks { justify-content:center; width:100%; }.site-footer-nav { width:100%; }.site-footer-nav-title { margin:0 auto; }.site-footer-nav-badge { flex-direction:column; align-items:center; text-align:center; gap:12px; padding-top:0; border-top:0; }.site-footer-nav-badge::before { content:""; width:140px; height:1px; background:rgba(232,235,227,.3); }.site-footer-nav-flag { width:34px; height:auto; padding:0; border:0; border-radius:0; }.site-footer-columns { width:100%; justify-content:center; gap:6vh 14vw; }.site-footer-column { align-items:center; text-align:center; }.site-footer-bottom { justify-content:center; text-align:center; }.site-footer-wordmark { width:calc(100% + 40px); margin-left:-20px; margin-right:-20px; }.terrain-contour-backdrop { display:none; }.diagonal-reveal { width:calc(100% + 40px); margin-left:-20px; }.runner-chapter { width:calc(100% + 40px); margin-left:-20px; }.runner-chapter-window-stage { padding:24px; }.runner-chapter-window { width:min(220px,58vw); }.why-nepal { width:calc(100% + 40px); margin-left:-20px; }.why-nepal-stage { min-height:75vh; }.why-nepal-bio { width:calc(100% + 40px); margin-left:-20px; padding:56px 24px 40px; gap:6vh; }.why-nepal-bio-kicker { display:flex; justify-content:space-between; margin-bottom:-4vh; font-size:12px; font-weight:600; letter-spacing:.08em; color:color-mix(in srgb,rgba(232,235,227,.6) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.55) calc(var(--scene-t,0) * 100%)); }.why-nepal-bio-headline { text-indent:0; }.why-nepal-bio-foot { grid-template-columns:1fr; gap:32px; }.why-nepal-bio-photo { width:100%; }.why-nepal-bio-rows { justify-self:stretch; max-width:none; height:auto; justify-content:flex-start; gap:36px; transform:none; }.why-nepal-bio-row { grid-template-columns:1fr; gap:8px; }.why-nepal-brand-strip { width:calc(100% + 40px); margin-left:-20px; }.why-nepal-stage { display:flex; align-items:center; }.why-nepal-copy { min-width:0; margin-left:0; padding:6vh 6vw; max-width:none; text-align:center; }.why-nepal-heading,.why-nepal-body { margin-left:auto; margin-right:auto; }.why-nepal-heading { max-width:none; }.why-nepal-media-inner img { object-position:0% 50%; }
+  .story-content { margin-top:-100svh; padding:8vh 20px 35px; }.story-intro { width:100%; display:block; }.story-intro h2 { margin-top:35px; }.story-card-grid { width:100%; margin-top:10vh; grid-template-columns:1fr; gap:12px; }.story-card { height:145px; will-change:transform,filter,opacity; }.story-grid-copy { width:92%; margin-top:6vh; }.story-stats { width:100%; margin:12vh auto; padding:0; grid-template-columns:1fr; }.story-stat-item,.story-stat-item:first-child { padding:30px 0; border-left:0; border-top:1px solid #25302d; }.story-stat-item:first-child { border-top:0; }.story-image-expansion { width:calc(100% + 40px); margin-left:-20px; }.manifesto-reveal { width:calc(100% + 40px); height:336svh; margin-left:-20px; }.terrain-text-reveal-line { font-size:clamp(30px,10vw,44px); }.terrain-ticker { padding:3.5svh 0 2.5svh; }.terrain-ticker-track { gap:36px; animation:none; }.story-chapters { width:100%; margin:12vh auto; grid-template-columns:1fr; gap:70px; }.foundation-charity { width:100%; margin:12vh auto; grid-template-columns:minmax(0,1fr); gap:6vh; }.foundation-copy-range { height:auto; }.foundation-copy-sticky { position:static; top:auto; max-width:none; }.foundation-stack-card-shell { position:static; top:auto; margin-bottom:4vh; }.foundation-stack-image-frame { aspect-ratio:4/3.4; }.donation-section { width:100%; margin:12vh auto; }.donation-heart { width:min(220px,62vw); }.donation-ctas { flex-direction:column; width:100%; }.donation-cta { width:100%; justify-content:center; }.brands-section { width:100%; margin:12vh auto; }.brands-row { grid-template-columns:repeat(4,1fr); gap:0; margin-top:6vh; }.brand-tile { grid-column:span 2; aspect-ratio:2/1; }.brand-logo { width:78px; height:30px; }.testimonials-section { width:100%; margin:12vh auto; }.testimonials-kicker { display:flex; justify-content:center; }.testimonials-heading { text-align:center; }.testimonials-layout { grid-template-columns:1fr; gap:6vh; text-align:center; }.testimonials-media { order:-1; }.testimonials-quote { max-width:none; }.testimonials-attribution { align-items:center; }.testimonials-copy { min-height:280px; display:flex; flex-direction:column; justify-content:center; }.testimonials-image,.testimonials-controls { max-width:min(320px,78vw); margin-left:auto; margin-right:auto; }.socials-section { margin:12vh auto; }.socials-stage { gap:4vh; padding:2vh 0; }.socials-phone { width:min(220px,58vw); }.socials-links-row { display:grid; grid-template-columns:repeat(2,1fr); justify-items:center; column-gap:16px; row-gap:14px; width:100%; }.video-reveal-intro { margin:12vh auto; }.video-reveal-card { width:calc(100% + 40px); aspect-ratio:16/9; margin-left:-20px; border-radius:20px; }.video-reveal-play { padding:8px 18px 8px 8px; }.video-reveal-play-icon { width:26px; height:26px; }.newsletter-section { width:calc(100% + 40px); margin:14vh auto; margin-left:-20px; padding:10vh 8vw; border-radius:20px; }.site-footer { margin:6vh 0 0; padding:6vh 20px 0; }.site-footer-top { flex-direction:column; gap:6vh; padding-bottom:6vh; }.site-footer-brand { width:100%; max-width:none; align-items:center; text-align:center; }.site-footer-brand-marks { justify-content:center; width:100%; }.site-footer-nav { width:100%; }.site-footer-nav-title { margin:0 auto; }.site-footer-nav-badge { flex-direction:column; align-items:center; text-align:center; gap:12px; padding-top:0; border-top:0; }.site-footer-nav-badge::before { content:""; width:140px; height:1px; background:rgba(232,235,227,.3); }.site-footer-nav-flag { width:34px; height:auto; padding:0; border:0; border-radius:0; }.site-footer-columns { width:100%; justify-content:center; gap:6vh 14vw; }.site-footer-column { align-items:center; text-align:center; }.site-footer-bottom { justify-content:center; text-align:center; }.site-footer-wordmark { width:calc(100% + 40px); margin-left:-20px; margin-right:-20px; }.terrain-contour-backdrop { display:none; }.diagonal-reveal { width:calc(100% + 40px); margin-left:-20px; }.runner-chapter { width:calc(100% + 40px); margin-left:-20px; }.runner-chapter-window-stage { padding:24px; }.runner-chapter-window { width:min(220px,58vw); }.why-nepal { width:calc(100% + 40px); margin-left:-20px; }.why-nepal-stage { min-height:75vh; }.why-nepal-bio { width:calc(100% + 40px); margin-left:-20px; padding:56px 24px 40px; gap:6vh; }.why-nepal-bio-kicker { display:flex; justify-content:space-between; margin-bottom:-4vh; font-size:12px; font-weight:600; letter-spacing:.08em; color:color-mix(in srgb,rgba(232,235,227,.6) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.55) calc(var(--scene-t,0) * 100%)); }.why-nepal-bio-headline { text-indent:0; }.why-nepal-bio-foot { grid-template-columns:1fr; gap:32px; }.why-nepal-bio-photo { width:100%; }.why-nepal-bio-rows { justify-self:stretch; max-width:none; height:auto; justify-content:flex-start; gap:36px; transform:none; }.why-nepal-bio-row { grid-template-columns:1fr; gap:8px; }.why-nepal-brand-strip { width:calc(100% + 40px); margin-left:-20px; }.why-nepal-stage { display:flex; align-items:center; }.why-nepal-copy { min-width:0; margin-left:0; padding:6vh 6vw; max-width:none; text-align:center; }.why-nepal-heading,.why-nepal-body { margin-left:auto; margin-right:auto; }.why-nepal-heading { max-width:none; }.why-nepal-media-inner img,.why-nepal-media-inner video { object-position:0% 50%; }
 }
 @media(max-width:700px){
   .story-image-introduction-nepali,.story-image-introduction-english { font-size:clamp(22px,6vw,40px)!important; }
@@ -937,6 +1005,8 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 @media(max-width:700px){
   .foundation-heading { font-size:clamp(32px,9vw,42px); }
   .foundation-body { font-size:16px; line-height:1.7; }
+  .donation-heading { font-size:clamp(32px,9vw,42px); }
+  .donation-body { font-size:16px; line-height:1.7; }
   .why-nepal-heading { font-size:clamp(32px,9vw,42px); }
   .why-nepal-bio-headline { font-size:clamp(22px,6.2vw,28px); }
 }
