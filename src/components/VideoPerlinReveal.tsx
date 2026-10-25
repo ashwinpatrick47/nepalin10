@@ -376,10 +376,36 @@ export default function VideoPerlinReveal({
       uniforms.uClearProgress.value = currentClearProgress.current;
       renderer.render(scene, camera);
     }
-    rafId = requestAnimationFrame(animate);
+
+    // This used to run requestAnimationFrame unconditionally for the whole
+    // page's lifetime — rendering the shader and keeping the video decoding
+    // every single frame even while scrolled far past this section and it's
+    // nowhere near the viewport. That's continuous GPU/CPU work competing
+    // with scroll compositing for the entire rest of the page, which is
+    // exactly the kind of thing that shows up as jank/jitter while
+    // scrolling, especially on weaker Android GPUs. Gate the render loop
+    // (and video playback) on actual visibility instead, with a generous
+    // rootMargin so it's already running again before the section is
+    // actually on screen.
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (destroyed) return;
+        if (entry.isIntersecting) {
+          if (!rafId) rafId = requestAnimationFrame(animate);
+          videoEl?.play().catch(() => undefined);
+        } else {
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = 0;
+          videoEl?.pause();
+        }
+      },
+      { rootMargin: "400px 0px" },
+    );
+    visibilityObserver.observe(container);
 
     return () => {
       destroyed = true;
+      visibilityObserver.disconnect();
       cancelAnimationFrame(rafId);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("resize", handleScroll);
