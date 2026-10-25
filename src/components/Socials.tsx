@@ -5,6 +5,7 @@ import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
 import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 import { NEPAL_COORDINATES } from "@/components/terrain/terrainRoute";
+import { cldVideoUrl } from "@/lib/cloudinary";
 
 // Same "NEPAL IN 10 / नेपाल १० दिनमा / coords" chain as the MapLabels
 // ticker further up the page — brought in here as a plain decorative
@@ -209,7 +210,7 @@ export default function Socials({ paused = false, onPhonePlay, onYoutubeLinkClic
             <video
               ref={videoRef}
               className="socials-phone-video"
-              src="https://qjh1snyodokgd5b0.public.blob.vercel-storage.com/socials.mp4"
+              src={cldVideoUrl("/images/socials.mp4")}
               loop
               playsInline
             />
