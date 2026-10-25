@@ -9,14 +9,16 @@ import CinematicImageScroll, {
 import AnimatedStats from "@/components/AnimatedStats";
 import ManifestoReveal from "@/components/terrain/ManifestoReveal";
 import FoundationCharity from "@/components/FoundationCharity";
-import Donation from "@/components/Donation";
+// import Donation from "@/components/Donation"; // not finished — see where it's rendered below
 import RunnerChapter from "@/components/RunnerChapter";
 import WhyNepalNote from "@/components/WhyNepalNote";
 import BrandsGrid from "@/components/BrandsGrid";
 // import Testimonials from "@/components/Testimonials"; // WIP — commented out until real quotes/photos exist
 import Socials from "@/components/Socials";
 import VideoReveal from "@/components/VideoReveal";
-import Newsletter from "@/components/Newsletter";
+// Newsletter is wired to /api/subscribe but Resend isn't configured yet —
+// kept out of the live page until that's finished, same as Donation above.
+// import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 import TextStagger from "@/components/TextStagger";
@@ -441,7 +443,10 @@ export default function HimalayanParallax() {
 
         <FoundationCharity />
 
-        <Donation />
+        {/* Donation — not finished (no Resend credentials configured yet),
+            kept out of the live page until that's done; the component
+            itself is untouched, just not rendered here. */}
+        {/* <Donation /> */}
 
         <BrandsGrid />
 
@@ -462,7 +467,7 @@ export default function HimalayanParallax() {
           <div className="why-nepal-brand-strip-red" aria-hidden="true" />
       </div>
 
-        <Newsletter />
+        {/* <Newsletter /> */}
       </section>
 
       <Footer />

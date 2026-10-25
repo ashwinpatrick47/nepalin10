@@ -216,9 +216,11 @@ function addPoint(rawPoint) {
   }
   io.emit('location', { latest, point });
 
-  if (runStatusLoaded && !runStarted) {
-    markRunStarted();
-  }
+  // Run-started email: not finished (no Resend credentials configured
+  // yet) — disabled here until that's done. loadRunStatus()/
+  // markRunStarted() below and run-started-email.js are left in place,
+  // just not called, so this is a one-line flip to re-enable:
+  // if (runStatusLoaded && !runStarted) { markRunStarted(); }
 }
 
 app.post('/api/location', (req, res) => {
@@ -359,7 +361,7 @@ async function syncStrava() {
 
 server.listen(PORT, () => {
   console.log(`live-run-tracker listening on port ${PORT}`);
-  loadRunStatus();
+  // loadRunStatus(); — run-started email disabled for now, see addPoint() above
   if (process.env.DISABLE_GARMIN_BRIDGE !== '1') {
     syncLivetrack();
     setInterval(syncLivetrack, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);
