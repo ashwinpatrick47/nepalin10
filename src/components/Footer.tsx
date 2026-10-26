@@ -64,7 +64,7 @@ export default function Footer() {
 
           {/* Flag + "In cooperation with the Government of Nepal" — needs
               their consent before claiming this; commented out until that's
-              sorted, not deleted. */}
+              sorted, not deleted. The divider line it used to carry stays. */}
           {/* <div className="site-footer-nav-badge">
             <img
               className="site-footer-nav-flag"
@@ -73,6 +73,7 @@ export default function Footer() {
             />
             <span>In cooperation with the Government of Nepal</span>
           </div> */}
+          <div className="site-footer-divider" aria-hidden="true" />
 
           <div className="site-footer-columns">
             <div className="site-footer-column">

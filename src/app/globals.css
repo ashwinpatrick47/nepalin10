@@ -1024,6 +1024,10 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .site-footer-nav-badge { display:flex; align-items:center; gap:14px; padding-top:2vh; border-top:1px solid rgba(232,235,227,.18); }
 .site-footer-nav-flag { display:block; width:clamp(26px,3vw,36px); height:auto; }
 .site-footer-nav-badge span { color:rgba(232,235,227,.65); font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+/* Standalone line replacing .site-footer-nav-badge's border-top now that
+   the badge itself (flag + Government of Nepal text) is commented out —
+   .site-footer-nav's own gap handles the spacing either side. */
+.site-footer-divider { width:100%; height:1px; background:rgba(232,235,227,.18); }
 .site-footer-columns { display:flex; flex-wrap:wrap; gap:6vh 7vw; }
 .site-footer-column { display:flex; flex-direction:column; gap:14px; }
 .site-footer-column-title { color:#e8ebe3; font-size:14px; font-weight:700; }
