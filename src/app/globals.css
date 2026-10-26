@@ -1035,6 +1035,8 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .site-footer-column a:hover { color:#ff0052; }
 .site-footer-column .is-disabled { color:rgba(232,235,227,.3); font-size:14px; cursor:default; }
 .site-footer-bottom { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; justify-content:space-between; padding-bottom:2vh; font-size:12px; letter-spacing:.02em; color:rgba(232,235,227,.5); }
+.site-footer-bottom a { color:inherit; text-decoration:none; transition:color .25s ease; }
+.site-footer-bottom a:hover { color:#ff0052; }
 .site-footer-credit { color:rgba(232,235,227,.82); text-decoration:none; transition:color .25s ease; }
 .site-footer-credit:hover { color:#ff0052; }
 /* Bleeds past .site-footer's own 6vw side padding to the true viewport

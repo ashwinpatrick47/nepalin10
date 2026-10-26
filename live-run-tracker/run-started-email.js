@@ -63,6 +63,13 @@ async function sendRunStartedBroadcast() {
                   </table>
                 </td>
               </tr>
+              <tr>
+                <td align="center" style="padding-top:32px;">
+                  <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:rgba(242,243,239,.45);">
+                    <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" style="color:rgba(242,243,239,.45);text-decoration:underline;">Unsubscribe from future run updates</a>
+                  </p>
+                </td>
+              </tr>
             </table>
           </td>
         </tr>

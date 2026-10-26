@@ -131,7 +131,7 @@ export default function Footer() {
 
       <div className="site-footer-bottom">
         <span>&copy; 2026 Nepal in 10 · An Ebb&Flo project</span>
-
+        <a href="/privacy">Privacy Policy</a>
       </div>
 
       <div className="site-footer-wordmark" aria-hidden="true">
