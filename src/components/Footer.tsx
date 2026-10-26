@@ -62,14 +62,17 @@ export default function Footer() {
             alt="Ebb&Flo"
           />
 
-          <div className="site-footer-nav-badge">
+          {/* Flag + "In cooperation with the Government of Nepal" — needs
+              their consent before claiming this; commented out until that's
+              sorted, not deleted. */}
+          {/* <div className="site-footer-nav-badge">
             <img
               className="site-footer-nav-flag"
               src="/images/logo/flag.svg"
               alt="Flag of Nepal"
             />
             <span>In cooperation with the Government of Nepal</span>
-          </div>
+          </div> */}
 
           <div className="site-footer-columns">
             <div className="site-footer-column">
