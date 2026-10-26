@@ -20,6 +20,11 @@ services:
       # Where the tracker's "/" redirects: your Vercel site URL.
       - key: SITE_URL
         sync: false
+      # This tracker's own deployed map URL, e.g.
+      # https://live-run-tracker.onrender.com/map.html — used by the
+      # run-started email's "Watch the live track" link.
+      - key: TRACKER_URL
+        sync: false
       # Decap CMS sign-in (a GitHub OAuth App whose callback URL is <this site>/callback).
       - key: GITHUB_OAUTH_CLIENT_ID
         sync: false

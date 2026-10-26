@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import SiteImage from "@/components/SiteImage";
 import { CinematicTextReveal } from "@/components/CinematicImageScroll";
 import TextStagger from "@/components/TextStagger";
 
@@ -24,7 +23,7 @@ export default function Newsletter() {
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        throw new Error(data.error || "Something went wrong — try again.");
+        throw new Error(data.error || "Something went wrong, try again.");
       }
       setSubmitted(true);
     } catch (err) {
@@ -36,48 +35,57 @@ export default function Newsletter() {
 
   return (
     <div className="newsletter-section">
-      <div className="newsletter-backdrop" aria-hidden="true">
-        <SiteImage
-          src="/images/himalayan-valley.png"
-          alt=""
-          fill
-          sizes="(max-width: 900px) 90vw, 1200px"
-          className="newsletter-backdrop-image"
-        />
-      </div>
+      <TextStagger as="span" className="narrative-kicker" text="Follow the attempt" />
+      <TextStagger
+        as="h2"
+        className="newsletter-heading"
+        startDelay={0.15}
+        lines={["Get updates before", <em key="em">they hit the road.</em>]}
+      />
+      <CinematicTextReveal className="newsletter-body" delay={0.3}>
+        <p>
+          Route changes, training milestones and the countdown to day one,
+          straight to your inbox, nothing else.
+        </p>
+      </CinematicTextReveal>
 
-      <div className="newsletter-content">
-        <TextStagger as="span" className="narrative-kicker" text="Follow the attempt" />
-        <TextStagger as="h2" text="Get updates before they hit the road." startDelay={0.15} />
-        <CinematicTextReveal className="newsletter-copy" delay={0.3}>
-          <p>
-            Route changes, training milestones and the countdown to day one
-            &mdash; straight to your inbox, nothing else.
-          </p>
-
-          {submitted ? (
-            <p className="newsletter-confirm">
-              You&apos;re on the list &mdash; thank you.
-            </p>
-          ) : (
-            <form className="newsletter-form" onSubmit={handleSubmit}>
-              <input
-                type="email"
-                required
-                placeholder="you@email.com"
-                value={email}
-                onChange={event => setEmail(event.target.value)}
-                aria-label="Email address"
-                disabled={submitting}
-              />
-              <button type="submit" disabled={submitting}>
-                {submitting ? "Subscribing…" : "Subscribe"}
-              </button>
-            </form>
-          )}
-          {error && <p className="newsletter-error">{error}</p>}
-        </CinematicTextReveal>
-      </div>
+      {submitted ? (
+        <div className="newsletter-confirm">
+          <p>You&apos;re on the list, thank you.</p>
+          <button
+            type="button"
+            className="newsletter-reset"
+            onClick={() => {
+              setEmail("");
+              setSubmitted(false);
+            }}
+          >
+            Use a different email
+          </button>
+        </div>
+      ) : (
+        <form className="newsletter-form" onSubmit={handleSubmit}>
+          <input
+            type="email"
+            required
+            placeholder="you@email.com"
+            value={email}
+            onChange={event => setEmail(event.target.value)}
+            aria-label="Email address"
+            disabled={submitting}
+          />
+          <button type="submit" className="newsletter-submit" disabled={submitting}>
+            <span className="newsletter-submit-fill" aria-hidden="true" />
+            <span className="newsletter-submit-label">
+              {submitting ? "Subscribing…" : "Subscribe"}
+            </span>
+            <span className="newsletter-submit-circle" aria-hidden="true">
+              <span className="newsletter-submit-arrow">&#8594;</span>
+            </span>
+          </button>
+        </form>
+      )}
+      {error && <p className="newsletter-error">{error}</p>}
     </div>
   );
 }

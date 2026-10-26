@@ -16,9 +16,10 @@ import BrandsGrid from "@/components/BrandsGrid";
 // import Testimonials from "@/components/Testimonials"; // WIP — commented out until real quotes/photos exist
 import Socials from "@/components/Socials";
 import VideoReveal from "@/components/VideoReveal";
-// Newsletter is wired to /api/subscribe but Resend isn't configured yet —
-// kept out of the live page until that's finished, same as Donation above.
-// import Newsletter from "@/components/Newsletter";
+import Newsletter from "@/components/Newsletter";
+// ContactUs: local-preview only for now, per explicit request — not yet
+// committed/pushed. Rendered below so it's visible in local dev.
+import ContactUs from "@/components/ContactUs";
 import Footer from "@/components/Footer";
 import { TRACKER_URL, TRACKING_LIVE } from "@/components/trackerUrl";
 import TextStagger from "@/components/TextStagger";
@@ -441,6 +442,8 @@ export default function HimalayanParallax() {
 
         <WhyNepalNote />
 
+        <Newsletter />
+
         <FoundationCharity />
 
         {/* Donation — not finished (no Resend credentials configured yet),
@@ -463,11 +466,11 @@ export default function HimalayanParallax() {
           onPlay={() => setActivePlayer("youtube")}
         />
 
+        <ContactUs />
+
         <div className="why-nepal-brand-strip">
           <div className="why-nepal-brand-strip-red" aria-hidden="true" />
       </div>
-
-        {/* <Newsletter /> */}
       </section>
 
       <Footer />
