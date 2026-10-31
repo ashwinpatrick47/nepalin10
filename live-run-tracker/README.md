@@ -8,7 +8,17 @@ website shows it moving in real time on a Mapbox GL JS map.
 - `public/map.html` — opened by viewers. Shows the runner's live position
   and trail on a map.
 - `server.js` — Express + Socket.IO server that receives, stores, and
-  broadcasts positions.
+  broadcasts positions. This is the one the public map URL points at —
+  it never runs a browser itself.
+- `bridge-server.js` — a separate process/Render service. Runs ONLY the
+  Garmin LiveTrack scraper (`garmin.js`, needs a real headless browser
+  since Garmin blocks plain server requests) and POSTs each point it
+  finds to `server.js`'s own `/api/location`, authenticated with the
+  same `TRACKER_SECRET` a phone would use. Deployed separately (see
+  `render.yaml`) specifically so a crash in that browser — which has
+  happened, repeatedly, under real sustained multi-hour load — only
+  pauses new points arriving, instead of taking the public map down for
+  everyone watching it.
 
 ## Setup
 

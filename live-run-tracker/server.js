@@ -221,8 +221,16 @@ function addPoint(rawPoint) {
   }
 }
 
+// Also the entry point for the separate garmin-bridge worker (see
+// bridge-server.js) — it runs the heavy headless-browser scraping in its
+// own isolated process/service and POSTs each point here over plain HTTP,
+// authenticated the same way a phone would be. That isolation is the
+// point: if the bridge's browser crashes under real sustained load (it
+// has — see garmin.js's own history), only new data stops arriving here.
+// This server — the one actually serving the map to everyone watching —
+// never runs a browser itself, so it can't be taken down by that crash.
 app.post('/api/location', (req, res) => {
-  const { lat, lng, accuracy, speed, secret } = req.body || {};
+  const { lat, lng, accuracy, speed, heartRate, distanceMeters, timestamp, secret } = req.body || {};
 
   if (TRACKER_SECRET && secret !== TRACKER_SECRET) {
     return res.status(401).json({ error: 'invalid secret' });
@@ -237,7 +245,12 @@ app.post('/api/location', (req, res) => {
     lng,
     accuracy: typeof accuracy === 'number' ? accuracy : null,
     speed: typeof speed === 'number' ? speed : null,
-    timestamp: Date.now(),
+    heartRate: typeof heartRate === 'number' ? heartRate : null,
+    distanceMeters: typeof distanceMeters === 'number' ? distanceMeters : null,
+    // The bridge sends Garmin's own point timestamp; a phone sending plain
+    // lat/lng won't have one, so this falls back to receive-time for that
+    // case same as before.
+    timestamp: typeof timestamp === 'number' ? timestamp : Date.now(),
   });
 
   res.json({ ok: true });
@@ -291,13 +304,17 @@ app.get('/callback', async (req, res) => {
 });
 
 // --- Garmin LiveTrack link, editable from the CMS ----------------------------
-// The CMS saves { "url": "..." } to content/livetrack.json in the repo. Poll the
-// committed file (public repo => plain raw URL) so a change takes effect within a
-// minute without redeploying.
-const garmin = require('./garmin');
+// This service only reads content/livetrack.json for two things now: the
+// distance offset (below), and noticing when the session URL itself
+// changes so it knows to reset the trail. Actually watching the link and
+// scraping Garmin — the part that needs a real headless browser — lives
+// entirely in the separate bridge-server.js worker (see its own header
+// comment and server.js's POST /api/location above for why they're split).
 const LIVETRACK_SOURCE =
   process.env.LIVETRACK_SOURCE_URL ||
   `https://raw.githubusercontent.com/${process.env.GITHUB_REPO || 'ashwinpatrick47/nepalin10'}/${process.env.GITHUB_BRANCH || 'main'}/live-run-tracker/content/livetrack.json`;
+
+let lastKnownLivetrackUrl = null;
 
 async function syncLivetrack() {
   // The CMS file is authoritative whenever it can be read (empty = off).
@@ -321,7 +338,8 @@ async function syncLivetrack() {
   } catch {
     return;
   }
-  if (garmin.setUrl(url, addPoint)) {
+  if (url !== lastKnownLivetrackUrl) {
+    lastKnownLivetrackUrl = url;
     latest = null;
     trail.length = 0; // a different session => start a fresh trail
   }
@@ -360,10 +378,11 @@ async function syncStrava() {
 server.listen(PORT, () => {
   console.log(`live-run-tracker listening on port ${PORT}`);
   loadRunStatus();
-  if (process.env.DISABLE_GARMIN_BRIDGE !== '1') {
-    syncLivetrack();
-    setInterval(syncLivetrack, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);
-  }
+  // No browser involved here anymore — just reading one small JSON file for
+  // the distance offset and to notice session changes — so this always
+  // runs, unconditionally, regardless of whether the bridge worker is up.
+  syncLivetrack();
+  setInterval(syncLivetrack, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);
   if (process.env.DISABLE_STRAVA_BRIDGE !== '1') {
     syncStrava();
     setInterval(syncStrava, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);

@@ -45,3 +45,34 @@ services:
         sync: false
       - key: GITHUB_WRITE_TOKEN
         sync: false
+
+  # Runs ONLY the Garmin LiveTrack scraper — split out from the service
+  # above on purpose (see bridge-server.js and server.js's POST
+  # /api/location for the full reasoning): the headless browser this needs
+  # has repeatedly OOM-crashed the whole container under real sustained
+  # load, and when it was sharing a process with the public-facing map,
+  # that crash took the map down for everyone watching too. Isolated here,
+  # the same crash only pauses new points arriving — the map itself, served
+  # entirely by the other service, is never affected.
+  - type: worker
+    name: live-run-tracker-bridge
+    runtime: docker
+    dockerfilePath: ./live-run-tracker/Dockerfile
+    dockerContext: ./live-run-tracker
+    dockerCommand: node bridge-server.js
+    plan: standard
+    buildFilter:
+      ignoredPaths:
+        - live-run-tracker/content/**
+    envVars:
+      # Must match the main service's own TRACKER_SECRET exactly — this is
+      # how points POSTed here are authenticated, same scheme as a phone.
+      - key: TRACKER_SECRET
+        sync: false
+      # The main service's own public URL, e.g.
+      # https://live-run-tracker.onrender.com — where this worker POSTs
+      # every point it finds.
+      - key: MAIN_SERVICE_URL
+        sync: false
+      - key: GARMIN_LIVETRACK_URL
+        sync: false

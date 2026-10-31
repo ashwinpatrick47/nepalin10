@@ -4,7 +4,8 @@
   "description": "Live GPS run tracker: phone broadcasts location, website shows it live on a Mapbox map",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "start:bridge": "node bridge-server.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
