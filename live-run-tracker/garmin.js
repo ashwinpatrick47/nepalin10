@@ -135,6 +135,23 @@ async function run(url, onPoint, setBrowser) {
 
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
   console.log('garmin bridge: watching LiveTrack session');
+
+  // Temporary diagnostic — the track-points response has never once fired
+  // in production despite working reliably elsewhere. Dumping what the
+  // page actually rendered (as text, not a screenshot, so it fits in log
+  // output) after a beat to let its JS settle — to see directly whether
+  // it's stuck on a consent screen, a bot-block page, or something else,
+  // rather than continuing to guess blind. Remove once the cause is found.
+  setTimeout(async () => {
+    try {
+      const bodyText = await page.innerText('body').catch(() => '(could not read body)');
+      const title = await page.title().catch(() => '(could not read title)');
+      console.log('garmin bridge DIAGNOSTIC — page title:', title);
+      console.log('garmin bridge DIAGNOSTIC — page body text (first 1000 chars):', bodyText.slice(0, 1000).replace(/\n+/g, ' | '));
+    } catch (err) {
+      console.log('garmin bridge DIAGNOSTIC — failed to read page:', err.message);
+    }
+  }, 15000);
   await new Promise((resolve) => {
     page.on('close', resolve);
     browser.on('disconnected', resolve);
