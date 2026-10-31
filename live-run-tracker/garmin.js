@@ -79,7 +79,7 @@ async function run(url, onPoint, setBrowser) {
       '--metrics-recording-only',
       '--mute-audio',
       '--no-first-run',
-      '--js-flags=--max-old-space-size=128',
+      '--js-flags=--max-old-space-size=768',
     ],
   });
   setBrowser(browser);
