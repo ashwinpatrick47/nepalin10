@@ -52,7 +52,7 @@
 
     <form id="publish-step" class="hidden-step">
       <label>Garmin LiveTrack link
-        <input type="text" name="url" required placeholder="https://livetrack.garmin.com/session/.../token/..." />
+        <input type="text" name="url" placeholder="https://livetrack.garmin.com/session/.../token/..." />
       </label>
       <div class="hint">Leave blank to stop mirroring (no live session right now).</div>
       <label>Event distance so far (km)
@@ -67,7 +67,9 @@
         <label for="tracking-live">Track me live (show "Track me" links on the main site)</label>
       </div>
       <div class="hint" id="tracking-live-hint">Off: every "Track me" link on the main site shows greyed out. Takes 1-2 minutes to rebuild on the main site after publishing.</div>
+      <p class="hint" id="current-status">Checking current status…</p>
       <button type="submit">Publish</button>
+      <button type="button" id="stop-tracking" style="margin-top:10px;width:100%;padding:12px;font-size:1rem;border:1px solid #c00;border-radius:6px;background:none;color:#c00;cursor:pointer;">Stop tracking now (clear the link)</button>
       <a href="#" id="start-over" class="hint">← wrong password entered, start over</a>
     </form>
     <p id="status"></p>
@@ -98,6 +100,11 @@
     const startOver = document.getElementById('start-over');
     const trackingLiveBox = document.getElementById('tracking-live');
     const trackingLiveHint = document.getElementById('tracking-live-hint');
+    const currentStatus = document.getElementById('current-status');
+    const stopTrackingBtn = document.getElementById('stop-tracking');
+    const urlInput = publishStep.querySelector('[name="url"]');
+    const noteInput = publishStep.querySelector('[name="note"]');
+    const distanceInput = publishStep.querySelector('[name="distanceOffsetKm"]');
 
     // Whatever "Track me live" is set to right now, fetched fresh each time
     // step 2 opens — so the checkbox starts in sync with the live site
@@ -135,6 +142,22 @@
             // written if the person explicitly toggles it (see submit below).
             initialTrackingLive = null;
           }
+
+          // Pre-fill with what's actually live right now — the form used to
+          // always open blank, which made it impossible to tell whether a
+          // run was still on, or to stop one without guessing the distance
+          // to re-enter so it wouldn't reset to 0.
+          try {
+            const live = await fetch('/api/livetrack-settings').then((r) => r.json());
+            urlInput.value = live.url || '';
+            noteInput.value = live.note || '';
+            distanceInput.value = live.distanceOffsetKm || 0;
+            currentStatus.textContent = live.url
+              ? 'A link is currently live.'
+              : 'No link is currently live.';
+          } catch (err) {
+            currentStatus.textContent = 'Could not load current status — check before publishing.';
+          }
         } else {
           const body = await res.json().catch(() => ({}));
           pwdStatus.textContent = res.status === 401 ? 'Wrong password.' : 'Error: ' + (body.error || res.status);
@@ -157,6 +180,14 @@
       pwdStep.reset();
       pwdStep.classList.remove('hidden-step');
       status.textContent = '';
+    });
+
+    // Clears the link and submits immediately — distance and note are left
+    // exactly as they are (already pre-filled above), so stopping a run
+    // never resets the event's distance total.
+    stopTrackingBtn.addEventListener('click', () => {
+      urlInput.value = '';
+      publishStep.requestSubmit();
     });
 
     publishStep.addEventListener('submit', async (e) => {

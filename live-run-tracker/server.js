@@ -116,6 +116,26 @@ app.get('/api/site-settings', async (req, res) => {
   }
 });
 
+// Read-only, unauthenticated — same pattern as /api/site-settings above, for
+// content/livetrack.json. Lets /admin show what's actually live right now
+// (link, note, distance) instead of always opening the form blank, which
+// made it impossible to tell whether a run was still on or to find the
+// current distance to preserve when stopping it.
+app.get('/api/livetrack-settings', async (req, res) => {
+  try {
+    const r = await fetch(`${LIVETRACK_SOURCE}?t=${Date.now()}`);
+    if (!r.ok && r.status !== 404) throw new Error(`upstream ${r.status}`);
+    const data = r.ok ? await r.json() : {};
+    res.json({
+      url: typeof data.url === 'string' ? data.url : '',
+      note: typeof data.note === 'string' ? data.note : '',
+      distanceOffsetKm: typeof data.distanceOffsetKm === 'number' ? data.distanceOffsetKm : 0,
+    });
+  } catch (err) {
+    res.status(502).json({ error: 'could not read livetrack settings' });
+  }
+});
+
 // Same password-gated, token-backed write as /api/update-livetrack, but for
 // the "Track me" on/off switch (src/content/site-settings.json) — the one
 // toggle that was only reachable through the GitHub-login side of /admin.
