@@ -56,13 +56,16 @@ async function run(url, onPoint, setBrowser) {
   // The rest trim Chromium's own baseline (background timers, extensions,
   // sync, telemetry, breakpad) that a real headful browser wants but a
   // single scraping tab never uses — standard "lean headless" flags, not
-  // experimental ones. --js-flags caps the page's own JS heap: on a 512MB
-  // container, a memory spike with this unset gets the OS to OOM-kill the
-  // *entire container* (unrecoverable without Render noticing and
-  // restarting it — this is what actually took the server down). Capped,
-  // the same spike crashes just this Chromium tab instead, which IS
-  // something the retry loop in launch() below already catches and
-  // recovers from on its own.
+  // experimental ones.
+  //
+  // No --js-flags heap cap: tried 128MB (too tight — crashed the page
+  // before it ever finished loading far enough to request track-points)
+  // and 768MB (too loose on this container — brought back the whole-
+  // container OOM). Rather than guess a third fixed number blind, this
+  // leaves V8's own heap sizing alone — it already adapts to the system's
+  // actual available memory, which is the 2GB this container genuinely
+  // has, instead of a hand-picked guess that's either too tight or too
+  // loose for it.
   const browser = await chromium.launch({
     args: [
       '--disable-dev-shm-usage',
@@ -79,7 +82,6 @@ async function run(url, onPoint, setBrowser) {
       '--metrics-recording-only',
       '--mute-audio',
       '--no-first-run',
-      '--js-flags=--max-old-space-size=768',
     ],
   });
   setBrowser(browser);
