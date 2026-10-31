@@ -59,4 +59,17 @@ function updateRunStatusFile(token, data) {
   );
 }
 
-module.exports = { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile };
+// Periodic trail backup — see server.js's saveCheckpoint()/loadCheckpoint().
+// Lets an unexpected restart mid-event recover the last few minutes of
+// trail instead of starting from a blank map, which matters far more for
+// a 10-day public event than it did for a single test run.
+function updateTrailCheckpointFile(token, data) {
+  return writeJsonFile(
+    token,
+    'live-run-tracker/content/trail-checkpoint.json',
+    data,
+    'Checkpoint trail',
+  );
+}
+
+module.exports = { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile, updateTrailCheckpointFile };

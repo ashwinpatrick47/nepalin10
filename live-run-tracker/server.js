@@ -49,7 +49,7 @@ app.get('/api/location', (req, res) => {
 // content/livetrack.json straight to GitHub using a token only the site
 // owner holds (GITHUB_WRITE_TOKEN), so the commit is attributed to the owner,
 // not the person submitting the form.
-const { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile } = require('./github-write');
+const { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile, updateTrailCheckpointFile } = require('./github-write');
 const UPDATE_PASSWORD = process.env.UPDATE_PASSWORD;
 const GITHUB_WRITE_TOKEN = process.env.GITHUB_WRITE_TOKEN;
 const LIVETRACK_URL_PATTERN = /^$|^https:\/\/livetrack\.garmin\.com\/session\/[0-9a-fA-F-]{36}\/token\/[0-9A-Fa-f]{16,64}\/?$/;
@@ -336,6 +336,62 @@ const LIVETRACK_SOURCE =
 
 let lastKnownLivetrackUrl = null;
 
+// --- Trail checkpointing ------------------------------------------------
+// In-memory `trail` is lost on any restart (OOM, redeploy, crash) — fine
+// for a short test, not for a 10-day public event with 1000+ viewers: an
+// unexpected restart mid-event would silently blank the whole day's trail
+// in front of everyone watching. Periodically backing up {url, latest,
+// trail} to a committed file (same GitHub-write pattern as livetrack.json)
+// means a restart loses at most a few minutes, not the whole run.
+const CHECKPOINT_SOURCE =
+  process.env.TRAIL_CHECKPOINT_SOURCE_URL ||
+  `https://raw.githubusercontent.com/${process.env.GITHUB_REPO || 'ashwinpatrick47/nepalin10'}/${process.env.GITHUB_BRANCH || 'main'}/live-run-tracker/content/trail-checkpoint.json`;
+const CHECKPOINT_INTERVAL_MS = Number(process.env.CHECKPOINT_INTERVAL_MS) || 5 * 60 * 1000;
+let lastCheckpointedTrailLength = 0;
+let lastCheckpointedUrl = null;
+
+// Runs once at startup, before the first syncLivetrack() call, so that
+// call sees lastKnownLivetrackUrl already matching the checkpointed URL
+// and doesn't immediately wipe the trail it just recovered by mistaking
+// it for a brand-new session.
+async function loadCheckpoint() {
+  try {
+    const r = await fetch(`${CHECKPOINT_SOURCE}?t=${Date.now()}`);
+    if (!r.ok) return; // 404 (no checkpoint yet) or temporary problem — start empty, as before
+    const data = await r.json();
+    if (data.url) {
+      lastKnownLivetrackUrl = data.url;
+      lastCheckpointedUrl = data.url;
+      latest = data.latest || null;
+      if (Array.isArray(data.trail)) {
+        trail.push(...data.trail);
+        lastCheckpointedTrailLength = trail.length;
+      }
+      console.log(`restored checkpoint: ${trail.length} trail points for ${data.url}`);
+    }
+  } catch (err) {
+    console.error('loadCheckpoint failed (starting empty):', err.message);
+  }
+}
+
+async function saveCheckpoint() {
+  if (!GITHUB_WRITE_TOKEN) return;
+  // Nothing changed since the last save (same trail length, same session)
+  // — skip the commit entirely rather than writing a no-op every interval.
+  if (trail.length === lastCheckpointedTrailLength && lastKnownLivetrackUrl === lastCheckpointedUrl) return;
+  try {
+    await updateTrailCheckpointFile(GITHUB_WRITE_TOKEN, {
+      url: lastKnownLivetrackUrl || '',
+      latest,
+      trail,
+    });
+    lastCheckpointedTrailLength = trail.length;
+    lastCheckpointedUrl = lastKnownLivetrackUrl;
+  } catch (err) {
+    console.error('saveCheckpoint failed:', err.message);
+  }
+}
+
 async function syncLivetrack() {
   // The CMS file is authoritative whenever it can be read (empty = off).
   // GARMIN_LIVETRACK_URL is only used if the file doesn't exist yet (404).
@@ -395,14 +451,19 @@ async function syncStrava() {
   }
 }
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`live-run-tracker listening on port ${PORT}`);
   loadRunStatus();
+  // Must finish before the first syncLivetrack() call below, so it sees
+  // lastKnownLivetrackUrl already matching the recovered session instead
+  // of treating it as new and wiping the trail it just restored.
+  await loadCheckpoint();
   // No browser involved here anymore — just reading one small JSON file for
   // the distance offset and to notice session changes — so this always
   // runs, unconditionally, regardless of whether the bridge worker is up.
   syncLivetrack();
   setInterval(syncLivetrack, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);
+  setInterval(saveCheckpoint, CHECKPOINT_INTERVAL_MS);
   if (process.env.DISABLE_STRAVA_BRIDGE !== '1') {
     syncStrava();
     setInterval(syncStrava, Number(process.env.LIVETRACK_POLL_MS) || 60 * 1000);
