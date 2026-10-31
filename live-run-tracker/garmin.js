@@ -32,15 +32,33 @@ const isLivetrackUrl = (url) => typeof url === 'string' && LIVETRACK_URL.test(ur
 // once someone is really moving. Reloading periodically resets THEIR memory
 // growth, not just ours.
 //
-// Was 20 minutes — too long. A real multi-hour test (first genuine
-// endurance test this project has had) still OOM-killed the whole
-// container despite this, meaning memory climbs faster under sustained
-// real load than a 20-minute window bounds. Tightened to 3 minutes so
-// memory never gets the chance to climb that high in the first place,
-// for a 10-day event specifically (duration shouldn't matter if each
-// window is capped small). A 5-15s reload every 3 minutes costs far
-// less than one more full container crash.
-const PAGE_REFRESH_MS = 3 * 60 * 1000;
+// Was 20 minutes, then 3 minutes — still not enough: a real sustained
+// session (hours long, this project's first) kept OOM-crashing the whole
+// container even with the 3-minute reload, meaning something wasn't being
+// fully released between reloads (see the forced-kill fallback below) and
+// the interval needed to be tighter to bound it while that's in place.
+// Tightened to 90 seconds. A ~5-15s reload that often costs far less than
+// another full container crash.
+const PAGE_REFRESH_MS = 90 * 1000;
+
+// browser.close() can hang or quietly fail to fully release the underlying
+// Chromium process — under real sustained sessions, that leaves bits of
+// memory from the old process still held when the next one launches 90s
+// later, piling up across dozens of reloads until the whole container
+// finally OOMs (confirmed: it kept happening even with timely reloads in
+// place). Racing close() against a timeout and SIGKILLing the process
+// directly if it doesn't finish makes sure nothing outlives its own reload.
+async function closeBrowser(browser) {
+  const proc = browser.process();
+  try {
+    await Promise.race([
+      browser.close(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('close timed out')), 5000)),
+    ]);
+  } catch {
+    if (proc) proc.kill('SIGKILL');
+  }
+}
 
 function toPoint(tp) {
   return {
@@ -147,7 +165,7 @@ async function run(url, onPoint, setBrowser) {
     // reopen a fresh browser+page pointed at the same URL.
     setTimeout(resolve, PAGE_REFRESH_MS);
   });
-  await browser.close().catch(() => {});
+  await closeBrowser(browser);
 }
 
 function launch(url, onPoint) {
@@ -167,7 +185,7 @@ function launch(url, onPoint) {
     url,
     stop() {
       stopped = true;
-      if (browser) browser.close().catch(() => {});
+      if (browser) closeBrowser(browser);
     },
   };
 }
