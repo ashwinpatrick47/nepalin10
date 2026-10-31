@@ -30,10 +30,17 @@ const isLivetrackUrl = (url) => typeof url === 'string' && LIVETRACK_URL.test(ur
 // stays genuinely active (it's their JS holding state/redrawing, not ours) —
 // an idle/empty session never showed this, which is why it only surfaces
 // once someone is really moving. Reloading periodically resets THEIR memory
-// growth, not just ours. Short enough to bound the leak, long enough that a
-// 5-15s reload never meaningfully gaps the trail (points arrive far less
-// often than this).
-const PAGE_REFRESH_MS = 20 * 60 * 1000;
+// growth, not just ours.
+//
+// Was 20 minutes — too long. A real multi-hour test (first genuine
+// endurance test this project has had) still OOM-killed the whole
+// container despite this, meaning memory climbs faster under sustained
+// real load than a 20-minute window bounds. Tightened to 3 minutes so
+// memory never gets the chance to climb that high in the first place,
+// for a 10-day event specifically (duration shouldn't matter if each
+// window is capped small). A 5-15s reload every 3 minutes costs far
+// less than one more full container crash.
+const PAGE_REFRESH_MS = 3 * 60 * 1000;
 
 function toPoint(tp) {
   return {
@@ -117,43 +124,21 @@ async function run(url, onPoint, setBrowser) {
     if (!/\/api\/.*track-points/.test(res.url())) return;
     try {
       const { trackPoints } = await res.json();
-      // Temporary diagnostic — remove once we've confirmed points are (or
-      // aren't) actually reaching this handler in production.
-      console.log('garmin bridge: track-points response, raw count =', (trackPoints || []).length);
-      const fresh = (trackPoints || []).filter((tp) => tp.position && !seen.has(tp.dateTime));
-      console.log('garmin bridge: fresh (unseen) points =', fresh.length);
-      fresh
+      (trackPoints || [])
+        .filter((tp) => tp.position && !seen.has(tp.dateTime))
         .sort((a, b) => Date.parse(a.dateTime) - Date.parse(b.dateTime))
         .forEach((tp) => {
           seen.add(tp.dateTime);
-          console.log('garmin bridge: relaying point', tp.dateTime, tp.position);
           onPoint(toPoint(tp));
         });
       trimSeen();
-    } catch (err) {
-      console.log('garmin bridge: track-points response failed to parse:', err.message);
+    } catch {
+      // non-JSON or aborted response — ignore
     }
   });
 
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
   console.log('garmin bridge: watching LiveTrack session');
-
-  // Temporary diagnostic — the track-points response has never once fired
-  // in production despite working reliably elsewhere. Dumping what the
-  // page actually rendered (as text, not a screenshot, so it fits in log
-  // output) after a beat to let its JS settle — to see directly whether
-  // it's stuck on a consent screen, a bot-block page, or something else,
-  // rather than continuing to guess blind. Remove once the cause is found.
-  setTimeout(async () => {
-    try {
-      const bodyText = await page.innerText('body').catch(() => '(could not read body)');
-      const title = await page.title().catch(() => '(could not read title)');
-      console.log('garmin bridge DIAGNOSTIC — page title:', title);
-      console.log('garmin bridge DIAGNOSTIC — page body text (first 1000 chars):', bodyText.slice(0, 1000).replace(/\n+/g, ' | '));
-    } catch (err) {
-      console.log('garmin bridge DIAGNOSTIC — failed to read page:', err.message);
-    }
-  }, 15000);
   await new Promise((resolve) => {
     page.on('close', resolve);
     browser.on('disconnected', resolve);

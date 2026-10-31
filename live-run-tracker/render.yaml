@@ -4,7 +4,15 @@ services:
     runtime: docker
     dockerfilePath: ./live-run-tracker/Dockerfile
     dockerContext: ./live-run-tracker
-    plan: free
+    # Was "free" (512MB) — the Garmin bridge's headless Chromium genuinely
+    # needs more than that under sustained real load (see garmin.js's own
+    # comments). This service is Blueprint-managed, so leaving this at
+    # "free" after manually upgrading via the dashboard would have let a
+    # future deploy silently revert the plan back to 512MB with no one
+    # touching the dashboard — this keeps the committed config in sync
+    # with what's actually needed.
+    plan: standard
+    healthCheckPath: /api/location
     # CMS edits to the LiveTrack link are picked up by polling, so they shouldn't rebuild the image.
     buildFilter:
       ignoredPaths:
