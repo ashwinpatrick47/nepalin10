@@ -9,10 +9,17 @@ require('dotenv').config();
 // crash only pauses new points arriving; the public map, served entirely
 // by the other process, is never affected by it.
 //
-// Has no HTTP server of its own to receive requests — it only ever makes
-// outbound calls (reading livetrack.json from GitHub, POSTing points to
-// the main service), so it's a Render "worker" service, not "web": no
-// port to bind, nothing to detect.
+// Binds a trivial HTTP server purely so Render treats this as a "web"
+// service, not because it needs to receive real requests — Render's
+// background "worker" services have no free tier at all, so a true
+// worker here would mean paying just to run this one piece. A free web
+// service does exist, but free web services on Render sleep after 15
+// minutes with no inbound HTTP request, which would silently stop this
+// from ever polling Garmin at all. Pair this with a free external
+// uptime-pinger (e.g. UptimeRobot, free tier, ping this service's own
+// URL every 5 minutes) to keep it awake — a standard, genuinely free
+// pattern for exactly this situation, not a paid workaround.
+const http = require('http');
 const garmin = require('./garmin');
 
 const TRACKER_SECRET = process.env.TRACKER_SECRET;
@@ -67,6 +74,19 @@ async function syncLivetrack() {
   }
   garmin.setUrl(url, postPoint);
 }
+
+// The trivial server Render needs to see a port bound — also what the
+// free keep-alive pinger hits. Reports whether the bridge actually thinks
+// it's watching a session, which doubles as a cheap manual status check.
+const PORT = process.env.PORT || 3001;
+http
+  .createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true, watching: garmin.isWatching() }));
+  })
+  .listen(PORT, () => {
+    console.log(`garmin bridge worker listening on port ${PORT} (keep-alive target)`);
+  });
 
 console.log('garmin bridge worker starting — will POST points to', MAIN_SERVICE_URL);
 syncLivetrack();

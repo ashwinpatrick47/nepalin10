@@ -187,4 +187,10 @@ function setUrl(url, onPoint) {
   return true;
 }
 
-module.exports = { setUrl, isLivetrackUrl };
+// Cheap status check — no session is a legitimate, normal state (e.g. link
+// is empty right now), not an error, so this is just informational.
+function isWatching() {
+  return current !== null;
+}
+
+module.exports = { setUrl, isLivetrackUrl, isWatching };

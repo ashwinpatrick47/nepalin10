@@ -4,14 +4,12 @@ services:
     runtime: docker
     dockerfilePath: ./live-run-tracker/Dockerfile
     dockerContext: ./live-run-tracker
-    # Was "free" (512MB) — the Garmin bridge's headless Chromium genuinely
-    # needs more than that under sustained real load (see garmin.js's own
-    # comments). This service is Blueprint-managed, so leaving this at
-    # "free" after manually upgrading via the dashboard would have let a
-    # future deploy silently revert the plan back to 512MB with no one
-    # touching the dashboard — this keeps the committed config in sync
-    # with what's actually needed.
-    plan: standard
+    # This service no longer runs the Garmin bridge at all (see the
+    # separate live-run-tracker-bridge service below) — just Express +
+    # Socket.IO, confirmed stable on the free 512MB tier even under real
+    # load (that's exactly what proved the Garmin bridge, not this code,
+    # was the thing using all the memory). No paid plan needed here.
+    plan: free
     healthCheckPath: /api/location
     # CMS edits to the LiveTrack link are picked up by polling, so they shouldn't rebuild the image.
     buildFilter:
@@ -54,13 +52,21 @@ services:
   # that crash took the map down for everyone watching too. Isolated here,
   # the same crash only pauses new points arriving — the map itself, served
   # entirely by the other service, is never affected.
-  - type: worker
+  #
+  # type: web, not worker — Render has no free tier for background workers
+  # at all, only web services. This binds a trivial HTTP server (see
+  # bridge-server.js) purely to qualify as one; it doesn't need to receive
+  # real traffic. That does mean it's subject to the free tier's 15-minute
+  # sleep-on-inactivity, so it needs a free external keep-alive pinger
+  # (e.g. UptimeRobot's free tier) hitting its URL every few minutes —
+  # otherwise it would just go to sleep and silently stop polling Garmin.
+  - type: web
     name: live-run-tracker-bridge
     runtime: docker
     dockerfilePath: ./live-run-tracker/Dockerfile
     dockerContext: ./live-run-tracker
     dockerCommand: node bridge-server.js
-    plan: standard
+    plan: free
     buildFilter:
       ignoredPaths:
         - live-run-tracker/content/**
