@@ -799,7 +799,7 @@ html.hima-intro:not(.hima-reveal) .hero-track-link {
 .brands-body { margin:0 auto; max-width:34em; color:color-mix(in srgb,color-mix(in srgb,rgba(242,243,239,.78) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.68) calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.78) calc(var(--dusk-t,0) * 100%)); font-size:18px; line-height:1.8; }
 /* 6 sponsors, 3 per row — tile span divides the row evenly, so no centred-
    start overrides are needed for a trailing partial row. */
-.brands-row { display:grid; grid-template-columns:repeat(6,1fr); gap:0; margin-top:8vh; }
+.brands-row { display:grid; grid-template-columns:repeat(8,1fr); gap:0; margin-top:8vh; }
 .brand-tile { position:relative; grid-column:span 2; display:flex; align-items:center; justify-content:center; aspect-ratio:3/2; }
 .brand-logo { position:relative; width:112px; height:40px; color:color-mix(in srgb,color-mix(in srgb,rgba(242,243,239,.5) calc(100% - var(--scene-t,0) * 100%),rgba(13,15,14,.42) calc(var(--scene-t,0) * 100%)) calc(100% - var(--dusk-t,0) * 100%),rgba(242,243,239,.5) calc(var(--dusk-t,0) * 100%)); transition:color .3s ease; }
 .brand-logo:hover { color:#ff0052; }

@@ -14,7 +14,7 @@ import TextStagger from "@/components/TextStagger";
 // mark, zuum's black text, the Amacx/Chasing Chai/Grens glow-PNGs — none
 // of that original colour matters once it's just an alpha
 // mask, so no per-logo invert/mute special-casing is needed.
-// Six sponsors — 3 per row.
+// Eight sponsors — 4 per row (see .brands-row in globals.css).
 const SPONSORS: readonly { name: string; src: string }[] = [
   { name: "Plasmaide", src: "/images/logo/brands/plasmaide.svg" },
   { name: "Chasing Chai", src: "/images/logo/brands/chaisingchai.png" },
@@ -22,6 +22,12 @@ const SPONSORS: readonly { name: string; src: string }[] = [
   { name: "Grens", src: "/images/logo/brands/grns.png" },
   { name: "Zuum", src: "/images/logo/brands/zuum.svg" },
   { name: "Green Street", src: "/images/logo/brands/greenstreet.webp" },
+  { name: "Mount to Coast", src: "/images/logo/brands/mount-to-coast.png" },
+  // project-transcend.png is a silhouette PNG derived from the original
+  // Project Transcend-black.jpg (which has no alpha channel — the mask
+  // technique below needs one, a flat JPG would render as a solid block
+  // instead of the logo's shape).
+  { name: "Project Transcend", src: "/images/logo/brands/project-transcend.png" },
 ];
 
 export default function BrandsGrid() {
@@ -45,8 +51,12 @@ export default function BrandsGrid() {
               <span
                 className="brand-logo-mask"
                 style={{
-                  maskImage: `url(${sponsor.src})`,
-                  WebkitMaskImage: `url(${sponsor.src})`,
+                  // Quoted: an unquoted CSS url() breaks on literal spaces in
+                  // the path (e.g. a logo file saved with spaces in its
+                  // name), silently dropping the whole mask-image — quoting
+                  // makes this safe regardless of the filename.
+                  maskImage: `url("${sponsor.src}")`,
+                  WebkitMaskImage: `url("${sponsor.src}")`,
                 }}
               />
             </div>
