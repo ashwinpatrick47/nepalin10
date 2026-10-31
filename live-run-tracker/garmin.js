@@ -115,16 +115,21 @@ async function run(url, onPoint, setBrowser) {
     if (!/\/api\/.*track-points/.test(res.url())) return;
     try {
       const { trackPoints } = await res.json();
-      (trackPoints || [])
-        .filter((tp) => tp.position && !seen.has(tp.dateTime))
+      // Temporary diagnostic — remove once we've confirmed points are (or
+      // aren't) actually reaching this handler in production.
+      console.log('garmin bridge: track-points response, raw count =', (trackPoints || []).length);
+      const fresh = (trackPoints || []).filter((tp) => tp.position && !seen.has(tp.dateTime));
+      console.log('garmin bridge: fresh (unseen) points =', fresh.length);
+      fresh
         .sort((a, b) => Date.parse(a.dateTime) - Date.parse(b.dateTime))
         .forEach((tp) => {
           seen.add(tp.dateTime);
+          console.log('garmin bridge: relaying point', tp.dateTime, tp.position);
           onPoint(toPoint(tp));
         });
       trimSeen();
-    } catch {
-      // non-JSON or aborted response — ignore
+    } catch (err) {
+      console.log('garmin bridge: track-points response failed to parse:', err.message);
     }
   });
 

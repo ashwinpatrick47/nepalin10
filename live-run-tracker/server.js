@@ -202,6 +202,9 @@ async function markRunStarted() {
 }
 
 function addPoint(rawPoint) {
+  // Temporary diagnostic — remove once we've confirmed points are (or
+  // aren't) actually reaching this function in production.
+  console.log('addPoint() called, latest will be:', JSON.stringify(rawPoint).slice(0, 200));
   // Phone-tracker points (POST /api/location, below) never carry
   // distanceMeters, so this only ever touches Garmin/Strava points — the
   // offset addition is skipped entirely when there's nothing to add it to.
