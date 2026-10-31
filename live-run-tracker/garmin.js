@@ -90,8 +90,20 @@ async function run(url, onPoint, setBrowser) {
   // live map. Blocking the expensive resource types means Chromium's JS
   // still runs and still fires those requests, but skips the actual map
   // tiles/images/fonts, which is what was pushing memory past the free
-  // tier's 512MB cap and getting the whole container killed after a while.
+  // tier's cap and getting the whole container killed after a while.
+  //
+  // Garmin's page also pulls in the full Google Maps JavaScript API to
+  // render its own live map widget — a WebGL-rendering component, which is
+  // real, sustained memory/CPU cost for a visual this bridge never looks
+  // at. Verified directly (outside this file, against a real active
+  // session): blocking it entirely still lets the track-points API calls
+  // through untouched — Garmin's session polling doesn't depend on its map
+  // widget actually rendering.
   await page.route('**/*', (route) => {
+    const url = route.request().url();
+    if (url.includes('maps.googleapis.com') || url.includes('maps.gstatic.com')) {
+      return route.abort();
+    }
     const type = route.request().resourceType();
     if (type === 'image' || type === 'media' || type === 'font' || type === 'stylesheet') {
       return route.abort();
