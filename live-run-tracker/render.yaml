@@ -48,6 +48,13 @@ services:
         sync: false
       - key: GITHUB_WRITE_TOKEN
         sync: false
+      # The bridge's own public URL, e.g.
+      # https://live-run-tracker-bridge.onrender.com — hit the instant a
+      # link is published (see /api/update-livetrack) so publishing is the
+      # only action anyone ever has to take; nobody has to run or remember
+      # an external keep-alive pinger.
+      - key: BRIDGE_URL
+        sync: false
 
   # Runs ONLY the Garmin LiveTrack scraper — split out from the service
   # above on purpose (see bridge-server.js and server.js's POST
@@ -61,10 +68,10 @@ services:
   # type: web, not worker — Render has no free tier for background workers
   # at all, only web services. This binds a trivial HTTP server (see
   # bridge-server.js) purely to qualify as one; it doesn't need to receive
-  # real traffic. That does mean it's subject to the free tier's 15-minute
-  # sleep-on-inactivity, so it needs a free external keep-alive pinger
-  # (e.g. UptimeRobot's free tier) hitting its URL every few minutes —
-  # otherwise it would just go to sleep and silently stop polling Garmin.
+  # real traffic. It will still sleep after 15 minutes with nobody
+  # publishing a link — that's fine, there's nothing to track while it's
+  # idle anyway. Publishing a link (above) wakes it and triggers an
+  # immediate re-check itself, so no external keep-alive pinger is needed.
   - type: web
     name: live-run-tracker-bridge
     runtime: docker

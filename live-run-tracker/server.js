@@ -53,6 +53,10 @@ const { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile, update
 const UPDATE_PASSWORD = process.env.UPDATE_PASSWORD;
 const GITHUB_WRITE_TOKEN = process.env.GITHUB_WRITE_TOKEN;
 const LIVETRACK_URL_PATTERN = /^$|^https:\/\/livetrack\.garmin\.com\/session\/[0-9a-fA-F-]{36}\/token\/[0-9A-Fa-f]{16,64}\/?$/;
+// The bridge service's own URL — e.g. https://live-run-tracker-bridge.onrender.com.
+// Lets publishing a link wake + trigger the bridge immediately (see
+// /api/update-livetrack below) instead of relying on anyone keeping it warm.
+const BRIDGE_URL = process.env.BRIDGE_URL;
 
 // Lets /admin check the password on its own, before showing the rest of the
 // form — so a wrong password is caught immediately instead of only after
@@ -96,7 +100,20 @@ app.post('/api/update-livetrack', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('update-livetrack failed:', err.message);
-    res.status(502).json({ error: 'GitHub write failed' });
+    return res.status(502).json({ error: 'GitHub write failed' });
+  }
+
+  // Wake the bridge and make it re-check the link right now, instead of
+  // waiting for it to wake on its own (free-tier sleep) and then for its
+  // next 60s poll to notice — this is what makes publishing the link the
+  // only action anyone ever needs to take; nobody has to keep anything
+  // "warm" by hand. Fire-and-forget: if this one request fails, the
+  // bridge's own 60s poll still picks the change up on its own shortly
+  // after, just not instantly.
+  if (BRIDGE_URL) {
+    fetch(`${BRIDGE_URL}/sync`, { method: 'POST' }).catch((err) => {
+      console.error('could not wake bridge:', err.message);
+    });
   }
 });
 
@@ -418,6 +435,23 @@ async function syncLivetrack() {
     lastKnownLivetrackUrl = url;
     latest = null;
     trail.length = 0; // a different session => start a fresh trail
+  }
+
+  // Keep the bridge awake for as long as a session is actually active —
+  // this runs on the same interval as this function itself (well under
+  // the free tier's 15-minute sleep threshold), so the bridge never goes
+  // back to sleep mid-run. Conditional on an active link, so it costs and
+  // pings nothing while idle between events.
+  //
+  // And this service in turn stays awake the same way, with no separate
+  // mechanism needed: every GPS point the bridge finds gets POSTed to
+  // THIS service's own /api/location (every ~10-15s during an active
+  // Garmin session), which is itself inbound traffic that keeps this one
+  // from sleeping. The two services sustain each other automatically once
+  // a link is published, regardless of whether any viewer has shown up
+  // yet — nobody needs to keep anything "warm" by hand, ever.
+  if (url && BRIDGE_URL) {
+    fetch(`${BRIDGE_URL}/`).catch(() => {});
   }
 }
 

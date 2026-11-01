@@ -88,17 +88,28 @@ async function syncLivetrack() {
   garmin.setUrl(url, postPoint);
 }
 
-// The trivial server Render needs to see a port bound — also what the
-// free keep-alive pinger hits. Reports whether the bridge actually thinks
-// it's watching a session, which doubles as a cheap manual status check.
+// The trivial server Render needs to see a port bound. GET / reports
+// whether the bridge actually thinks it's watching a session, which
+// doubles as a cheap manual status check. POST /sync is hit by the main
+// service the instant someone publishes a link (see its own
+// /api/update-livetrack) — this is what makes the whole thing hands-off:
+// publishing the link both wakes this service from free-tier sleep (any
+// inbound request does that) AND makes it re-check the link immediately,
+// instead of waiting for it to wake up on its own and then for its next
+// 60s poll to notice. No external keep-alive pinger needed at all.
 const PORT = process.env.PORT || 3001;
 http
   .createServer((req, res) => {
+    if (req.method === 'POST' && req.url === '/sync') {
+      syncLivetrack();
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, syncing: true }));
+    }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ ok: true, watching: garmin.isWatching(), deliveredCount, lastDeliveryError }));
   })
   .listen(PORT, () => {
-    console.log(`garmin bridge worker listening on port ${PORT} (keep-alive target)`);
+    console.log(`garmin bridge worker listening on port ${PORT}`);
   });
 
 console.log('garmin bridge worker starting — will POST points to', MAIN_SERVICE_URL);
