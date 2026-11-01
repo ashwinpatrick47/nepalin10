@@ -38,6 +38,14 @@ const LIVETRACK_SOURCE =
   process.env.LIVETRACK_SOURCE_URL ||
   `https://raw.githubusercontent.com/${process.env.GITHUB_REPO || 'ashwinpatrick47/nepalin10'}/${process.env.GITHUB_BRANCH || 'main'}/live-run-tracker/content/livetrack.json`;
 
+// Surfaced on this service's own status endpoint below so a mismatched
+// TRACKER_SECRET (or any other delivery failure) is visible from a plain
+// curl/browser hit, not just Render's own logs — this exact failure mode
+// was previously silent: points dropped forever, map just stays empty,
+// nothing anywhere said why.
+let lastDeliveryError = null;
+let deliveredCount = 0;
+
 async function postPoint(point) {
   try {
     const res = await fetch(`${MAIN_SERVICE_URL}/api/location`, {
@@ -46,10 +54,15 @@ async function postPoint(point) {
       body: JSON.stringify({ ...point, secret: TRACKER_SECRET }),
     });
     if (!res.ok) {
-      console.error('bridge: main service rejected point:', res.status, await res.text().catch(() => ''));
+      lastDeliveryError = `main service rejected point: ${res.status} ${await res.text().catch(() => '')}`;
+      console.error('bridge:', lastDeliveryError);
+    } else {
+      lastDeliveryError = null;
+      deliveredCount++;
     }
   } catch (err) {
-    console.error('bridge: failed to reach main service:', err.message);
+    lastDeliveryError = `failed to reach main service: ${err.message}`;
+    console.error('bridge:', lastDeliveryError);
     // Not retried — the next real GPS point a few seconds later is a more
     // useful signal than this one stale point would be anyway.
   }
@@ -82,7 +95,7 @@ const PORT = process.env.PORT || 3001;
 http
   .createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, watching: garmin.isWatching() }));
+    res.end(JSON.stringify({ ok: true, watching: garmin.isWatching(), deliveredCount, lastDeliveryError }));
   })
   .listen(PORT, () => {
     console.log(`garmin bridge worker listening on port ${PORT} (keep-alive target)`);

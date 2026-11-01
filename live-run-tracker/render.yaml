@@ -18,8 +18,13 @@ services:
     envVars:
       - key: MAPBOX_TOKEN
         sync: false
+      # Generated once here, then mirrored onto the bridge service below via
+      # fromService — so the two can never drift out of sync the way two
+      # independently hand-typed dashboard values can (a one-character typo
+      # in either copy means the bridge's points get silently 401'd forever,
+      # with zero visible symptom besides "the map just stays blank").
       - key: TRACKER_SECRET
-        sync: false
+        generateValue: true
       # Optional: mirrors a Garmin LiveTrack session onto the map.
       - key: GARMIN_LIVETRACK_URL
         sync: false
@@ -71,10 +76,15 @@ services:
       ignoredPaths:
         - live-run-tracker/content/**
     envVars:
-      # Must match the main service's own TRACKER_SECRET exactly — this is
-      # how points POSTed here are authenticated, same scheme as a phone.
+      # Mirrored from the main service's own TRACKER_SECRET — see the
+      # comment there. Never hand-type this one; if it's ever wrong, every
+      # point this bridge finds gets silently rejected (401) with no
+      # visible error, and the public map just stays empty forever.
       - key: TRACKER_SECRET
-        sync: false
+        fromService:
+          name: live-run-tracker
+          type: web
+          envVarKey: TRACKER_SECRET
       # The main service's own public URL, e.g.
       # https://live-run-tracker.onrender.com — where this worker POSTs
       # every point it finds.
