@@ -14,7 +14,7 @@ import TextStagger from "@/components/TextStagger";
 // mark, zuum's black text, the Amacx/Chasing Chai/Grens glow-PNGs — none
 // of that original colour matters once it's just an alpha
 // mask, so no per-logo invert/mute special-casing is needed.
-// Eight sponsors — 4 per row (see .brands-row in globals.css).
+// Nine sponsors — 4 per row (see .brands-row in globals.css).
 const SPONSORS: readonly { name: string; src: string }[] = [
   { name: "Plasmaide", src: "/images/logo/brands/plasmaide.svg" },
   { name: "Chasing Chai", src: "/images/logo/brands/chaisingchai.png" },
@@ -28,6 +28,10 @@ const SPONSORS: readonly { name: string; src: string }[] = [
   // technique below needs one, a flat JPG would render as a solid block
   // instead of the logo's shape).
   { name: "Project Transcend", src: "/images/logo/brands/project-transcend.png" },
+  // Same treatment as project-transcend.png above: derived from the
+  // original Injinji.jpg (flat white background, no alpha) by making the
+  // white transparent.
+  { name: "Injinji", src: "/images/logo/brands/injinji.png" },
 ];
 
 export default function BrandsGrid() {
