@@ -85,11 +85,11 @@ const isLivetrackUrl = (url) => typeof url === 'string' && LIVETRACK_URL.test(ur
 // another full container crash.
 const PAGE_REFRESH_MS = 90 * 1000;
 
-// Checked every 10s while a page is open (see run() below) and forces an
-// early reload — the same thing PAGE_REFRESH_MS does on a timer — the
-// moment Chromium's own process tree crosses this. A real session proved
-// the timer alone isn't tight enough: growth can outrun even a 90s window
-// well before hitting it.
+// Checked on WATCHDOG_INTERVAL_MS below while a page is open (see run()
+// below) and forces an early reload — the same thing PAGE_REFRESH_MS does
+// on a timer — the moment Chromium's own process tree crosses this. A real
+// session proved the timer alone isn't tight enough: growth can outrun even
+// a 90s window well before hitting it.
 //
 // Measured directly against a real, long-running LiveTrack session (not
 // just a blank page): Chromium's tree reached 1.6-1.9GB within ~10s of
@@ -104,6 +104,16 @@ const PAGE_REFRESH_MS = 90 * 1000;
 // actually needs, while a genuine runaway still gets caught before an
 // actual OOM.
 const MEMORY_LIMIT_MB = 1850;
+
+// How often the watchdog actually checks. Confirmed live (real Render OOM
+// restarts, not graceful ones -- "worker starting" in the logs, not this
+// file's own "forcing a fresh browser" message) that a 10s gap is too wide:
+// one real session went from a fresh page to over the container's actual
+// ceiling in well under 10 seconds, so the first check never got a chance
+// to catch it before Render's own OOM killer did. Tighter polling doesn't
+// make a single check any smarter, but it shrinks the blind spot a fast
+// spike can hide in.
+const WATCHDOG_INTERVAL_MS = 2500;
 
 // server.close() can hang, or report success while still leaving real
 // Chromium processes running — server.process() is only the top-level PID;
@@ -260,7 +270,7 @@ async function run(url, onPoint, setServer) {
         console.error(`garmin bridge: Chromium tree at ${mb.toFixed(0)}MB, over the ${MEMORY_LIMIT_MB}MB safety limit — forcing a fresh browser`);
         done();
       }
-    }, 10000);
+    }, WATCHDOG_INTERVAL_MS);
   });
   await closeBrowser(server);
 }
