@@ -125,8 +125,8 @@
   <div id="map"></div>
   <div id="banner" class="none">Waiting for location…</div>
   <div id="stats">
-    <div><b id="stat-distance">—</b><span>mi</span></div>
-    <div><b id="stat-pace">—</b><span>pace /mi</span></div>
+    <div><b id="stat-distance">—</b><span>km</span></div>
+    <div><b id="stat-pace">—</b><span>pace /km</span></div>
     <div><b id="stat-hr">—</b><span>bpm</span></div>
   </div>
   <div id="config-error"></div>
@@ -227,7 +227,7 @@
       }
     }
 
-    const METERS_PER_MILE = 1609.344;
+    const METERS_PER_KM = 1000;
 
     // Pace is derived from distanceMeters/timestamp deltas across the trail
     // rather than Garmin's own `speedMetersPerSec` field — that field has
@@ -246,7 +246,7 @@
         const deltaSeconds = (p.timestamp - prev.timestamp) / 1000;
         if (deltaSeconds < 30 || deltaMeters < 50) continue;
         if (deltaMeters <= 0) return null;
-        return Math.round(deltaSeconds / (deltaMeters / METERS_PER_MILE));
+        return Math.round(deltaSeconds / (deltaMeters / METERS_PER_KM));
       }
       return null;
     }
@@ -256,12 +256,12 @@
       document.getElementById('stats').classList.toggle('show', hasStats);
       if (!hasStats) return;
       document.getElementById('stat-distance').textContent =
-        p.distanceMeters != null ? (p.distanceMeters / METERS_PER_MILE).toFixed(2) : '—';
+        p.distanceMeters != null ? (p.distanceMeters / METERS_PER_KM).toFixed(2) : '—';
       document.getElementById('stat-hr').textContent = p.heartRate != null ? p.heartRate : '—';
       let pace = '—';
-      const secPerMile = paceFromTrail(p, trail);
-      if (secPerMile != null) {
-        pace = Math.floor(secPerMile / 60) + ':' + String(secPerMile % 60).padStart(2, '0');
+      const secPerKm = paceFromTrail(p, trail);
+      if (secPerKm != null) {
+        pace = Math.floor(secPerKm / 60) + ':' + String(secPerKm % 60).padStart(2, '0');
       }
       document.getElementById('stat-pace').textContent = pace;
     }
