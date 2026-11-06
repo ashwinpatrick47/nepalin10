@@ -91,17 +91,19 @@ const PAGE_REFRESH_MS = 90 * 1000;
 // the timer alone isn't tight enough: growth can outrun even a 90s window
 // well before hitting it.
 //
-// Measured directly (see the comment on launchServer() below for how):
-// Chromium's own baseline — browser + renderer + GPU + utility processes,
-// nothing Garmin-specific, not even a real page — already sits around
-// 400-450MB. A cap much below that would force a reload almost
-// immediately on every single cycle, before a page ever gets a real
-// chance to work. Tuned against the 2GB plan this now runs on (not the
-// free tier's 512MB, which this whole fix exists because of): a wide
-// margin above that baseline so normal operation isn't spent constantly
-// reloading, while still well under the container's real ceiling so a
-// genuine runaway gets caught long before it gets there.
-const MEMORY_LIMIT_MB = 1400;
+// Measured directly against a real, long-running LiveTrack session (not
+// just a blank page): Chromium's tree reached 1.6-1.9GB within ~10s of
+// every single fresh load -- apparently the real cost of a session with
+// a lot of accumulated track history to render, not runaway growth over
+// time. A first attempt at this cap (1400MB) tore every one of those
+// down before they had a chance to finish loading and deliver anything,
+// even though the container itself (2GB) was never actually in danger at
+// that level -- this bridge's own caution was the thing breaking it, not
+// Chromium. Set close to the container's real ceiling instead of
+// guessing conservatively, so a normal (if heavy) load gets the room it
+// actually needs, while a genuine runaway still gets caught before an
+// actual OOM.
+const MEMORY_LIMIT_MB = 1850;
 
 // server.close() can hang, or report success while still leaving real
 // Chromium processes running — server.process() is only the top-level PID;
