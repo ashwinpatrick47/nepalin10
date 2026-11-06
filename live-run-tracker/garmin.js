@@ -202,32 +202,17 @@ async function run(url, onPoint, setServer) {
   const browser = await chromium.connect(server.wsEndpoint());
   const page = await browser.newPage();
 
-  // All this bridge actually reads is the page's own background fetches for
-  // track-points JSON (below) — it never needs to visually render Garmin's
-  // live map. Blocking the expensive resource types means Chromium's JS
-  // still runs and still fires those requests, but skips the actual map
-  // tiles/images/fonts, which is what was pushing memory past the free
-  // tier's cap and getting the whole container killed after a while.
-  //
-  // Garmin's page also pulls in the full Google Maps JavaScript API to
-  // render its own live map widget — a WebGL-rendering component, which is
-  // real, sustained memory/CPU cost for a visual this bridge never looks
-  // at. Verified directly (outside this file, against a real active
-  // session): blocking it entirely still lets the track-points API calls
-  // through untouched — Garmin's session polling doesn't depend on its map
-  // widget actually rendering.
-  await page.route('**/*', (route) => {
-    const url = route.request().url();
-    if (url.includes('maps.googleapis.com') || url.includes('maps.gstatic.com')) {
-      return route.abort();
-    }
-    const type = route.request().resourceType();
-    if (type === 'image' || type === 'media' || type === 'font' || type === 'stylesheet') {
-      return route.abort();
-    }
-    route.continue();
-  });
-
+  // No resource blocking here on purpose, despite the memory cost — tried
+  // it (blocking maps.googleapis.com/maps.gstatic.com plus images/fonts/
+  // stylesheets) and verified directly against a real live session: with
+  // that blocking active, the track-points request this bridge actually
+  // needs never fired at all, even after 30s. Unblocked, it reliably
+  // arrives around 15s. Whatever Garmin's page is doing, something in that
+  // blocked set gates its own track-points polling from ever starting —
+  // and blocking it wasn't even saving meaningful memory anyway (a blocked
+  // run still climbed to ~2GB). It was pure downside: no memory benefit,
+  // silently broken data capture. MEMORY_LIMIT_MB and the watchdog below
+  // are what actually keep memory in check now.
   page.on('response', async (res) => {
     if (!/\/api\/.*track-points/.test(res.url())) return;
     try {
