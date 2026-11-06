@@ -67,6 +67,9 @@
         <label for="tracking-live">Track me live (show "Track me" links on the main site)</label>
       </div>
       <div class="hint" id="tracking-live-hint">Off: every "Track me" link on the main site shows greyed out. Takes 1-2 minutes to rebuild on the main site after publishing.</div>
+      <button type="button" id="toggle-tracking-only" style="margin-top:10px;width:100%;padding:12px;font-size:1rem;border:1px solid #24292f;border-radius:6px;background:none;color:#24292f;cursor:pointer;">Checking…</button>
+      <p class="hint" id="toggle-tracking-status"></p>
+      <div class="hint" style="margin:14px 0;border-top:1px solid #e5e5e5;"></div>
       <p class="hint" id="current-status">Checking current status…</p>
       <p class="hint" id="bridge-status">Checking delivery status…</p>
       <button type="submit">Publish</button>
@@ -104,6 +107,8 @@
     const currentStatus = document.getElementById('current-status');
     const bridgeStatus = document.getElementById('bridge-status');
     const stopTrackingBtn = document.getElementById('stop-tracking');
+    const toggleTrackingBtn = document.getElementById('toggle-tracking-only');
+    const toggleTrackingStatus = document.getElementById('toggle-tracking-status');
     const urlInput = publishStep.querySelector('[name="url"]');
     const noteInput = publishStep.querySelector('[name="note"]');
     const distanceInput = publishStep.querySelector('[name="distanceOffsetKm"]');
@@ -175,10 +180,17 @@
             trackingLiveHint.textContent =
               (initialTrackingLive ? 'Currently on.' : 'Currently off.') +
               ' Off: every "Track me" link on the main site shows greyed out. Takes 1-2 minutes to rebuild on the main site after publishing.';
+            setToggleButtonLabel(initialTrackingLive);
           } catch (err) {
-            // Non-fatal — the checkbox just starts unchecked and only gets
-            // written if the person explicitly toggles it (see submit below).
+            // Non-fatal for the Publish form itself (see its own submit
+            // handler below), but the standalone toggle button needs to know
+            // the real current state before it can safely flip it — guessing
+            // wrong here is exactly the kind of silent "it didn't do what I
+            // expected" bug this button exists to avoid. Disabled until a
+            // real reload gets a real answer.
             initialTrackingLive = null;
+            toggleTrackingBtn.textContent = 'Could not check current status';
+            toggleTrackingBtn.disabled = true;
           }
 
           // Pre-fill with what's actually live right now — the form used to
@@ -220,6 +232,9 @@
       pwdStep.reset();
       pwdStep.classList.remove('hidden-step');
       status.textContent = '';
+      toggleTrackingBtn.textContent = 'Checking…';
+      toggleTrackingBtn.disabled = false;
+      toggleTrackingStatus.textContent = '';
     });
 
     // Clears the link and submits immediately — distance and note are left
@@ -228,6 +243,57 @@
     stopTrackingBtn.addEventListener('click', () => {
       urlInput.value = '';
       publishStep.requestSubmit();
+    });
+
+    function setToggleButtonLabel(live) {
+      toggleTrackingBtn.textContent = live
+        ? 'Turn "Track me" OFF'
+        : 'Turn "Track me" ON';
+      toggleTrackingBtn.style.color = live ? '#c00' : '#1a7f37';
+      toggleTrackingBtn.style.borderColor = live ? '#c00' : '#1a7f37';
+    }
+
+    // Its own standalone action, separate from Publish on purpose — flipping
+    // "Track me" used to only happen as a side effect of submitting the
+    // whole link/distance/note form together, which meant turning it off
+    // required touching everything else too, and (if the current-status
+    // fetch above ever failed) could silently flip it to the wrong state
+    // with no warning. This reads the checkbox's own current value (already
+    // synced to the real server state when step 2 opened) and writes
+    // exactly that — nothing else changes.
+    toggleTrackingBtn.addEventListener('click', async () => {
+      if (initialTrackingLive === null) return; // real state unknown — see the catch block above
+      const nextValue = !trackingLiveBox.checked;
+      toggleTrackingBtn.disabled = true;
+      toggleTrackingStatus.textContent = 'Updating…';
+      toggleTrackingStatus.style.color = '';
+      try {
+        const res = await fetch('/api/update-site-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: verifiedPassword, trackingLive: nextValue }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          toggleTrackingStatus.textContent = 'Error: ' + (body.error || res.status);
+          toggleTrackingStatus.style.color = '#c00';
+          return;
+        }
+        trackingLiveBox.checked = nextValue;
+        initialTrackingLive = nextValue;
+        setToggleButtonLabel(nextValue);
+        trackingLiveHint.textContent =
+          (nextValue ? 'Currently on.' : 'Currently off.') +
+          ' Off: every "Track me" link on the main site shows greyed out. Takes 1-2 minutes to rebuild on the main site after publishing.';
+        toggleTrackingStatus.textContent =
+          '"Track me" turned ' + (nextValue ? 'ON' : 'OFF') + '. Takes 1-2 minutes to show on the main site.';
+        toggleTrackingStatus.style.color = '#1a7f37';
+      } catch (err) {
+        toggleTrackingStatus.textContent = 'Error: ' + err.message;
+        toggleTrackingStatus.style.color = '#c00';
+      } finally {
+        toggleTrackingBtn.disabled = false;
+      }
     });
 
     publishStep.addEventListener('submit', async (e) => {
@@ -255,10 +321,15 @@
           return;
         }
 
-        // Only write the toggle if it actually changed — sending it
-        // unconditionally would commit a no-op change to site-settings.json
-        // (and a rebuild) every single time someone just updates the link.
-        if (trackingLiveBox.checked !== initialTrackingLive) {
+        // Only write the toggle if it actually changed AND the real starting
+        // state is actually known — sending it unconditionally would commit
+        // a no-op change to site-settings.json (and a rebuild) every single
+        // time someone just updates the link, and when initialTrackingLive
+        // is null (the status fetch on step 2 failed), the checkbox's
+        // default-unchecked state would otherwise read as "changed" and
+        // silently flip tracking off as a side effect of publishing a link,
+        // with no warning that it happened.
+        if (initialTrackingLive !== null && trackingLiveBox.checked !== initialTrackingLive) {
           const settingsRes = await fetch('/api/update-site-settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
