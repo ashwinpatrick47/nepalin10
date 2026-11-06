@@ -265,6 +265,46 @@ async function run(url, onPoint, setServer) {
   await closeBrowser(server);
 }
 
+// Checked at publish time (see bridge-server.js's /check-session) so a dead
+// link is caught immediately instead of looking identical to a live one
+// until someone notices the map is empty — a plain server-side fetch() of
+// Garmin's session endpoint gets a flat 403 (confirmed directly), the exact
+// same block this whole file exists to work around, so this does the same
+// thing run() does: open it in a real browser and read what the page itself
+// fetches. Short-lived and separate from the main watch loop on purpose —
+// this only needs the one session-status response, not a sustained session,
+// so it closes itself the moment it has an answer or after a hard timeout,
+// rather than living anywhere near as long as a real watch does.
+async function checkSessionEnded(url) {
+  if (!isLivetrackUrl(url)) return null;
+  const { chromium } = require('playwright');
+  const server = await chromium.launchServer({
+    args: ['--disable-dev-shm-usage', '--disable-gpu', '--no-first-run'],
+  });
+  try {
+    const browser = await chromium.connect(server.wsEndpoint());
+    const page = await browser.newPage();
+    let result = null;
+    page.on('response', async (res) => {
+      if (result || !/\/api\/v2\/sessions\//.test(res.url())) return;
+      try {
+        const data = await res.json();
+        if (data.end) result = { ended: Date.parse(data.end) < Date.now(), end: data.end };
+      } catch {
+        // non-JSON response — ignore, same as the main response handler above
+      }
+    });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    const deadline = Date.now() + 8000;
+    while (!result && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    return result;
+  } finally {
+    await closeBrowser(server);
+  }
+}
+
 function launch(url, onPoint) {
   let stopped = false;
   let server = null;
@@ -308,4 +348,4 @@ function isWatching() {
   return current !== null;
 }
 
-module.exports = { setUrl, isLivetrackUrl, isWatching };
+module.exports = { setUrl, isLivetrackUrl, isWatching, checkSessionEnded };

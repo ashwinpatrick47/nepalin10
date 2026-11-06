@@ -68,6 +68,7 @@
       </div>
       <div class="hint" id="tracking-live-hint">Off: every "Track me" link on the main site shows greyed out. Takes 1-2 minutes to rebuild on the main site after publishing.</div>
       <p class="hint" id="current-status">Checking current status…</p>
+      <p class="hint" id="bridge-status">Checking delivery status…</p>
       <button type="submit">Publish</button>
       <button type="button" id="stop-tracking" style="margin-top:10px;width:100%;padding:12px;font-size:1rem;border:1px solid #c00;border-radius:6px;background:none;color:#c00;cursor:pointer;">Stop tracking now (clear the link)</button>
       <a href="#" id="start-over" class="hint">← wrong password entered, start over</a>
@@ -101,6 +102,7 @@
     const trackingLiveBox = document.getElementById('tracking-live');
     const trackingLiveHint = document.getElementById('tracking-live-hint');
     const currentStatus = document.getElementById('current-status');
+    const bridgeStatus = document.getElementById('bridge-status');
     const stopTrackingBtn = document.getElementById('stop-tracking');
     const urlInput = publishStep.querySelector('[name="url"]');
     const noteInput = publishStep.querySelector('[name="note"]');
@@ -111,6 +113,42 @@
     // instead of defaulting unchecked and silently turning tracking off the
     // next time someone just wants to update the link.
     let initialTrackingLive = null;
+
+    // Polled while step 2 is open, not just checked once — so "is it
+    // actually working" is something anyone can see for themselves at a
+    // glance instead of it only being answerable by asking someone to go
+    // query the bridge directly, which was the real gap behind most of the
+    // "is it broken?" confusion this week.
+    let bridgeStatusTimer = null;
+    async function refreshBridgeStatus() {
+      try {
+        const res = await fetch('/api/bridge-status');
+        const data = await res.json();
+        if (!res.ok) {
+          bridgeStatus.textContent = 'Delivery status: could not reach the bridge (' + (data.error || res.status) + ').';
+          bridgeStatus.style.color = '#c00';
+          return;
+        }
+        if (data.lastDeliveryError) {
+          bridgeStatus.textContent = 'Delivery status: ' + data.lastDeliveryError;
+          bridgeStatus.style.color = '#c00';
+        } else if (!data.watching) {
+          bridgeStatus.textContent = 'Delivery status: not watching any session right now.';
+          bridgeStatus.style.color = '';
+        } else {
+          bridgeStatus.textContent = 'Delivery status: watching — ' + data.deliveredCount + ' point(s) delivered so far.';
+          bridgeStatus.style.color = data.deliveredCount > 0 ? '#1a7f37' : '';
+        }
+      } catch (err) {
+        bridgeStatus.textContent = 'Delivery status: could not reach the bridge (' + err.message + ').';
+        bridgeStatus.style.color = '#c00';
+      }
+    }
+    function startBridgeStatusPolling() {
+      refreshBridgeStatus();
+      clearInterval(bridgeStatusTimer);
+      bridgeStatusTimer = setInterval(refreshBridgeStatus, 10000);
+    }
 
     pwdStep.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -158,6 +196,7 @@
           } catch (err) {
             currentStatus.textContent = 'Could not load current status — check before publishing.';
           }
+          startBridgeStatusPolling();
         } else {
           const body = await res.json().catch(() => ({}));
           pwdStatus.textContent = res.status === 401 ? 'Wrong password.' : 'Error: ' + (body.error || res.status);
@@ -175,6 +214,7 @@
       e.preventDefault();
       verifiedPassword = null;
       initialTrackingLive = null;
+      clearInterval(bridgeStatusTimer);
       publishStep.reset();
       publishStep.classList.add('hidden-step');
       pwdStep.reset();
@@ -233,8 +273,17 @@
           initialTrackingLive = trackingLiveBox.checked;
         }
 
-        status.textContent = 'Saved! Takes effect within about a minute.';
-        status.style.color = '#1a7f37';
+        if (body.warning) {
+          status.textContent = 'Saved — but ' + body.warning;
+          status.style.color = '#b8860b';
+        } else {
+          status.textContent = 'Saved! Takes effect within about a minute.';
+          status.style.color = '#1a7f37';
+        }
+        // Publishing wakes the bridge and makes it re-check immediately (see
+        // server.js) — give it a moment to actually connect before the next
+        // poll, then refresh right away instead of waiting out the full 10s.
+        setTimeout(refreshBridgeStatus, 3000);
       } catch (err) {
         status.textContent = 'Error: ' + err.message;
         status.style.color = '#c00';

@@ -53,6 +53,43 @@ const { updateLivetrackFile, updateSiteSettingsFile, updateRunStatusFile, update
 const UPDATE_PASSWORD = process.env.UPDATE_PASSWORD;
 const GITHUB_WRITE_TOKEN = process.env.GITHUB_WRITE_TOKEN;
 const LIVETRACK_URL_PATTERN = /^$|^https:\/\/livetrack\.garmin\.com\/session\/[0-9a-fA-F-]{36}\/token\/[0-9A-Fa-f]{16,64}\/?$/;
+
+// Checked at publish time so a stale link is caught immediately instead of
+// looking identical to a live one until someone notices the map is empty --
+// that gap (a dead link and a working one give zero visible difference in
+// /admin) was the single biggest source of "is it broken?" confusion in
+// testing. Garmin's own session endpoint reports an `end` timestamp; once
+// that's in the past, the session is over and nothing further will ever
+// arrive for it, confirmed directly against real ended sessions.
+//
+// Routed through the bridge (POST /check-session), not fetched directly --
+// a plain server-side fetch of Garmin's session endpoint gets a flat 403
+// (confirmed directly), the same block garmin.js's own top comment already
+// describes; the bridge is the one place that has a real browser to get
+// past it. Never blocks the publish itself and never throws -- a network
+// hiccup here, the bridge being asleep, or Garmin changing this endpoint's
+// shape again, must not stop someone from publishing a link that's
+// actually fine; it only adds a warning when it's confident something's
+// wrong.
+async function checkGarminSessionLive(url) {
+  if (!BRIDGE_URL) return null;
+  try {
+    const res = await fetch(`${BRIDGE_URL}/check-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) return null;
+    const { result } = await res.json();
+    if (result && result.ended) {
+      return `Heads up: Garmin says this session already ended (at ${new Date(result.end).toLocaleString()}) -- it won't send any new location data. Publish anyway if that's expected, otherwise get a fresh LiveTrack link.`;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 // The bridge service's own URL — e.g. https://live-run-tracker-bridge.onrender.com.
 // Lets publishing a link wake + trigger the bridge immediately (see
 // /api/update-livetrack below) instead of relying on anyone keeping it warm.
@@ -91,13 +128,18 @@ app.post('/api/update-livetrack', async (req, res) => {
     return res.status(400).json({ error: 'invalid distance' });
   }
 
+  // Runs before the write, not after — so the warning (if any) is ready to
+  // go out in the same response as the "Saved!" confirmation, instead of a
+  // second round-trip or a separate check someone has to remember to run.
+  const staleWarning = url ? await checkGarminSessionLive(url) : null;
+
   try {
     await updateLivetrackFile(GITHUB_WRITE_TOKEN, {
       url,
       note: typeof note === 'string' ? note : '',
       distanceOffsetKm: offset,
     });
-    res.json({ ok: true });
+    res.json({ ok: true, warning: staleWarning });
   } catch (err) {
     console.error('update-livetrack failed:', err.message);
     return res.status(502).json({ error: 'GitHub write failed' });
@@ -150,6 +192,25 @@ app.get('/api/livetrack-settings', async (req, res) => {
     });
   } catch (err) {
     res.status(502).json({ error: 'could not read livetrack settings' });
+  }
+});
+
+// Proxies the bridge's own status (its /sync endpoint's GET -- deliveredCount
+// and lastDeliveryError) so /admin can show "is this actually working" on
+// its own, instead of that only being visible by asking someone to go query
+// the bridge directly. Unauthenticated, same as the read endpoints above --
+// it reveals nothing sensitive, just whether points are flowing.
+app.get('/api/bridge-status', async (req, res) => {
+  if (!BRIDGE_URL) {
+    return res.status(503).json({ error: 'bridge not configured' });
+  }
+  try {
+    const r = await fetch(`${BRIDGE_URL}/`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`bridge responded ${r.status}`);
+    const data = await r.json();
+    res.json(data);
+  } catch (err) {
+    res.status(502).json({ error: 'could not reach bridge', detail: err.message });
   }
 });
 

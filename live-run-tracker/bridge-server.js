@@ -97,13 +97,49 @@ async function syncLivetrack() {
 // inbound request does that) AND makes it re-check the link immediately,
 // instead of waiting for it to wake up on its own and then for its next
 // 60s poll to notice. No external keep-alive pinger needed at all.
+// Used by the main service's /api/update-livetrack (see server.js) to warn
+// at publish time when a link is already a dead session — routed through
+// here rather than done directly by the main service because the check
+// needs a real browser (Garmin's session API 403s a plain server fetch,
+// confirmed directly), and this is the only one of the two services that
+// has Chromium at all. Reads the body itself since this is the bare `http`
+// module, not Express.
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk;
+      if (raw.length > 10_000) req.destroy(); // a URL is never anywhere near this big
+    });
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(raw || '{}'));
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
 const PORT = process.env.PORT || 3001;
 http
-  .createServer((req, res) => {
+  .createServer(async (req, res) => {
     if (req.method === 'POST' && req.url === '/sync') {
       syncLivetrack();
       res.writeHead(202, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true, syncing: true }));
+    }
+    if (req.method === 'POST' && req.url === '/check-session') {
+      try {
+        const { url } = await readJsonBody(req);
+        const result = await garmin.checkSessionEnded(url);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ ok: true, result }));
+      } catch (err) {
+        res.writeHead(502, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ ok: false, error: err.message }));
+      }
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ ok: true, watching: garmin.isWatching(), deliveredCount, lastDeliveryError }));
