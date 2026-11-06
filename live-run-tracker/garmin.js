@@ -6,6 +6,50 @@
 //
 // setUrl() can be called any time (e.g. when the link is edited in the CMS):
 // it switches the bridge to the new session, or stops it when the link is empty.
+const { execSync } = require('child_process');
+
+// Chromium is a multi-process browser — browser.process() is only the
+// top-level PID; it spawns separate renderer/GPU/utility child processes
+// per tab. Killing just that top-level PID (what this used to do) doesn't
+// kill its children, so a close that "succeeds" can still leave real
+// Chromium processes running in the background, invisible to Playwright
+// from then on. Confirmed in production: memory kept climbing across
+// reload cycles even with a prompt, successful-looking close each time —
+// this is why. Walks the real OS process tree (via `ps`, standard on the
+// Playwright base image) so both the memory watchdog below and the forced
+// kill in closeBrowser() account for every process a launch() actually
+// spawned, not just the one PID Playwright hands back.
+function processTree() {
+  const tree = new Map(); // pid -> { ppid, rssKb }
+  try {
+    const out = execSync('ps -eo pid,ppid,rss', { encoding: 'utf8' });
+    for (const line of out.trim().split('\n').slice(1)) {
+      const [pid, ppid, rssKb] = line.trim().split(/\s+/).map(Number);
+      if (Number.isFinite(pid)) tree.set(pid, { ppid, rssKb: rssKb || 0 });
+    }
+  } catch {
+    // `ps` missing or failed — callers treat an empty tree as "nothing found",
+    // same as today's behaviour before this existed.
+  }
+  return tree;
+}
+
+function descendants(rootPid, tree) {
+  const byParent = new Map();
+  for (const [pid, { ppid }] of tree) {
+    if (!byParent.has(ppid)) byParent.set(ppid, []);
+    byParent.get(ppid).push(pid);
+  }
+  const out = [];
+  const stack = [rootPid];
+  while (stack.length) {
+    const pid = stack.pop();
+    out.push(pid);
+    for (const child of byParent.get(pid) || []) stack.push(child);
+  }
+  return out;
+}
+
 const seen = new Set();
 // Caps how many dateTime strings `seen` holds — unbounded growth over a
 // multi-day session is a slow memory leak that matters a lot more on a
@@ -41,13 +85,25 @@ const isLivetrackUrl = (url) => typeof url === 'string' && LIVETRACK_URL.test(ur
 // another full container crash.
 const PAGE_REFRESH_MS = 90 * 1000;
 
-// browser.close() can hang or quietly fail to fully release the underlying
-// Chromium process — under real sustained sessions, that leaves bits of
-// memory from the old process still held when the next one launches 90s
-// later, piling up across dozens of reloads until the whole container
-// finally OOMs (confirmed: it kept happening even with timely reloads in
-// place). Racing close() against a timeout and SIGKILLing the process
-// directly if it doesn't finish makes sure nothing outlives its own reload.
+// Checked every 10s while a page is open (see run() below) and forces an
+// early reload — the same thing PAGE_REFRESH_MS does on a timer — the
+// moment Chromium's own process tree crosses this. A real session proved
+// the timer alone isn't tight enough: growth can outrun even a 90s window
+// well before hitting it. Set well under any container's actual RAM (the
+// free tier's 512MB included), so it fires on real measured usage instead
+// of gambling on how much headroom a given deploy happens to have.
+const MEMORY_LIMIT_MB = 350;
+
+// browser.close() can hang, or report success while still leaving real
+// Chromium processes running — browser.process() is only the top-level PID;
+// Chromium spawns separate renderer/GPU/utility children per tab that
+// aren't guaranteed to exit just because their parent did. That's why
+// memory kept climbing across reload cycles even with a prompt, clean-
+// looking close each time: those children survived every "successful"
+// close ever since this bridge existed. Racing close() against a timeout
+// is kept as the polite first attempt, but either way this now sweeps and
+// SIGKILLs the browser's entire process tree, not just its one PID, so
+// nothing outlives its own reload.
 async function closeBrowser(browser) {
   const proc = browser.process();
   try {
@@ -56,7 +112,17 @@ async function closeBrowser(browser) {
       new Promise((_, reject) => setTimeout(() => reject(new Error('close timed out')), 5000)),
     ]);
   } catch {
-    if (proc) proc.kill('SIGKILL');
+    // Not fatal — the sweep below still runs either way.
+  }
+  if (proc) {
+    const tree = processTree();
+    for (const pid of descendants(proc.pid, tree)) {
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {
+        // Already dead — fine, that's the goal.
+      }
+    }
   }
 }
 
@@ -158,12 +224,34 @@ async function run(url, onPoint, setBrowser) {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
   console.log('garmin bridge: watching LiveTrack session');
   await new Promise((resolve) => {
-    page.on('close', resolve);
-    browser.on('disconnected', resolve);
+    let watchdog;
+    // Cleared no matter which of the paths below actually fires, so it
+    // never keeps polling a browser that's already on its way out.
+    const done = () => {
+      clearInterval(watchdog);
+      resolve();
+    };
+    page.on('close', done);
+    browser.on('disconnected', done);
     // Not an error path — see PAGE_REFRESH_MS above. launch()'s loop
     // treats this exactly like any other end of run(): close, pause,
     // reopen a fresh browser+page pointed at the same URL.
-    setTimeout(resolve, PAGE_REFRESH_MS);
+    setTimeout(done, PAGE_REFRESH_MS);
+    // See MEMORY_LIMIT_MB above — this is the fix for growth that outruns
+    // the fixed timer above: real measured usage, checked often enough to
+    // catch a run that's climbing fast, not just the ones that wait
+    // politely for their 90s turn.
+    watchdog = setInterval(() => {
+      const proc = browser.process();
+      if (!proc) return;
+      const tree = processTree();
+      const totalKb = descendants(proc.pid, tree).reduce((sum, pid) => sum + (tree.get(pid)?.rssKb || 0), 0);
+      const mb = totalKb / 1024;
+      if (mb > MEMORY_LIMIT_MB) {
+        console.error(`garmin bridge: Chromium tree at ${mb.toFixed(0)}MB, over the ${MEMORY_LIMIT_MB}MB safety limit — forcing a fresh browser`);
+        done();
+      }
+    }, 10000);
   });
   await closeBrowser(browser);
 }
