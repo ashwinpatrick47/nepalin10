@@ -8,16 +8,16 @@
 // it switches the bridge to the new session, or stops it when the link is empty.
 const { execSync } = require('child_process');
 
-// Chromium is a multi-process browser — browser.process() is only the
-// top-level PID; it spawns separate renderer/GPU/utility child processes
-// per tab. Killing just that top-level PID (what this used to do) doesn't
-// kill its children, so a close that "succeeds" can still leave real
-// Chromium processes running in the background, invisible to Playwright
-// from then on. Confirmed in production: memory kept climbing across
-// reload cycles even with a prompt, successful-looking close each time —
-// this is why. Walks the real OS process tree (via `ps`, standard on the
-// Playwright base image) so both the memory watchdog below and the forced
-// kill in closeBrowser() account for every process a launch() actually
+// Chromium is a multi-process browser — server.process() (see closeBrowser()
+// below) is only the top-level PID; it spawns separate renderer/GPU/utility
+// child processes per tab. Killing just that top-level PID (what this used
+// to do) doesn't kill its children, so a close that "succeeds" can still
+// leave real Chromium processes running in the background, invisible to
+// Playwright from then on. Confirmed in production: memory kept climbing
+// across reload cycles even with a prompt, successful-looking close each
+// time — this is why. Walks the real OS process tree (via `ps`, standard on
+// the Playwright base image) so both the memory watchdog below and the
+// forced kill in closeBrowser() account for every process a launch actually
 // spawned, not just the one PID Playwright hands back.
 function processTree() {
   const tree = new Map(); // pid -> { ppid, rssKb }
@@ -89,13 +89,22 @@ const PAGE_REFRESH_MS = 90 * 1000;
 // early reload — the same thing PAGE_REFRESH_MS does on a timer — the
 // moment Chromium's own process tree crosses this. A real session proved
 // the timer alone isn't tight enough: growth can outrun even a 90s window
-// well before hitting it. Set well under any container's actual RAM (the
-// free tier's 512MB included), so it fires on real measured usage instead
-// of gambling on how much headroom a given deploy happens to have.
-const MEMORY_LIMIT_MB = 350;
+// well before hitting it.
+//
+// Measured directly (see the comment on launchServer() below for how):
+// Chromium's own baseline — browser + renderer + GPU + utility processes,
+// nothing Garmin-specific, not even a real page — already sits around
+// 400-450MB. A cap much below that would force a reload almost
+// immediately on every single cycle, before a page ever gets a real
+// chance to work. Tuned against the 2GB plan this now runs on (not the
+// free tier's 512MB, which this whole fix exists because of): a wide
+// margin above that baseline so normal operation isn't spent constantly
+// reloading, while still well under the container's real ceiling so a
+// genuine runaway gets caught long before it gets there.
+const MEMORY_LIMIT_MB = 1400;
 
-// browser.close() can hang, or report success while still leaving real
-// Chromium processes running — browser.process() is only the top-level PID;
+// server.close() can hang, or report success while still leaving real
+// Chromium processes running — server.process() is only the top-level PID;
 // Chromium spawns separate renderer/GPU/utility children per tab that
 // aren't guaranteed to exit just because their parent did. That's why
 // memory kept climbing across reload cycles even with a prompt, clean-
@@ -104,11 +113,18 @@ const MEMORY_LIMIT_MB = 350;
 // is kept as the polite first attempt, but either way this now sweeps and
 // SIGKILLs the browser's entire process tree, not just its one PID, so
 // nothing outlives its own reload.
-async function closeBrowser(browser) {
-  const proc = browser.process();
+//
+// Takes the BrowserServer, not the Browser connect() hands back — Playwright
+// only exposes a real process() (and therefore a real PID) on BrowserServer;
+// on a plain Browser from chromium.launch() it's simply undefined, which is
+// why run() below launches via launchServer()+connect() instead of launch()
+// directly (confirmed by actually calling it: `browser.process` is
+// `undefined` at runtime on a launch()'d Browser, not just undocumented).
+async function closeBrowser(server) {
+  const proc = server.process();
   try {
     await Promise.race([
-      browser.close(),
+      server.close(),
       new Promise((_, reject) => setTimeout(() => reject(new Error('close timed out')), 5000)),
     ]);
   } catch {
@@ -138,7 +154,7 @@ function toPoint(tp) {
   };
 }
 
-async function run(url, onPoint, setBrowser) {
+async function run(url, onPoint, setServer) {
   const { chromium } = require('playwright');
   // --disable-dev-shm-usage: containers often cap /dev/shm well below what
   // Chromium wants by default, which otherwise shows up as random crashes
@@ -151,13 +167,18 @@ async function run(url, onPoint, setBrowser) {
   //
   // No --js-flags heap cap: tried 128MB (too tight — crashed the page
   // before it ever finished loading far enough to request track-points)
-  // and 768MB (too loose on this container — brought back the whole-
-  // container OOM). Rather than guess a third fixed number blind, this
-  // leaves V8's own heap sizing alone — it already adapts to the system's
-  // actual available memory, which is the 2GB this container genuinely
-  // has, instead of a hand-picked guess that's either too tight or too
-  // loose for it.
-  const browser = await chromium.launch({
+  // and 768MB (too loose — brought back the whole-container OOM on the
+  // tier this was tuned against). Rather than guess a third fixed number
+  // blind, this leaves V8's own heap sizing alone and instead bounds
+  // actual measured usage directly — see MEMORY_LIMIT_MB and the watchdog
+  // below, which is the real fix for the growth this was trying to guess
+  // a cap for.
+  //
+  // launchServer()+connect(), not a plain launch(): a Browser from
+  // launch() has no working process()/real PID to hand to the memory
+  // watchdog or closeBrowser()'s kill-fallback — only BrowserServer
+  // exposes that. See closeBrowser()'s own comment for how this was found.
+  const server = await chromium.launchServer({
     args: [
       '--disable-dev-shm-usage',
       '--disable-gpu',
@@ -175,7 +196,8 @@ async function run(url, onPoint, setBrowser) {
       '--no-first-run',
     ],
   });
-  setBrowser(browser);
+  setServer(server);
+  const browser = await chromium.connect(server.wsEndpoint());
   const page = await browser.newPage();
 
   // All this bridge actually reads is the page's own background fetches for
@@ -242,7 +264,7 @@ async function run(url, onPoint, setBrowser) {
     // catch a run that's climbing fast, not just the ones that wait
     // politely for their 90s turn.
     watchdog = setInterval(() => {
-      const proc = browser.process();
+      const proc = server.process();
       if (!proc) return;
       const tree = processTree();
       const totalKb = descendants(proc.pid, tree).reduce((sum, pid) => sum + (tree.get(pid)?.rssKb || 0), 0);
@@ -253,16 +275,16 @@ async function run(url, onPoint, setBrowser) {
       }
     }, 10000);
   });
-  await closeBrowser(browser);
+  await closeBrowser(server);
 }
 
 function launch(url, onPoint) {
   let stopped = false;
-  let browser = null;
+  let server = null;
   (async () => {
     while (!stopped) {
       try {
-        await run(url, onPoint, (b) => { browser = b; });
+        await run(url, onPoint, (s) => { server = s; });
       } catch (err) {
         if (!stopped) console.error('garmin bridge error:', err.message);
       }
@@ -273,7 +295,7 @@ function launch(url, onPoint) {
     url,
     stop() {
       stopped = true;
-      if (browser) closeBrowser(browser);
+      if (server) closeBrowser(server);
     },
   };
 }
