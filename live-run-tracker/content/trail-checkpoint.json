@@ -1,13 +1,13 @@
 {
   "url": "https://livetrack.garmin.com/session/87c8b838-9740-833e-a915-f3793ad95d00/token/BED2D68C7E353A583976E17E393311B",
   "latest": {
-    "lat": -37.83537187613547,
-    "lng": 144.9933072924614,
+    "lat": -37.83647124655545,
+    "lng": 144.99314166605473,
     "accuracy": null,
-    "speed": 2.72,
-    "heartRate": 138,
-    "distanceMeters": 148891.28,
-    "timestamp": 1794015709000
+    "speed": null,
+    "heartRate": null,
+    "distanceMeters": 148968.38,
+    "timestamp": 1794015780000
   },
   "trail": [
     {
@@ -7191,6 +7191,60 @@
       "heartRate": 138,
       "distanceMeters": 148891.28,
       "timestamp": 1794015709000
+    },
+    {
+      "lat": -37.83557144924998,
+      "lng": 144.99325783923268,
+      "accuracy": null,
+      "speed": 2.65,
+      "heartRate": 142,
+      "distanceMeters": 148914.05,
+      "timestamp": 1794015719000
+    },
+    {
+      "lat": -37.83583355136216,
+      "lng": 144.99322229996324,
+      "accuracy": null,
+      "speed": 2.65,
+      "heartRate": 142,
+      "distanceMeters": 148942.52,
+      "timestamp": 1794015729000
+    },
+    {
+      "lat": -37.836073441430926,
+      "lng": 144.99318131245673,
+      "accuracy": null,
+      "speed": 2.73,
+      "heartRate": 141,
+      "distanceMeters": 148968.38,
+      "timestamp": 1794015739000
+    },
+    {
+      "lat": -37.83644995652139,
+      "lng": 144.9931616988033,
+      "accuracy": null,
+      "speed": 1.46,
+      "heartRate": 134,
+      "distanceMeters": 148968.38,
+      "timestamp": 1794015779000
+    },
+    {
+      "lat": -37.836329843848944,
+      "lng": 144.99313688836992,
+      "accuracy": null,
+      "speed": 0.95,
+      "heartRate": 135,
+      "distanceMeters": 148968.38,
+      "timestamp": 1794015769000
+    },
+    {
+      "lat": -37.83647124655545,
+      "lng": 144.99314166605473,
+      "accuracy": null,
+      "speed": null,
+      "heartRate": null,
+      "distanceMeters": 148968.38,
+      "timestamp": 1794015780000
     }
   ]
 }
