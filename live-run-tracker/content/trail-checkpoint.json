@@ -1,13 +1,13 @@
 {
   "url": "https://livetrack.garmin.com/session/85f56196-1ba8-8fa7-bc40-3c965a502901/token/71C842EF59EF79F2B3BE314AF217C1E5",
   "latest": {
-    "lat": -36.45199307240546,
-    "lng": 148.2638710923493,
+    "lat": -36.452194321900606,
+    "lng": 148.26357495971024,
     "accuracy": null,
-    "speed": 1.7,
-    "heartRate": 153,
-    "distanceMeters": 26273.15,
-    "timestamp": 1795737034000
+    "speed": 1.73,
+    "heartRate": 151,
+    "distanceMeters": 26307.99,
+    "timestamp": 1795737054000
   },
   "trail": [
     {
@@ -6237,6 +6237,15 @@
       "heartRate": 153,
       "distanceMeters": 26273.15,
       "timestamp": 1795737034000
+    },
+    {
+      "lat": -36.452194321900606,
+      "lng": 148.26357495971024,
+      "accuracy": null,
+      "speed": 1.73,
+      "heartRate": 151,
+      "distanceMeters": 26307.99,
+      "timestamp": 1795737054000
     }
   ]
 }
