@@ -1,13 +1,13 @@
 {
   "url": "https://livetrack.garmin.com/session/85f56196-1ba8-8fa7-bc40-3c965a502901/token/71C842EF59EF79F2B3BE314AF217C1E5",
   "latest": {
-    "lat": -36.41346833668649,
-    "lng": 148.43856487423182,
+    "lat": -36.411601938307285,
+    "lng": 148.44479237683117,
     "accuracy": null,
-    "speed": 2.43,
-    "heartRate": 139,
-    "distanceMeters": 67658.25,
-    "timestamp": 1795757418000
+    "speed": 2.18,
+    "heartRate": 131,
+    "distanceMeters": 68369.72,
+    "timestamp": 1795757748000
   },
   "trail": [
     {
@@ -17496,6 +17496,213 @@
       "heartRate": 139,
       "distanceMeters": 67658.25,
       "timestamp": 1795757418000
+    },
+    {
+      "lat": -36.41282728873193,
+      "lng": 148.43869529664516,
+      "accuracy": null,
+      "speed": 2.44,
+      "heartRate": 141,
+      "distanceMeters": 67731.49,
+      "timestamp": 1795757448000
+    },
+    {
+      "lat": -36.41303574666381,
+      "lng": 148.43859622254968,
+      "accuracy": null,
+      "speed": 2.45,
+      "heartRate": 139,
+      "distanceMeters": 67706.92,
+      "timestamp": 1795757438000
+    },
+    {
+      "lat": -36.41326205804944,
+      "lng": 148.43856914900243,
+      "accuracy": null,
+      "speed": 2.4,
+      "heartRate": 138,
+      "distanceMeters": 67680.9,
+      "timestamp": 1795757428000
+    },
+    {
+      "lat": -36.41261371783912,
+      "lng": 148.44029741361737,
+      "accuracy": null,
+      "speed": 2.51,
+      "heartRate": 134,
+      "distanceMeters": 67880.66,
+      "timestamp": 1795757508000
+    },
+    {
+      "lat": -36.412419844418764,
+      "lng": 148.44074584543705,
+      "accuracy": null,
+      "speed": 2.45,
+      "heartRate": 131,
+      "distanceMeters": 67928.4,
+      "timestamp": 1795757528000
+    },
+    {
+      "lat": -36.41255387105048,
+      "lng": 148.44054283574224,
+      "accuracy": null,
+      "speed": 2.46,
+      "heartRate": 135,
+      "distanceMeters": 67904.56,
+      "timestamp": 1795757518000
+    },
+    {
+      "lat": -36.412258157506585,
+      "lng": 148.4409631881863,
+      "accuracy": null,
+      "speed": 2.47,
+      "heartRate": 131,
+      "distanceMeters": 67954.34,
+      "timestamp": 1795757538000
+    },
+    {
+      "lat": -36.41213561408222,
+      "lng": 148.44138194806874,
+      "accuracy": null,
+      "speed": 2.16,
+      "heartRate": 133,
+      "distanceMeters": 67997.41,
+      "timestamp": 1795757558000
+    },
+    {
+      "lat": -36.412144247442484,
+      "lng": 148.44117717817426,
+      "accuracy": null,
+      "speed": 2.49,
+      "heartRate": 133,
+      "distanceMeters": 67978.52,
+      "timestamp": 1795757548000
+    },
+    {
+      "lat": -36.41188616864383,
+      "lng": 148.44231300987303,
+      "accuracy": null,
+      "speed": 2.32,
+      "heartRate": 141,
+      "distanceMeters": 68087.32,
+      "timestamp": 1795757608000
+    },
+    {
+      "lat": -36.41191156581044,
+      "lng": 148.44207990914583,
+      "accuracy": null,
+      "speed": 1.52,
+      "heartRate": 136,
+      "distanceMeters": 68068.67,
+      "timestamp": 1795757598000
+    },
+    {
+      "lat": -36.41188072040677,
+      "lng": 148.4426049515605,
+      "accuracy": null,
+      "speed": 2.54,
+      "heartRate": 141,
+      "distanceMeters": 68113.57,
+      "timestamp": 1795757618000
+    },
+    {
+      "lat": -36.41196026466787,
+      "lng": 148.44279932789505,
+      "accuracy": null,
+      "speed": 2.3,
+      "heartRate": 140,
+      "distanceMeters": 68134.16,
+      "timestamp": 1795757628000
+    },
+    {
+      "lat": -36.41206688247621,
+      "lng": 148.44301046803594,
+      "accuracy": null,
+      "speed": 2.16,
+      "heartRate": 140,
+      "distanceMeters": 68155.67,
+      "timestamp": 1795757638000
+    },
+    {
+      "lat": -36.41216520220041,
+      "lng": 148.44320853240788,
+      "accuracy": null,
+      "speed": 2.17,
+      "heartRate": 139,
+      "distanceMeters": 68177.54,
+      "timestamp": 1795757648000
+    },
+    {
+      "lat": -36.4122211933136,
+      "lng": 148.44336443580687,
+      "accuracy": null,
+      "speed": 1.74,
+      "heartRate": 136,
+      "distanceMeters": 68193.29,
+      "timestamp": 1795757658000
+    },
+    {
+      "lat": -36.412321692332625,
+      "lng": 148.44350625760853,
+      "accuracy": null,
+      "speed": 1.8,
+      "heartRate": 130,
+      "distanceMeters": 68210.42,
+      "timestamp": 1795757668000
+    },
+    {
+      "lat": -36.41234583221376,
+      "lng": 148.44397044740617,
+      "accuracy": null,
+      "speed": 1.9,
+      "heartRate": 126,
+      "distanceMeters": 68258.31,
+      "timestamp": 1795757698000
+    },
+    {
+      "lat": -36.412194203585386,
+      "lng": 148.4441394265741,
+      "accuracy": null,
+      "speed": 1.97,
+      "heartRate": 127,
+      "distanceMeters": 68279.77,
+      "timestamp": 1795757708000
+    },
+    {
+      "lat": -36.412065206095576,
+      "lng": 148.44435358420014,
+      "accuracy": null,
+      "speed": 2.21,
+      "heartRate": 129,
+      "distanceMeters": 68304.15,
+      "timestamp": 1795757718000
+    },
+    {
+      "lat": -36.41194559633732,
+      "lng": 148.4445067215711,
+      "accuracy": null,
+      "speed": 2.21,
+      "heartRate": 131,
+      "distanceMeters": 68324.52,
+      "timestamp": 1795757728000
+    },
+    {
+      "lat": -36.41177695244551,
+      "lng": 148.44466019421816,
+      "accuracy": null,
+      "speed": 2.3,
+      "heartRate": 132,
+      "distanceMeters": 68348.13,
+      "timestamp": 1795757738000
+    },
+    {
+      "lat": -36.411601938307285,
+      "lng": 148.44479237683117,
+      "accuracy": null,
+      "speed": 2.18,
+      "heartRate": 131,
+      "distanceMeters": 68369.72,
+      "timestamp": 1795757748000
     }
   ]
 }
